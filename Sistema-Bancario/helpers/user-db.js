@@ -4,7 +4,7 @@ import {
   UserEmail,
   UserPasswordReset,
   UserTwoFactor,
-} from '../src/users/user.model.js';
+} from '../src/users/user-model.js';
 import { UserRole, Role } from '../src/auth/role.model.js';
 import { USER_ROLE } from './role-constants.js';
 import { hashPassword } from '../utils/password-utils.js';

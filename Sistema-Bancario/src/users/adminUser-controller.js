@@ -1,5 +1,5 @@
 'use strict';
-import User from './user.model.js';
+import User from './user-model.js';
 import Account from '../accounts/account.model.js';
 import Transaction from '../transactions/transaction.model.js';
 import { generateAccountNumber } from '../../configs/accountNumber.js';
