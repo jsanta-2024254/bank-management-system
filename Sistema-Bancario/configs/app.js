@@ -17,7 +17,7 @@ import {
 } from '../middlewares/server-genericError-handler.js';
 import authRoutes from '../src/auth/auth.routes.js';
 import userRoutes from '../src/users/user.routes.js';
-
+import favoriteRoutes from '../src/favorites/favorite.router.js';
 const BASE_PATH = '/api/v1';
 
 const middlewares = (app) => {
@@ -32,12 +32,13 @@ const middlewares = (app) => {
 const routes = (app) => {
   app.use(`${BASE_PATH}/auth`, authRoutes);
   app.use(`${BASE_PATH}/users`, userRoutes);
+  app.use(`${BASE_PATH}/favorites`, favoriteRoutes);
 
   app.get(`${BASE_PATH}/health`, (req, res) => {
     res.status(200).json({
       status: 'Healthy',
       timestamp: new Date().toISOString(),
-      service: 'KinalSports Authentication Service',
+      service: 'BancoKinalports Authentication Service',
     });
   });
   // 404 handler (standardized)
@@ -60,7 +61,7 @@ export const initServer = async () => {
     app.use(errorHandler);
 
     app.listen(PORT, () => {
-      console.log(`KinalSports Auth Server running on port ${PORT}`);
+      console.log(`BancoKinalports Auth Server running on port ${PORT}`);
       console.log(`Health check: http://localhost:${PORT}${BASE_PATH}/health`);
     });
   } catch (err) {
