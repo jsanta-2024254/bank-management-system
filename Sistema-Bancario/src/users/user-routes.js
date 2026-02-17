@@ -3,7 +3,7 @@ import {
   updateUserRole,
   getUserRoles,
   getUsersByRole,
-} from './user.controller.js';
+} from '../users/user-controller.js';
 
 const router = Router();
 
