@@ -23,7 +23,7 @@ import path from 'path';
 import { uploadImage } from './cloudinary-service.js';
 import { config } from '../configs/config.js';
 import nodemailer from 'nodemailer';
-import { UserTwoFactor } from '../src/users/user.model.js';
+import { UserTwoFactor } from '../src/users/user-model.js';
 
 const getExpirationTime = (timeString) => {
   const timeValue = parseInt(timeString);

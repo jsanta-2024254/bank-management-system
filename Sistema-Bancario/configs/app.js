@@ -6,7 +6,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { dbConnection } from './db.js';
 // Ensure models are registered before DB sync
-import '../src/users/user.model.js';
+import '../src/users/user-model.js';
 import '../src/auth/role.model.js';
 import { requestLimit } from '../middlewares/request-limit.js';
 import { corsOptions } from './cors-configuration.js';
@@ -16,7 +16,7 @@ import {
   notFound,
 } from '../middlewares/server-genericError-handler.js';
 import authRoutes from '../src/auth/auth.routes.js';
-import userRoutes from '../src/users/user.routes.js';
+import userRoutes from '../src/users/user-routes.js';
 import favoriteRoutes from '../src/favorites/favorite.router.js';
 const BASE_PATH = '/api/v1';
 
