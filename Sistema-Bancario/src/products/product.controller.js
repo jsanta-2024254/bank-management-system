@@ -1,29 +1,33 @@
 'use strict';
 import Product from './product.model.js';
 
-// GET /api/products
+// GET /api/v1/products
 export const getProducts = async (req, res) => {
     try {
-        const { page = 1, limit = 10, categoria } = req.query;
+        const page  = Math.max(1, parseInt(req.query.page)  || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+        const { categoria } = req.query;
+
         const filter = { activo: true };
         if (categoria) filter.categoria = categoria;
 
-        const products = await Product.find(filter)
-            .populate('creadoPor', 'nombre username')
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .sort({ createdAt: -1 });
-
-        const total = await Product.countDocuments(filter);
+        const [products, total] = await Promise.all([
+            Product.find(filter)
+                
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit),
+            Product.countDocuments(filter)
+        ]);
 
         res.status(200).json({
             success: true,
             data: products,
             pagination: {
-                currentPage: parseInt(page),
+                currentPage: page,
                 totalPages: Math.ceil(total / limit),
                 totalRecords: total,
-                limit: parseInt(limit)
+                limit
             }
         });
     } catch (error) {
@@ -35,11 +39,10 @@ export const getProducts = async (req, res) => {
     }
 };
 
-// GET /api/products/:id 
 export const getProductById = async (req, res) => {
     try {
         const product = await Product.findOne({ _id: req.params.id, activo: true })
-            .populate('creadoPor', 'nombre username');
+            ;
 
         if (!product) {
             return res.status(404).json({
@@ -48,10 +51,7 @@ export const getProductById = async (req, res) => {
             });
         }
 
-        res.status(200).json({
-            success: true,
-            data: product
-        });
+        res.status(200).json({ success: true, data: product });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -61,11 +61,20 @@ export const getProductById = async (req, res) => {
     }
 };
 
-// POST /api/admin/products
 export const createProduct = async (req, res) => {
     try {
-        const productData = { ...req.body, creadoPor: req.user.id };
-        const product = new Product(productData);
+        const { nombre, descripcion, precio, categoria, stock, exclusivo } = req.body;
+
+        const product = new Product({
+            nombre,
+            descripcion,
+            precio,
+            categoria,
+            ...(stock !== undefined && { stock }),
+            ...(exclusivo !== undefined && { exclusivo }),
+            creadoPor: req.user.id
+        });
+
         await product.save();
 
         res.status(201).json({
@@ -82,12 +91,28 @@ export const createProduct = async (req, res) => {
     }
 };
 
-// PUT /api/admin/products/
 export const updateProduct = async (req, res) => {
     try {
-        const product = await Product.findByIdAndUpdate(
-            req.params.id,
-            { $set: req.body },
+        const { nombre, descripcion, precio, categoria, stock, exclusivo } = req.body;
+        const updateData = {};
+        if (nombre      !== undefined) updateData.nombre      = nombre;
+        if (descripcion !== undefined) updateData.descripcion = descripcion;
+        if (precio      !== undefined) updateData.precio      = precio;
+        if (categoria   !== undefined) updateData.categoria   = categoria;
+        if (stock       !== undefined) updateData.stock       = stock;
+        if (exclusivo   !== undefined) updateData.exclusivo   = exclusivo;
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'No se proporcionaron campos para actualizar'
+            });
+        }
+
+        // Filtra por activo: true para respetar el soft-delete
+        const product = await Product.findOneAndUpdate(
+            { _id: req.params.id, activo: true },
+            { $set: updateData },
             { new: true, runValidators: true }
         );
 
@@ -112,11 +137,12 @@ export const updateProduct = async (req, res) => {
     }
 };
 
-// DELETE /api/admin/products/:id 
+// DELETE /api/v1/admin/products/:id  (soft delete)
 export const deleteProduct = async (req, res) => {
     try {
-        const product = await Product.findByIdAndUpdate(
-            req.params.id,
+        // Filtra por activo: true para no operar sobre productos ya eliminados
+        const product = await Product.findOneAndUpdate(
+            { _id: req.params.id, activo: true },
             { $set: { activo: false } },
             { new: true }
         );
@@ -130,7 +156,7 @@ export const deleteProduct = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Producto desactivado exitosamente'
+            message: 'Producto eliminado exitosamente'
         });
     } catch (error) {
         res.status(500).json({

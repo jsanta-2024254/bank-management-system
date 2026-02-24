@@ -5,24 +5,46 @@ import {
     createProduct, updateProduct, deleteProduct
 } from './product.controller.js';
 import { verifyToken, isAdmin } from '../../middlewares/auth.middleware.js';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import { handleValidationErrors } from '../../middlewares/validators.middleware.js';
 
 const router = Router();
+
+const CATEGORIAS = ['calzado', 'ropa', 'tecnologia', 'servicios', 'hogar', 'salud', 'entretenimiento', 'otros'];
 
 const createValidations = [
     body('nombre').notEmpty().withMessage('El nombre es requerido').trim(),
     body('descripcion').notEmpty().withMessage('La descripcion es requerida').trim(),
     body('precio').isFloat({ min: 0.01 }).withMessage('El precio debe ser mayor que 0'),
-    body('categoria').isIn(['calzado','ropa','tecnologia','servicios','hogar','salud','entretenimiento','otros'])
-        .withMessage('Categoria invalida'),
-    body('stock').optional().isInt({ min: -1 }).withMessage('Stock invalido')
+    body('categoria').isIn(CATEGORIAS).withMessage('Categoria invalida'),
+    body('stock').optional().isInt({ min: 0 }).withMessage('El stock debe ser mayor o igual a 0')
 ];
 
-// GET /api/products
-router.get('/', verifyToken, getProducts);
+const updateValidations = [
+    body('nombre').optional().notEmpty().withMessage('El nombre no puede estar vacío').trim(),
+    body('descripcion').optional().notEmpty().withMessage('La descripcion no puede estar vacía').trim(),
+    body('precio').optional().isFloat({ min: 0.01 }).withMessage('El precio debe ser mayor que 0'),
+    body('categoria').optional().isIn(CATEGORIAS).withMessage('Categoria invalida'),
+    body('stock').optional().isInt({ min: 0 }).withMessage('El stock debe ser mayor o igual a 0'),
+    body('exclusivo').optional().isBoolean().withMessage('El campo exclusivo debe ser booleano')
+];
 
-// GET /api/products/:id
+const paginationValidations = [
+    query('page').optional().isInt({ min: 1 }).withMessage('La pagina debe ser mayor que 0'),
+    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('El limite debe estar entre 1 y 100'),
+    query('categoria').optional().isIn(CATEGORIAS).withMessage('Categoria invalida')
+];
+
+// GET /api/v1/products
+router.get(
+    '/',
+    verifyToken,
+    paginationValidations,
+    handleValidationErrors,
+    getProducts
+);
+
+// GET /api/v1/products/:id
 router.get(
     '/:id',
     verifyToken,
@@ -31,7 +53,7 @@ router.get(
     getProductById
 );
 
-// POST /api/admin/products  el admin lo usa via /api/admin/products en index.js
+// POST /api/v1/admin/products (solo admin)
 router.post(
     '/',
     verifyToken,
@@ -41,17 +63,17 @@ router.post(
     createProduct
 );
 
-// PUT /api/admin/products/:id
+// PUT /api/v1/admin/products/:id (solo admin)
 router.put(
     '/:id',
     verifyToken,
     isAdmin,
-    [param('id').isMongoId().withMessage('ID invalido')],
+    [param('id').isMongoId().withMessage('ID invalido'), ...updateValidations],
     handleValidationErrors,
     updateProduct
 );
 
-// DELETE /api/admin/products/:id
+// DELETE /api/v1/admin/products/:id (solo admin)
 router.delete(
     '/:id',
     verifyToken,

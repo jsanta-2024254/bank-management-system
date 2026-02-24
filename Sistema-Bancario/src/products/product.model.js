@@ -31,7 +31,8 @@ const productSchema = mongoose.Schema(
         },
         stock: {
             type: Number,
-            default: -1
+            default: 0,
+            min: [0, 'El stock no puede ser negativo']
         },
         exclusivo: {
             type: Boolean,
@@ -42,9 +43,8 @@ const productSchema = mongoose.Schema(
             default: true
         },
         creadoPor: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
+            type: String,
+            required: [true, 'El creador del producto es requerido']
         }
     },
     {
