@@ -1,5 +1,5 @@
 'use strict';
-import mongoose from 'mongoose'; // [COMMIT 3] importar mongoose para startSession
+import mongoose from 'mongoose';
 import Transaction from './transaction.model.js';
 import Account from '../accounts/account.model.js';
 import DailyLimit from '../deposits/dailyLimit.model.js';
@@ -64,8 +64,8 @@ export const getAccountHistory = async (req, res) => {
 export const getTransactionById = async (req, res) => {
     try {
         const transaction = await Transaction.findById(req.params.id)
-            .populate('cuentaOrigen', 'numeroCuenta tipoCuenta')
-            .populate('cuentaDestino', 'numeroCuenta tipoCuenta')
+            .populate('cuentaOrigen', 'numeroCuenta tipoCuenta usuario')  
+            .populate('cuentaDestino', 'numeroCuenta tipoCuenta usuario') 
             .populate('ejecutadaPor', 'nombre username');
 
         if (!transaction) {
@@ -74,6 +74,20 @@ export const getTransactionById = async (req, res) => {
                 message: 'Transaccion no encontrada'
             });
         }
+
+        if (req.user.rol === 'cliente') {
+            const uid = req.user.id;
+            const esOrigen  = transaction.cuentaOrigen?.usuario?.toString() === uid;
+            const esDestino = transaction.cuentaDestino?.usuario?.toString() === uid;
+
+            if (!esOrigen && !esDestino) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No tienes permiso para ver esta transaccion'
+                });
+            }
+        }
+        // Los admins no entran al bloque anterior y pueden ver cualquier transacción.
 
         res.status(200).json({
             success: true,
@@ -96,7 +110,6 @@ export const transfer = async (req, res) => {
     try {
         const { numeroCuentaDestino, tipoCuentaDestino, monto, descripcion } = req.body;
 
-        // Validar monto maximo por transferencia
         if (monto > 2000) {
             await session.abortTransaction();
             session.endSession();
@@ -106,10 +119,9 @@ export const transfer = async (req, res) => {
             });
         }
 
-        // Obtener cuenta origen del cliente autenticado 
         const cuentaOrigen = await Account.findOne(
             { usuario: req.user.id, estado: true }
-        ).session(session); 
+        ).session(session);
 
         if (!cuentaOrigen) {
             await session.abortTransaction();
@@ -120,7 +132,6 @@ export const transfer = async (req, res) => {
             });
         }
 
-        // Verificar saldo suficiente
         if (cuentaOrigen.saldo < monto) {
             await session.abortTransaction();
             session.endSession();
@@ -130,7 +141,6 @@ export const transfer = async (req, res) => {
             });
         }
 
-        // Obtener cuenta destino 
         const cuentaDestino = await Account.findOne({
             numeroCuenta: numeroCuentaDestino,
             tipoCuenta: tipoCuentaDestino,
@@ -146,7 +156,6 @@ export const transfer = async (req, res) => {
             });
         }
 
-        // No puede transferirse a si mismo
         if (cuentaOrigen._id.toString() === cuentaDestino._id.toString()) {
             await session.abortTransaction();
             session.endSession();
@@ -156,11 +165,10 @@ export const transfer = async (req, res) => {
             });
         }
 
-        // Verificar limite diario 
         const hoy = new Date().toISOString().split('T')[0];
         let dailyLimit = await DailyLimit.findOne(
             { usuario: req.user.id, fecha: hoy }
-        ).session(session); 
+        ).session(session);
 
         const totalHoy = dailyLimit ? dailyLimit.totalTransferido : 0;
         if (totalHoy + monto > 10000) {
@@ -172,7 +180,6 @@ export const transfer = async (req, res) => {
             });
         }
 
-        // Ejecutar transferencia
         const saldoAnteriorOrigen  = cuentaOrigen.saldo;
         const saldoAnteriorDestino = cuentaDestino.saldo;
 
@@ -182,7 +189,6 @@ export const transfer = async (req, res) => {
         await cuentaOrigen.save({ session });
         await cuentaDestino.save({ session });
 
-        // Registrar transaccion 
         const transaction = new Transaction({
             tipo: 'transferencia',
             monto,
@@ -195,16 +201,15 @@ export const transfer = async (req, res) => {
             saldoPosteriorDestino: cuentaDestino.saldo,
             ejecutadaPor: req.user.id
         });
-        await transaction.save({ session }); 
+        await transaction.save({ session });
 
-        // Actualizar limite diario 
         if (dailyLimit) {
             dailyLimit.totalTransferido += monto;
-            await dailyLimit.save({ session }); 
+            await dailyLimit.save({ session });
         } else {
             await DailyLimit.create(
                 [{ usuario: req.user.id, fecha: hoy, totalTransferido: monto }],
-                { session } 
+                { session }
             );
         }
 
