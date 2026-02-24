@@ -3,6 +3,7 @@ import User from './user-model.js';
 import Account from '../accounts/account.model.js';
 import Transaction from '../transactions/transaction.model.js';
 import { generateAccountNumber } from '../../configs/accountNumber.js';
+import { hashPassword } from '../../utils/password-utils.js'; // [COMMIT 1] importar hashPassword
 
 // POST /api/admin/users  → Crear cliente nuevo
 export const createUser = async (req, res) => {
@@ -18,9 +19,12 @@ export const createUser = async (req, res) => {
             });
         }
 
+        const hashedPassword = await hashPassword(password);
+
         const user = new User({
-            nombre, username, email, password, dpi,
-            direccion, celular, nombreTrabajo, ingresosMensuales,
+            nombre, username, email,
+            password: hashedPassword, 
+            dpi, direccion, celular, nombreTrabajo, ingresosMensuales,
             rol: 'cliente'
         });
         await user.save();
