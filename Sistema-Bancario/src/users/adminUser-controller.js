@@ -3,15 +3,14 @@ import User from './user-model.js';
 import Account from '../accounts/account.model.js';
 import Transaction from '../transactions/transaction.model.js';
 import { generateAccountNumber } from '../../configs/accountNumber.js';
-import { hashPassword } from '../../utils/password-utils.js'; // [COMMIT 1] importar hashPassword
+import { hashPassword } from '../../utils/password-utils.js';
 
-// POST /api/admin/users  → Crear cliente nuevo
+// POST /api/admin/users  
 export const createUser = async (req, res) => {
     try {
         const { nombre, username, email, password, dpi, direccion, celular,
                 nombreTrabajo, ingresosMensuales, tipoCuenta = 'monetaria' } = req.body;
 
-        // Validar ingresos minimos
         if (ingresosMensuales < 100) {
             return res.status(400).json({
                 success: false,
@@ -23,13 +22,12 @@ export const createUser = async (req, res) => {
 
         const user = new User({
             nombre, username, email,
-            password: hashedPassword, 
+            password: hashedPassword,
             dpi, direccion, celular, nombreTrabajo, ingresosMensuales,
             rol: 'cliente'
         });
         await user.save();
 
-        // Crear cuenta bancaria automaticamente con numero aleatorio
         const numeroCuenta = await generateAccountNumber();
         const account = new Account({
             numeroCuenta,
@@ -63,20 +61,19 @@ export const createUser = async (req, res) => {
     }
 };
 
-// GET /api/admin/users  → Listar todos los clientes con saldo y ultimos 5 movimientos
+// GET /api/admin/users  
 export const getUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10, estado = true } = req.query;
         const filter = { rol: 'cliente', estado };
 
-        const users = await User.find(filter)
+        const users = await User.find(filter, { password: 0 })
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });
 
         const total = await User.countDocuments(filter);
 
-        // Para cada usuario, traer cuenta y ultimos 5 movimientos
         const usersWithData = await Promise.all(
             users.map(async (user) => {
                 const account = await Account.findOne({ usuario: user._id, estado: true });
@@ -89,7 +86,7 @@ export const getUsers = async (req, res) => {
                     .limit(5);
                 }
                 return {
-                    ...user.toObject(),
+                    ...user.toObject(), 
                     cuenta: account,
                     ultimosMovimientos: lastTransactions
                 };
@@ -115,10 +112,14 @@ export const getUsers = async (req, res) => {
     }
 };
 
-// GET /api/admin/users/:id  → Ver un usuario con saldo y ultimos 5 movimientos
+// GET /api/admin/users/:id  
 export const getUserById = async (req, res) => {
     try {
-        const user = await User.findOne({ _id: req.params.id, rol: 'cliente' });
+        const user = await User.findOne(
+            { _id: req.params.id, rol: 'cliente' },
+            { password: 0 } 
+        );
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -139,7 +140,7 @@ export const getUserById = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                ...user.toObject(),
+                ...user.toObject(), 
                 cuenta: account,
                 ultimosMovimientos: lastTransactions
             }
@@ -153,10 +154,9 @@ export const getUserById = async (req, res) => {
     }
 };
 
-// PUT /api/admin/users/:id  → Editar cliente (sin DPI ni contrasena)
+// PUT /api/admin/users/:id  
 export const updateUser = async (req, res) => {
     try {
-        // Excluir campos que el admin NO puede modificar
         const { dpi, password, rol, ...allowedFields } = req.body;
 
         const user = await User.findOneAndUpdate(
@@ -186,7 +186,7 @@ export const updateUser = async (req, res) => {
     }
 };
 
-// DELETE /api/admin/users/:id  → Desactivar cliente (soft delete)
+// DELETE /api/admin/users/:id  
 export const deleteUser = async (req, res) => {
     try {
         const user = await User.findOneAndUpdate(
@@ -202,7 +202,6 @@ export const deleteUser = async (req, res) => {
             });
         }
 
-        // Desactivar cuenta bancaria tambien
         await Account.updateMany({ usuario: user._id }, { $set: { estado: false } });
 
         res.status(200).json({
