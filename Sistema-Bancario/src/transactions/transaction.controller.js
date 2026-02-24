@@ -1,9 +1,10 @@
 'use strict';
+import mongoose from 'mongoose'; // [COMMIT 3] importar mongoose para startSession
 import Transaction from './transaction.model.js';
 import Account from '../accounts/account.model.js';
 import DailyLimit from '../deposits/dailyLimit.model.js';
 
-// GET /api/transactions/account/:accountId 
+// GET /api/transactions/account/:accountId
 export const getAccountHistory = async (req, res) => {
     try {
         const { accountId } = req.params;
@@ -59,7 +60,7 @@ export const getAccountHistory = async (req, res) => {
     }
 };
 
-// GET /api/transactions/:id 
+// GET /api/transactions/:id
 export const getTransactionById = async (req, res) => {
     try {
         const transaction = await Transaction.findById(req.params.id)
@@ -87,22 +88,32 @@ export const getTransactionById = async (req, res) => {
     }
 };
 
-// POST /api/transactions/transfer 
+// POST /api/transactions/transfer
 export const transfer = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { numeroCuentaDestino, tipoCuentaDestino, monto, descripcion } = req.body;
 
         // Validar monto maximo por transferencia
         if (monto > 2000) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({
                 success: false,
                 message: 'No puede transferir mas de Q2,000 por operacion'
             });
         }
 
-        // Obtener cuenta origen del cliente autenticado
-        const cuentaOrigen = await Account.findOne({ usuario: req.user.id, estado: true });
+        // Obtener cuenta origen del cliente autenticado 
+        const cuentaOrigen = await Account.findOne(
+            { usuario: req.user.id, estado: true }
+        ).session(session); 
+
         if (!cuentaOrigen) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(404).json({
                 success: false,
                 message: 'No tienes una cuenta bancaria activa'
@@ -111,19 +122,24 @@ export const transfer = async (req, res) => {
 
         // Verificar saldo suficiente
         if (cuentaOrigen.saldo < monto) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({
                 success: false,
                 message: 'Saldo insuficiente para realizar la transferencia'
             });
         }
 
-        // Obtener cuenta destino
+        // Obtener cuenta destino 
         const cuentaDestino = await Account.findOne({
             numeroCuenta: numeroCuentaDestino,
             tipoCuenta: tipoCuentaDestino,
             estado: true
-        });
+        }).session(session);
+
         if (!cuentaDestino) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(404).json({
                 success: false,
                 message: 'Cuenta destino no encontrada o inactiva'
@@ -132,18 +148,24 @@ export const transfer = async (req, res) => {
 
         // No puede transferirse a si mismo
         if (cuentaOrigen._id.toString() === cuentaDestino._id.toString()) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({
                 success: false,
                 message: 'No puedes transferir a tu propia cuenta'
             });
         }
 
-        // Verificar limite diario
+        // Verificar limite diario 
         const hoy = new Date().toISOString().split('T')[0];
-        let dailyLimit = await DailyLimit.findOne({ usuario: req.user.id, fecha: hoy });
+        let dailyLimit = await DailyLimit.findOne(
+            { usuario: req.user.id, fecha: hoy }
+        ).session(session); 
 
         const totalHoy = dailyLimit ? dailyLimit.totalTransferido : 0;
         if (totalHoy + monto > 10000) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({
                 success: false,
                 message: `Limite diario excedido. Disponible hoy: Q${(10000 - totalHoy).toFixed(2)}`
@@ -157,10 +179,10 @@ export const transfer = async (req, res) => {
         cuentaOrigen.saldo  -= monto;
         cuentaDestino.saldo += monto;
 
-        await cuentaOrigen.save();
-        await cuentaDestino.save();
+        await cuentaOrigen.save({ session });
+        await cuentaDestino.save({ session });
 
-        // Registrar transaccion
+        // Registrar transaccion 
         const transaction = new Transaction({
             tipo: 'transferencia',
             monto,
@@ -173,19 +195,21 @@ export const transfer = async (req, res) => {
             saldoPosteriorDestino: cuentaDestino.saldo,
             ejecutadaPor: req.user.id
         });
-        await transaction.save();
+        await transaction.save({ session }); 
 
-        // Actualizar limite diario
+        // Actualizar limite diario 
         if (dailyLimit) {
             dailyLimit.totalTransferido += monto;
-            await dailyLimit.save();
+            await dailyLimit.save({ session }); 
         } else {
-            await DailyLimit.create({
-                usuario: req.user.id,
-                fecha: hoy,
-                totalTransferido: monto
-            });
+            await DailyLimit.create(
+                [{ usuario: req.user.id, fecha: hoy, totalTransferido: monto }],
+                { session } 
+            );
         }
+
+        await session.commitTransaction();
+        session.endSession();
 
         res.status(201).json({
             success: true,
@@ -193,6 +217,8 @@ export const transfer = async (req, res) => {
             data: transaction
         });
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         res.status(500).json({
             success: false,
             message: 'Error al realizar la transferencia',
