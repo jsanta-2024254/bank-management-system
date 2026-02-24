@@ -86,7 +86,7 @@ export const getUsers = async (req, res) => {
                     .limit(5);
                 }
                 return {
-                    ...user.toObject(), 
+                    ...user.toObject(),
                     cuenta: account,
                     ultimosMovimientos: lastTransactions
                 };
@@ -117,7 +117,7 @@ export const getUserById = async (req, res) => {
     try {
         const user = await User.findOne(
             { _id: req.params.id, rol: 'cliente' },
-            { password: 0 } 
+            { password: 0 }
         );
 
         if (!user) {
@@ -140,7 +140,7 @@ export const getUserById = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                ...user.toObject(), 
+                ...user.toObject(),
                 cuenta: account,
                 ultimosMovimientos: lastTransactions
             }
@@ -157,12 +157,25 @@ export const getUserById = async (req, res) => {
 // PUT /api/admin/users/:id  
 export const updateUser = async (req, res) => {
     try {
-        const { dpi, password, rol, ...allowedFields } = req.body;
+        const { dpi, password, rol, estado, ...rawFields } = req.body;
+
+        const allowedFields = Object.fromEntries(
+            Object.entries(rawFields).filter(
+                ([, value]) => value !== undefined && value !== null && value !== ''
+            )
+        );
+
+        if (Object.keys(allowedFields).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'No se proporcionaron campos validos para actualizar'
+            });
+        }
 
         const user = await User.findOneAndUpdate(
             { _id: req.params.id, rol: 'cliente' },
             { $set: allowedFields },
-            { new: true, runValidators: true }
+            { new: true, runValidators: true, projection: { password: 0 } }
         );
 
         if (!user) {
