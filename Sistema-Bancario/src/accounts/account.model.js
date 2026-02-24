@@ -13,8 +13,8 @@ const accountSchema = mongoose.Schema(
             type: String,
             required: [true, 'El tipo de cuenta es requerido'],
             enum: {
-                values: ['MONETARIA', 'AHORRO'],
-                message: 'Tipo de cuenta invalido. Valores: MONETARIA, AHORRO'
+                values: ['monetaria', 'ahorro'],
+                message: 'Tipo de cuenta invalido. Valores permitidos: monetaria, ahorro'
             }
         },
         saldo: {
