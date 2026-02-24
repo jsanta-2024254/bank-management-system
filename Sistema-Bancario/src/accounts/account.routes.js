@@ -7,21 +7,22 @@ import { handleValidationErrors } from '../../middlewares/validators.middleware.
 
 const router = Router();
 
-// GET /api/accounts/:id/balance
+
+// GET /api/accounts/top-movements  (solo admin)
+router.get(
+    '/top-movements',
+    verifyToken,
+    isAdmin,
+    getTopMovements
+);
+
+// GET /api/accounts/:id/balance  (requiere JWT)
 router.get(
     '/:id/balance',
     verifyToken,
     [param('id').isMongoId().withMessage('ID de cuenta invalido')],
     handleValidationErrors,
     getBalance
-);
-
-// GET /api/accounts/top-movements (solo admin)
-router.get(
-    '/top-movements',
-    verifyToken,
-    isAdmin,
-    getTopMovements
 );
 
 export default router;
