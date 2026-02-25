@@ -5,6 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { dbConnection } from './db.js';
+import { connectDB } from './db-mongo.js';
 // Ensure models are registered before DB sync
 import '../src/users/user-model.js';
 import '../src/auth/role.model.js';
@@ -19,6 +20,7 @@ import authRoutes from '../src/auth/auth.routes.js';
 import userRoutes from '../src/users/user-routes.js';
 import favoriteRoutes from '../src/favorites/favorite.router.js';
 import productRoutes from '../src/products/product.routes.js';
+import currencyRoutes from '../src/currency/currency.routes.js';
 const BASE_PATH = '/api/v1';
 
 const middlewares = (app) => {
@@ -36,6 +38,7 @@ const routes = (app) => {
   app.use(`${BASE_PATH}/favorites`, favoriteRoutes);
   app.use(`${BASE_PATH}/products`, productRoutes);
   app.use(`${BASE_PATH}/admin/products`, productRoutes);
+  app.use(`${BASE_PATH}/currency`, currencyRoutes);
 
   app.get(`${BASE_PATH}/health`, (req, res) => {
     res.status(200).json({
@@ -55,6 +58,7 @@ export const initServer = async () => {
 
   try {
     await dbConnection();
+    await connectDB();
     // Seed essential data (roles)
     const { seedRoles } = await import('../helpers/role-seed.js');
     await seedRoles();
