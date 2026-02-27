@@ -2,7 +2,7 @@
 import Account from './account.model.js';
 import Transaction from '../transactions/transaction.model.js';
 
-// GET /api/accounts/:id/balance 
+// GET /api/accounts/:id/balance
 export const getBalance = async (req, res) => {
     try {
         const account = await Account.findOne({ _id: req.params.id, estado: true })
@@ -15,8 +15,11 @@ export const getBalance = async (req, res) => {
             });
         }
 
+        const authUserId = (req.user?.id ?? req.user?._id)?.toString();
+        const accountOwnerId = account.usuario?._id?.toString();
+
         // Si es cliente, solo puede ver su propia cuenta
-        if (req.user.rol === 'cliente' && account.usuario._id.toString() !== req.user.id) {
+        if (req.user?.rol === 'cliente' && accountOwnerId !== authUserId) {
             return res.status(403).json({
                 success: false,
                 message: 'No tienes permiso para ver esta cuenta'
@@ -41,7 +44,7 @@ export const getBalance = async (req, res) => {
     }
 };
 
-// GET /api/admin/accounts/top-movements 
+// GET /api/admin/accounts/top-movements
 export const getTopMovements = async (req, res) => {
     try {
         const { order = 'desc', limit = 10 } = req.query;

@@ -2,9 +2,6 @@ import { v2 as cloudinary } from 'cloudinary';
 import { config } from '../configs/config.js';
 import fs from 'fs/promises';
 
-// FIX: Bypass SSL (Cloudinary, etc.)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 // Configurar Cloudinary
 cloudinary.config({
   cloud_name: config.cloudinary.cloudName,
@@ -97,7 +94,6 @@ export const getDefaultAvatarUrl = () => {
 
 export const getDefaultAvatarPath = () => {
   const defaultPath = config.cloudinary.defaultAvatarPath;
-  // If dotenv didn't expand nested vars, build from env pieces
   if (defaultPath && defaultPath.includes('${')) {
     const folder = process.env.CLOUDINARY_FOLDER;
     const filename = process.env.CLOUDINARY_DEFAULT_AVATAR_FILENAME;
