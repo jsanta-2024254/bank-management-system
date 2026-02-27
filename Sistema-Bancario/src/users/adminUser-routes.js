@@ -1,6 +1,6 @@
 'use strict';
 import { Router } from 'express';
-import { createUser, getUsers, getUserById, updateUser, deleteUser } from './adminUser.controller.js';
+import { createUser, getUsers, getUserById, updateUser, deleteUser } from './adminUser-controller.js';
 import { verifyToken, isAdmin } from '../../middlewares/auth.middleware.js';
 import { body, param } from 'express-validator';
 import { handleValidationErrors } from '../../middlewares/validators.middleware.js';

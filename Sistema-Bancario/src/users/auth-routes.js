@@ -1,6 +1,6 @@
 'use strict';
 import { Router } from 'express';
-import { login, refreshToken, logout } from './auth.controller.js';
+import { login, refreshToken, logout } from './auth-controller.js';
 import { verifyToken } from '../../middlewares/auth.middleware.js';
 import { body } from 'express-validator';
 import { handleValidationErrors } from '../../middlewares/validators.middleware.js';
