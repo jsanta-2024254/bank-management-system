@@ -13,7 +13,6 @@ import { asyncHandler } from '../../middlewares/server-genericError-handler.js';
 
 export const register = asyncHandler(async (req, res) => {
   try {
-    // Agregar la imagen de perfil si fue subida
     const userData = {
       ...req.body,
       profilePicture: req.file ? req.file.path : null,
@@ -31,7 +30,7 @@ export const register = asyncHandler(async (req, res) => {
       error.message.includes('ya está en uso') ||
       error.message.includes('Ya existe un usuario')
     ) {
-      statusCode = 409; // Conflict
+      statusCode = 409;
     }
 
     res.status(statusCode).json({
@@ -56,7 +55,7 @@ export const login = asyncHandler(async (req, res) => {
       error.message.includes('bloqueada') ||
       error.message.includes('desactivada')
     ) {
-      statusCode = 423; // Locked
+      statusCode = 423;
     }
 
     res.status(statusCode).json({
@@ -99,7 +98,6 @@ export const resendVerification = asyncHandler(async (req, res) => {
     const { email } = req.body;
     const result = await resendVerificationEmailHelper(email);
 
-    // Check result.success to determine status code
     if (!result.success) {
       if (result.message.includes('no encontrado')) {
         return res.status(404).json(result);
@@ -107,7 +105,6 @@ export const resendVerification = asyncHandler(async (req, res) => {
       if (result.message.includes('ya ha sido verificado')) {
         return res.status(400).json(result);
       }
-      // Email sending failed
       return res.status(503).json(result);
     }
 
@@ -128,8 +125,6 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
     const result = await forgotPasswordHelper(email);
 
-    // forgotPassword always returns success for security, even if user not found
-    // But if email sending fails, we should return 503
     if (!result.success && result.data?.initiated === false) {
       return res.status(503).json(result);
     }
@@ -174,10 +169,17 @@ export const resetPassword = asyncHandler(async (req, res) => {
 });
 
 export const getProfile = asyncHandler(async (req, res) => {
-  const userId = req.userId; // Viene del middleware validateJWT
+  const userId = req.userId;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      message: 'No se pudo identificar al usuario autenticado',
+    });
+  }
+
   const user = await getUserProfileHelper(userId);
 
-  // Respuesta estandarizada con envelope
   return res.status(200).json({
     success: true,
     message: 'Perfil obtenido exitosamente',
@@ -186,18 +188,17 @@ export const getProfile = asyncHandler(async (req, res) => {
 });
 
 export const getProfileById = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
+  const userId = req.userId;
 
   if (!userId) {
-    return res.status(400).json({
+    return res.status(401).json({
       success: false,
-      message: 'El userId es requerido',
+      message: 'No se pudo identificar al usuario autenticado',
     });
   }
 
   const user = await getUserProfileHelper(userId);
 
-  // Respuesta estandarizada con envelope
   return res.status(200).json({
     success: true,
     message: 'Perfil obtenido exitosamente',
