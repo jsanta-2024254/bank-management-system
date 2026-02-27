@@ -1,28 +1,28 @@
 'use strict';
-import User from '../src/users/user.model.js';
+import { User } from '../src/users/user-model.js';
+import { hashPassword } from '../utils/password-utils.js';
 
 export const seedAdmin = async () => {
     try {
-        const exists = await User.findOne({ username: 'ADMINB', rol: 'admin' });
+        const exists = await User.findOne({ where: { Username: 'ADMINB' } });
         if (exists) {
             console.log('Admin ya existe, no se crea de nuevo.');
             return;
         }
 
+
+        const hashedPassword = await hashPassword('ADMINB_2026!');
+
         await User.create({
-            nombre: 'Administrador Principal',
-            username: 'ADMINB',
-            email: 'admin@bancokinal.gt',
-            password: 'ADMINB',
-            dpi: '1234567890123',
-            direccion: 'Banco Kinal, Guatemala',
-            celular: '55555555',
-            nombreTrabajo: 'Banco Kinal',
-            ingresosMensuales: 50000,
-            rol: 'admin'
+            Name: 'Administrador',
+            Surname: 'Principal',
+            Username: 'adminb',
+            Email: 'admin@bancokinal.gt',
+            Password: hashedPassword,
+            Status: true
         });
 
-        console.log('Admin creado: usuario=ADMINB / password=ADMINB');
+        console.log('Admin creado: usuario=adminb / password=ADMINB_2026!');
     } catch (error) {
         console.error('Error al crear el admin:', error.message);
     }
