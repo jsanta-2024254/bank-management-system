@@ -5,7 +5,7 @@ import Transaction from '../transactions/transaction.model.js';
 import { generateAccountNumber } from '../../configs/accountNumber.js';
 import { hashPassword } from '../../utils/password-utils.js';
 
-// POST /api/admin/users  
+// POST /api/admin/users
 export const createUser = async (req, res) => {
     try {
         const { nombre, username, email, password, dpi, direccion, celular,
@@ -61,15 +61,21 @@ export const createUser = async (req, res) => {
     }
 };
 
-// GET /api/admin/users  
+// GET /api/admin/users
 export const getUsers = async (req, res) => {
     try {
-        const { page = 1, limit = 10, estado = true } = req.query;
-        const filter = { rol: 'cliente', estado };
+        const { page = 1, limit = 10 } = req.query;
+
+        const estadoParam = req.query.estado;
+        const estadoFiltro = estadoParam === undefined
+            ? true
+            : estadoParam === 'true';
+
+        const filter = { rol: 'cliente', estado: estadoFiltro };
 
         const users = await User.find(filter, { password: 0 })
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .skip((parseInt(page) - 1) * parseInt(limit))
             .sort({ createdAt: -1 });
 
         const total = await User.countDocuments(filter);
@@ -98,7 +104,7 @@ export const getUsers = async (req, res) => {
             data: usersWithData,
             pagination: {
                 currentPage: parseInt(page),
-                totalPages: Math.ceil(total / limit),
+                totalPages: Math.ceil(total / parseInt(limit)),
                 totalRecords: total,
                 limit: parseInt(limit)
             }
@@ -112,7 +118,7 @@ export const getUsers = async (req, res) => {
     }
 };
 
-// GET /api/admin/users/:id  
+// GET /api/admin/users/:id
 export const getUserById = async (req, res) => {
     try {
         const user = await User.findOne(
@@ -154,7 +160,7 @@ export const getUserById = async (req, res) => {
     }
 };
 
-// PUT /api/admin/users/:id  
+// PUT /api/admin/users/:id
 export const updateUser = async (req, res) => {
     try {
         const { dpi, password, rol, estado, ...rawFields } = req.body;
@@ -199,7 +205,7 @@ export const updateUser = async (req, res) => {
     }
 };
 
-// DELETE /api/admin/users/:id  
+// DELETE /api/admin/users/:id
 export const deleteUser = async (req, res) => {
     try {
         const user = await User.findOneAndUpdate(
