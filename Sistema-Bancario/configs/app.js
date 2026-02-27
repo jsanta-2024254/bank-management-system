@@ -6,7 +6,6 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { dbConnection } from './db.js';
 import { connectDB } from './db-mongo.js';
-// Ensure models are registered before DB sync
 import '../src/users/user-model.js';
 import '../src/auth/role.model.js';
 import { requestLimit } from '../middlewares/request-limit.js';
@@ -21,6 +20,13 @@ import userRoutes from '../src/users/user-routes.js';
 import favoriteRoutes from '../src/favorites/favorite.router.js';
 import productRoutes from '../src/products/product.routes.js';
 import currencyRoutes from '../src/currency/currency.routes.js';
+
+// Rutas que faltaban registrar
+import accountRoutes from '../src/accounts/account.routes.js';
+import transactionRoutes from '../src/transactions/transaction.routes.js';
+import depositRoutes from '../src/deposits/deposit.routes.js';
+import adminUserRoutes from '../src/users/adminUser-routes.js';
+
 const BASE_PATH = '/api/v1';
 
 const middlewares = (app) => {
@@ -33,11 +39,28 @@ const middlewares = (app) => {
 };
 
 const routes = (app) => {
+  // Auth y usuarios
   app.use(`${BASE_PATH}/auth`, authRoutes);
   app.use(`${BASE_PATH}/users`, userRoutes);
+
+  // Admin: usuarios, depósitos
+  app.use(`${BASE_PATH}/admin/users`, adminUserRoutes);
+  app.use(`${BASE_PATH}/admin/deposits`, depositRoutes);
+
+  // Cuentas (balance y top-movements)
+  app.use(`${BASE_PATH}/accounts`, accountRoutes);
+
+  // Transacciones
+  app.use(`${BASE_PATH}/transactions`, transactionRoutes);
+
+  // Favoritos
   app.use(`${BASE_PATH}/favorites`, favoriteRoutes);
+
+  // Productos 
   app.use(`${BASE_PATH}/products`, productRoutes);
   app.use(`${BASE_PATH}/admin/products`, productRoutes);
+
+  // Divisas
   app.use(`${BASE_PATH}/currency`, currencyRoutes);
 
   app.get(`${BASE_PATH}/health`, (req, res) => {
@@ -47,7 +70,7 @@ const routes = (app) => {
       service: 'BancoKinalports Authentication Service',
     });
   });
-  // 404 handler (standardized)
+
   app.use(notFound);
 };
 
@@ -59,7 +82,6 @@ export const initServer = async () => {
   try {
     await dbConnection();
     await connectDB();
-    // Seed essential data (roles)
     const { seedRoles } = await import('../helpers/role-seed.js');
     await seedRoles();
     middlewares(app);
