@@ -1,13 +1,14 @@
 'use strict';
-import User from '../users/user-model.js';
+import { User } from '../users/user-model.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../configs/jwt.js';
+import { verifyPassword } from '../../utils/password-utils.js';
 
 // POST /api/auth/login
 export const login = async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        const user = await User.findOne({ username, estado: true }).select('+password');
+        const user = await User.findOne({ where: { Username: username, Status: true } });
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -15,7 +16,7 @@ export const login = async (req, res) => {
             });
         }
 
-        const isMatch = await user.comparePassword(password);
+        const isMatch = await verifyPassword(user.Password, password);
         if (!isMatch) {
             return res.status(401).json({
                 success: false,
@@ -23,7 +24,7 @@ export const login = async (req, res) => {
             });
         }
 
-        const payload = { id: user._id, rol: user.rol, username: user.username };
+        const payload = { id: user.Id, username: user.Username };
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
 
@@ -34,11 +35,10 @@ export const login = async (req, res) => {
                 accessToken,
                 refreshToken,
                 user: {
-                    id: user._id,
-                    nombre: user.nombre,
-                    username: user.username,
-                    email: user.email,
-                    rol: user.rol
+                    id: user.Id,
+                    name: user.Name,
+                    username: user.Username,
+                    email: user.Email
                 }
             }
         });
@@ -63,7 +63,8 @@ export const refreshToken = async (req, res) => {
         }
 
         const decoded = verifyRefreshToken(refreshToken);
-        const user = await User.findOne({ _id: decoded.id, estado: true });
+
+        const user = await User.findOne({ where: { Id: decoded.id, Status: true } });
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -71,7 +72,7 @@ export const refreshToken = async (req, res) => {
             });
         }
 
-        const payload = { id: user._id, rol: user.rol, username: user.username };
+        const payload = { id: user.Id, username: user.Username };
         const newAccessToken = generateAccessToken(payload);
 
         res.status(200).json({
@@ -90,7 +91,6 @@ export const refreshToken = async (req, res) => {
 // POST /api/auth/logout
 export const logout = async (req, res) => {
     try {
-        // En una implementacion con DB de tokens se revocaría aquí
         res.status(200).json({
             success: true,
             message: 'Sesion cerrada exitosamente'
