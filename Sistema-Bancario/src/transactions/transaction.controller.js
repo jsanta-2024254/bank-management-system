@@ -64,8 +64,8 @@ export const getAccountHistory = async (req, res) => {
 export const getTransactionById = async (req, res) => {
     try {
         const transaction = await Transaction.findById(req.params.id)
-            .populate('cuentaOrigen', 'numeroCuenta tipoCuenta usuario')  
-            .populate('cuentaDestino', 'numeroCuenta tipoCuenta usuario') 
+            .populate('cuentaOrigen', 'numeroCuenta tipoCuenta usuario')
+            .populate('cuentaDestino', 'numeroCuenta tipoCuenta usuario')
             .populate('ejecutadaPor', 'nombre username');
 
         if (!transaction) {
@@ -87,7 +87,6 @@ export const getTransactionById = async (req, res) => {
                 });
             }
         }
-        // Los admins no entran al bloque anterior y pueden ver cualquier transacción.
 
         res.status(200).json({
             success: true,
@@ -108,7 +107,7 @@ export const transfer = async (req, res) => {
     session.startTransaction();
 
     try {
-        const { numeroCuentaDestino, tipoCuentaDestino, monto, descripcion } = req.body;
+        const { numeroCuentaDestino, tipoCuentaDestino, tipoCuentaOrigen, monto, descripcion } = req.body;
 
         if (monto > 2000) {
             await session.abortTransaction();
@@ -119,16 +118,21 @@ export const transfer = async (req, res) => {
             });
         }
 
-        const cuentaOrigen = await Account.findOne(
-            { usuario: req.user.id, estado: true }
-        ).session(session);
+        const filtroOrigen = { usuario: req.user.id, estado: true };
+        if (tipoCuentaOrigen) {
+            filtroOrigen.tipoCuenta = tipoCuentaOrigen;
+        }
+
+        const cuentaOrigen = await Account.findOne(filtroOrigen).session(session);
 
         if (!cuentaOrigen) {
             await session.abortTransaction();
             session.endSession();
             return res.status(404).json({
                 success: false,
-                message: 'No tienes una cuenta bancaria activa'
+                message: tipoCuentaOrigen
+                    ? `No tienes una cuenta de tipo "${tipoCuentaOrigen}" activa`
+                    : 'No tienes una cuenta bancaria activa'
             });
         }
 

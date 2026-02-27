@@ -32,7 +32,8 @@ router.post(
     isCliente,
     [
         body('numeroCuentaDestino').notEmpty().withMessage('El numero de cuenta destino es requerido'),
-        body('tipoCuentaDestino').isIn(['monetaria', 'ahorro']).withMessage('Tipo de cuenta invalido'),
+        body('tipoCuentaDestino').isIn(['monetaria', 'ahorro']).withMessage('Tipo de cuenta destino invalido'),
+        body('tipoCuentaOrigen').optional().isIn(['monetaria', 'ahorro']).withMessage('Tipo de cuenta origen invalido'),
         body('monto').isFloat({ min: 0.01, max: 2000 }).withMessage('El monto debe estar entre Q0.01 y Q2,000'),
         body('descripcion').optional().trim()
     ],
