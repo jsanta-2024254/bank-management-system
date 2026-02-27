@@ -30,7 +30,7 @@ const transactionSchema = mongoose.Schema(
         cuentaDestino: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Account',
-            required: [true, 'La cuenta destino es requerida']
+            default: null
         },
         saldoAnteriorOrigen: {
             type: Number,

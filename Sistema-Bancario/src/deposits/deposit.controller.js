@@ -3,7 +3,7 @@ import Deposit from './deposit.model.js';
 import Account from '../accounts/account.model.js';
 import Transaction from '../transactions/transaction.model.js';
 
-// POST /api/admin/deposits 
+// POST /api/admin/deposits
 export const createDeposit = async (req, res) => {
     try {
         const { numeroCuenta, tipoCuenta, monto, descripcion } = req.body;
@@ -64,7 +64,7 @@ export const createDeposit = async (req, res) => {
     }
 };
 
-// GET /api/admin/deposits 
+// GET /api/admin/deposits
 export const getDeposits = async (req, res) => {
     try {
         const { page = 1, limit = 10, revertido } = req.query;
@@ -99,7 +99,7 @@ export const getDeposits = async (req, res) => {
     }
 };
 
-// PUT /api/admin/deposits/:id 
+// PUT /api/admin/deposits/:id
 export const updateDeposit = async (req, res) => {
     try {
         const { monto } = req.body;
@@ -116,6 +116,13 @@ export const updateDeposit = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'No se puede modificar un deposito revertido'
+            });
+        }
+
+        if (new Date() > deposit.reversibleHasta) {
+            return res.status(400).json({
+                success: false,
+                message: 'El tiempo para modificar este deposito ha expirado (maximo 1 minuto)'
             });
         }
 
@@ -150,7 +157,7 @@ export const updateDeposit = async (req, res) => {
     }
 };
 
-// POST /api/admin/deposits/:id/revert 
+// POST /api/admin/deposits/:id/revert
 export const revertDeposit = async (req, res) => {
     try {
         const deposit = await Deposit.findById(req.params.id).populate('cuenta');
@@ -193,13 +200,12 @@ export const revertDeposit = async (req, res) => {
         deposit.revertido = true;
         await deposit.save();
 
-        // Registrar la reversion en historial
         await Transaction.create({
             tipo: 'reversion',
             monto: deposit.montoActual,
             descripcion: `Reversion de deposito #${deposit._id}`,
             cuentaOrigen: account._id,
-            cuentaDestino: account._id,
+            cuentaDestino: null,
             saldoAnteriorOrigen: saldoAnterior,
             saldoPosteriorOrigen: account.saldo,
             ejecutadaPor: req.user.id
@@ -217,4 +223,4 @@ export const revertDeposit = async (req, res) => {
             error: error.message
         });
     }
-};  
+};
