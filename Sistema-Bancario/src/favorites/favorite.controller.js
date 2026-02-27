@@ -5,6 +5,9 @@ import Account from '../accounts/account.model.js';
 import Transaction from '../transactions/transaction.model.js';
 import DailyLimit from '../deposits/dailyLimit.model.js';
 
+const TRANSFER_MAX = 2000;
+const DAILY_MAX    = 10000;
+
 // GET /api/favorites
 export const getFavorites = async (req, res) => {
     try {
@@ -12,7 +15,7 @@ export const getFavorites = async (req, res) => {
             .populate({
                 path: 'cuenta',
                 select: 'numeroCuenta tipoCuenta saldo estado',
-                match: { estado: true } 
+                match: { estado: true }
             })
             .sort({ createdAt: -1 });
 
@@ -44,7 +47,6 @@ export const addFavorite = async (req, res) => {
             });
         }
 
-        // No agregar su propia cuenta
         if (account.usuario.toString() === req.user.id) {
             return res.status(400).json({
                 success: false,
@@ -149,7 +151,15 @@ export const transferToFavorite = async (req, res) => {
         const { monto, descripcion } = req.body;
         const montoNum = parseFloat(monto);
 
-        // 1. Buscar favorito y cuenta origen dentro de la sesión
+        if (montoNum > TRANSFER_MAX) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({
+                success: false,
+                message: `No puede transferir mas de Q${TRANSFER_MAX.toLocaleString()} por operacion`
+            });
+        }
+
         const favorite = await Favorite.findOne({ _id: req.params.id, usuario: req.user.id })
             .populate('cuenta')
             .session(session);
@@ -174,32 +184,39 @@ export const transferToFavorite = async (req, res) => {
             { usuario: req.user.id, estado: true }
         ).session(session);
 
-        if (!cuentaOrigen || cuentaOrigen.saldo < montoNum) {
+        if (!cuentaOrigen) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({
+                success: false,
+                message: 'No tienes una cuenta bancaria activa'
+            });
+        }
+
+        if (cuentaOrigen.saldo < montoNum) {
             await session.abortTransaction();
             session.endSession();
             return res.status(400).json({
                 success: false,
-                message: 'Saldo insuficiente o cuenta inactiva'
+                message: 'Saldo insuficiente para realizar la transferencia'
             });
         }
 
-        // 2. Verificar límite diario
         const hoy = new Date().toISOString().split('T')[0];
         let dailyLimit = await DailyLimit.findOne(
             { usuario: req.user.id, fecha: hoy }
         ).session(session);
         const totalHoy = dailyLimit ? dailyLimit.totalTransferido : 0;
 
-        if (totalHoy + montoNum > 10000) {
+        if (totalHoy + montoNum > DAILY_MAX) {
             await session.abortTransaction();
             session.endSession();
             return res.status(400).json({
                 success: false,
-                message: `Limite diario excedido. Disponible: Q${(10000 - totalHoy).toFixed(2)}`
+                message: `Limite diario excedido. Disponible: Q${(DAILY_MAX - totalHoy).toFixed(2)}`
             });
         }
 
-        // 3. Realizar movimientos
         const saldoAnteriorOrigen  = cuentaOrigen.saldo;
         const saldoAnteriorDestino = cuentaDestino.saldo;
 
@@ -209,7 +226,6 @@ export const transferToFavorite = async (req, res) => {
         await cuentaOrigen.save({ session });
         await cuentaDestino.save({ session });
 
-        // 4. Registrar transacción
         const transaction = new Transaction({
             tipo: 'transferencia',
             monto: montoNum,
@@ -224,7 +240,6 @@ export const transferToFavorite = async (req, res) => {
         });
         await transaction.save({ session });
 
-        // 5. Actualizar límite
         if (dailyLimit) {
             dailyLimit.totalTransferido += montoNum;
             await dailyLimit.save({ session });
