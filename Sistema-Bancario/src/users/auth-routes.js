@@ -11,7 +11,7 @@ const router = Router();
 router.post(
     '/login',
     [
-        body('username').notEmpty().withMessage('El username es requerido').trim(),
+        body('emailOrUsername').notEmpty().withMessage('El email o username es requerido').trim(),
         body('password').notEmpty().withMessage('La contrasena es requerida')
     ],
     handleValidationErrors,
