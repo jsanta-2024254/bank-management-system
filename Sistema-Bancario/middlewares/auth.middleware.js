@@ -24,7 +24,7 @@ export const verifyToken = (req, res, next) => {
 };
 
 export const isAdmin = (req, res, next) => {
-    if (req.user?.rol !== 'admin') {
+    if (req.user?.role !== 'ADMIN_ROLE') { // ← cambio
         return res.status(403).json({
             success: false,
             message: 'Acceso denegado. Se requiere rol de administrador'
@@ -34,7 +34,7 @@ export const isAdmin = (req, res, next) => {
 };
 
 export const isCliente = (req, res, next) => {
-    if (req.user?.rol !== 'cliente') {
+    if (req.user?.role !== 'USER_ROLE') { // ← cambio
         return res.status(403).json({
             success: false,
             message: 'Acceso denegado. Se requiere rol de cliente'

@@ -19,8 +19,17 @@ export const validateJWT = async (req, res, next) => {
       });
     }
 
-    // Limpiar el token si viene con Bearer
-    token = token.replace(/^Bearer\s+/, '');
+    // Limpiar el token si viene con Bearer (case-insensitive)
+    token = token.replace(/^Bearer\s+/i, '').trim();
+
+    // Validate token format (should have 3 parts separated by dots)
+    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token inválido',
+        error: 'jwt malformed',
+      });
+    }
 
     // Verificar el token
     const decoded = await verifyJWT(token);
@@ -52,14 +61,24 @@ export const validateJWT = async (req, res, next) => {
     console.error('Error validating JWT:', error);
 
     let message = 'Error al verificar el token';
+    let statusCode = 401;
 
     if (error.name === 'TokenExpiredError') {
       message = 'Token expirado';
     } else if (error.name === 'JsonWebTokenError') {
       message = 'Token inválido';
+      // Additional logging for malformed tokens
+      if (error.message.includes('malformed')) {
+        console.error('Token malformed details:', {
+          tokenStart: req.header('authorization')?.substring(0, 50),
+          tokenLength: req.header('authorization')?.length,
+        });
+      }
+    } else if (error.name === 'NotBeforeError') {
+      message = 'Token no es válido aún';
     }
 
-    return res.status(401).json({
+    return res.status(statusCode).json({
       success: false,
       message,
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,

@@ -38,7 +38,6 @@ const accountSchema = mongoose.Schema(
     }
 );
 
-accountSchema.index({ numeroCuenta: 1 });
 accountSchema.index({ usuario: 1 });
 accountSchema.index({ estado: 1 });
 accountSchema.index({ usuario: 1, estado: 1 });

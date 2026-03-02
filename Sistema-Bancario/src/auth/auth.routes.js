@@ -289,7 +289,7 @@ router.get('/profile', validateJWT, authController.getProfile);
  *       404:
  *         description: Usuario no encontrado
  */
-router.post('/profile/by-id', requestLimit, authController.getProfileById);
+router.post('/profile/by-id', requestLimit, validateJWT, authController.getProfileById);
 
 /**
  * @swagger
