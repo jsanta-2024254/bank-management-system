@@ -57,9 +57,9 @@ const transactionSchema = mongoose.Schema(
             default: 'completada'
         },
         ejecutadaPor: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
+            type: String,   // ID de Sequelize (usr_xxxx)
+            required: true,
+            trim: true
         }
     },
     {
@@ -73,4 +73,4 @@ transactionSchema.index({ cuentaDestino: 1, createdAt: -1 });
 transactionSchema.index({ tipo: 1 });
 transactionSchema.index({ estado: 1 });
 
-export default mongoose.model('Transaction', transactionSchema);
+export default mongoose.models.Transaction || mongoose.model('Transaction', transactionSchema);

@@ -4,9 +4,9 @@ import mongoose from 'mongoose';
 const dailyLimitSchema = mongoose.Schema(
     {
         usuario: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: [true, 'El usuario es requerido']
+            type: String,   // ID de Sequelize (usr_xxxx)
+            required: [true, 'El usuario es requerido'],
+            trim: true
         },
         fecha: {
             type: String,  // formato YYYY-MM-DD
@@ -30,4 +30,4 @@ const dailyLimitSchema = mongoose.Schema(
 
 dailyLimitSchema.index({ usuario: 1, fecha: 1 }, { unique: true });
 
-export default mongoose.model('DailyLimit', dailyLimitSchema);
+export default mongoose.models.DailyLimit || mongoose.model('DailyLimit', dailyLimitSchema);

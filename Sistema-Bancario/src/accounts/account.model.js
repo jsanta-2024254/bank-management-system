@@ -23,9 +23,9 @@ const accountSchema = mongoose.Schema(
             min: [0, 'El saldo no puede ser negativo']
         },
         usuario: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: [true, 'El usuario es requerido']
+            type: String,   // ID de Sequelize (ej: usr_vF5fBBwn7jsi)
+            required: [true, 'El usuario es requerido'],
+            trim: true
         },
         estado: {
             type: Boolean,
@@ -42,4 +42,4 @@ accountSchema.index({ usuario: 1 });
 accountSchema.index({ estado: 1 });
 accountSchema.index({ usuario: 1, estado: 1 });
 
-export default mongoose.model('Account', accountSchema);
+export default mongoose.models.Account || mongoose.model('Account', accountSchema);

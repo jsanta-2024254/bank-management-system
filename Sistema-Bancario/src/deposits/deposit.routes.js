@@ -1,56 +1,45 @@
 'use strict';
-import { Router } from 'express';
-import { createDeposit, getDeposits, updateDeposit, revertDeposit } from './deposit.controller.js';
-import { verifyToken, isAdmin } from '../../middlewares/auth.middleware.js';
-import { body, param } from 'express-validator';
-import { handleValidationErrors } from '../../middlewares/validators.middleware.js';
+import mongoose from 'mongoose';
 
-const router = Router();
-
-// POST /api/admin/deposits
-router.post(
-    '/',
-    verifyToken,
-    isAdmin,
-    [
-        body('numeroCuenta').notEmpty().withMessage('El numero de cuenta es requerido'),
-        body('tipoCuenta').isIn(['monetaria', 'ahorro']).withMessage('Tipo de cuenta invalido'),
-        body('monto').isFloat({ min: 0.01 }).withMessage('El monto debe ser mayor que 0'),
-        body('descripcion').optional().trim()
-    ],
-    handleValidationErrors,
-    createDeposit
+const favoriteSchema = mongoose.Schema(
+    {
+        usuario: {
+            type: String,   // ID de Sequelize (usr_xxxx)
+            required: [true, 'El usuario es requerido'],
+            trim: true
+        },
+        cuenta: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Account',
+            required: [true, 'La cuenta es requerida']
+        },
+        alias: {
+            type: String,
+            required: [true, 'El alias es requerido'],
+            trim: true,
+            maxLength: [80, 'El alias no puede exceder 80 caracteres']
+        },
+        numeroCuenta: {
+            type: String,
+            required: [true, 'El numero de cuenta es requerido'],
+            trim: true
+        },
+        tipoCuenta: {
+            type: String,
+            required: [true, 'El tipo de cuenta es requerido'],
+            enum: {
+                values: ['monetaria', 'ahorro'],
+                message: 'Tipo de cuenta invalido'
+            }
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false
+    }
 );
 
-// GET /api/admin/deposits
-router.get(
-    '/',
-    verifyToken,
-    isAdmin,
-    getDeposits
-);
+favoriteSchema.index({ usuario: 1 });
+favoriteSchema.index({ usuario: 1, cuenta: 1 }, { unique: true });
 
-// PUT /api/admin/deposits/:id
-router.put(
-    '/:id',
-    verifyToken,
-    isAdmin,
-    [
-        param('id').isMongoId().withMessage('ID invalido'),
-        body('monto').isFloat({ min: 0.01 }).withMessage('El monto debe ser mayor que 0')
-    ],
-    handleValidationErrors,
-    updateDeposit
-);
-
-// POST /api/admin/deposits/:id/revert
-router.post(
-    '/:id/revert',
-    verifyToken,
-    isAdmin,
-    [param('id').isMongoId().withMessage('ID invalido')],
-    handleValidationErrors,
-    revertDeposit
-);
-
-export default router;
+export default mongoose.models.Favorite || mongoose.model('Favorite', favoriteSchema);

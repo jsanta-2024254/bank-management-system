@@ -73,7 +73,6 @@ export const getDeposits = async (req, res) => {
 
         const deposits = await Deposit.find(filter)
             .populate('cuenta', 'numeroCuenta tipoCuenta saldo')
-            .populate('admin', 'nombre username')
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });

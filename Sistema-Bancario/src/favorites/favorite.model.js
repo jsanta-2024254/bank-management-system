@@ -4,9 +4,9 @@ import mongoose from 'mongoose';
 const favoriteSchema = mongoose.Schema(
     {
         usuario: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: [true, 'El usuario es requerido']
+            type: String,   // ID de Sequelize (usr_xxxx)
+            required: [true, 'El usuario es requerido'],
+            trim: true
         },
         cuenta: {
             type: mongoose.Schema.Types.ObjectId,
@@ -42,4 +42,4 @@ const favoriteSchema = mongoose.Schema(
 favoriteSchema.index({ usuario: 1 });
 favoriteSchema.index({ usuario: 1, cuenta: 1 }, { unique: true });
 
-export default mongoose.model('Favorite', favoriteSchema);
+export default mongoose.models.Favorite || mongoose.model('Favorite', favoriteSchema);

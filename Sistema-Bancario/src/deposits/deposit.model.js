@@ -25,9 +25,9 @@ const depositSchema = mongoose.Schema(
             default: 'Deposito administrativo'
         },
         admin: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: [true, 'El administrador es requerido']
+            type: String,   // ID de Sequelize (usr_xxxx)
+            required: [true, 'El administrador es requerido'],
+            trim: true
         },
         transaccion: {
             type: mongoose.Schema.Types.ObjectId,
@@ -54,4 +54,4 @@ depositSchema.index({ admin: 1 });
 depositSchema.index({ revertido: 1 });
 depositSchema.index({ createdAt: -1 });
 
-export default mongoose.model('Deposit', depositSchema);
+export default mongoose.models.Deposit || mongoose.model('Deposit', depositSchema);

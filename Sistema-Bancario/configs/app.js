@@ -84,6 +84,8 @@ export const initServer = async () => {
     await connectDB();
     const { seedRoles } = await import('../helpers/role-seed.js');
     await seedRoles();
+    const { seedAdmin } = await import('./seed.js');
+    await seedAdmin();
     middlewares(app);
     routes(app);
 

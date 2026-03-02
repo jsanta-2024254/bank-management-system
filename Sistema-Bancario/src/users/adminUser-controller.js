@@ -1,17 +1,33 @@
 'use strict';
-import { User } from './user-model.js';
+import { User, UserProfile, UserEmail, UserPasswordReset } from './user-model.js';
+import { UserRole, Role } from '../auth/role.model.js';
 import Account from '../accounts/account.model.js';
 import Transaction from '../transactions/transaction.model.js';
 import { generateAccountNumber } from '../../configs/accountNumber.js';
 import { hashPassword } from '../../utils/password-utils.js';
+import { USER_ROLE } from '../../helpers/role-constants.js';
+import { Op } from 'sequelize';
 
 // POST /api/admin/users
 export const createUser = async (req, res) => {
+    const sequelizeTx = await User.sequelize.transaction();
     try {
-        const { nombre, username, email, password, dpi, direccion, celular,
-                nombreTrabajo, ingresosMensuales, tipoCuenta = 'monetaria' } = req.body;
+        const {
+            nombre,      
+            apellido,     
+            username,     
+            email,        
+            password,     
+            celular,     
+            dpi,
+            direccion,
+            nombreTrabajo,
+            ingresosMensuales,
+            tipoCuenta = 'monetaria'
+        } = req.body;
 
         if (ingresosMensuales < 100) {
+            await sequelizeTx.rollback();
             return res.status(400).json({
                 success: false,
                 message: 'Los ingresos mensuales deben ser al menos Q100 para crear una cuenta'
@@ -20,20 +36,48 @@ export const createUser = async (req, res) => {
 
         const hashedPassword = await hashPassword(password);
 
-        const user = new User({
-            nombre, username, email,
-            password: hashedPassword,
-            dpi, direccion, celular, nombreTrabajo, ingresosMensuales,
-            rol: 'cliente'
-        });
-        await user.save();
+        const user = await User.create({
+            Name: nombre,
+            Surname: apellido || '',
+            Username: username.toLowerCase(),
+            Email: email.toLowerCase(),
+            Password: hashedPassword,
+            Status: true  
+        }, { transaction: sequelizeTx });
+
+        // Crear perfil con teléfono y datos extra en metadata
+        await UserProfile.create({
+            UserId: user.Id,
+            Phone: celular,
+        }, { transaction: sequelizeTx });
+
+        await UserEmail.create({
+            UserId: user.Id,
+            EmailVerified: true,
+        }, { transaction: sequelizeTx });
+
+        // Crear registro de password reset vacío
+        await UserPasswordReset.create({
+            UserId: user.Id,
+        }, { transaction: sequelizeTx });
+
+        // Asignar rol de usuario normal
+        const userRole = await Role.findOne({ where: { Name: USER_ROLE } }, { transaction: sequelizeTx });
+        if (userRole) {
+            await UserRole.create({
+                UserId: user.Id,
+                RoleId: userRole.Id,
+            }, { transaction: sequelizeTx });
+        }
+
+        await sequelizeTx.commit();
 
         const numeroCuenta = await generateAccountNumber();
         const account = new Account({
             numeroCuenta,
             tipoCuenta,
             saldo: 0,
-            usuario: user._id
+            usuario: user.Id  
         });
         await account.save();
 
@@ -41,16 +85,30 @@ export const createUser = async (req, res) => {
             success: true,
             message: 'Cliente creado exitosamente',
             data: {
-                user: { ...user.toObject(), password: undefined },
+                user: {
+                    id: user.Id,
+                    nombre: user.Name,
+                    apellido: user.Surname,
+                    username: user.Username,
+                    email: user.Email,
+                    celular,
+                    dpi,
+                    direccion,
+                    nombreTrabajo,
+                    ingresosMensuales,
+                    estado: user.Status
+                },
                 cuenta: account
             }
         });
     } catch (error) {
-        if (error.code === 11000) {
-            const field = Object.keys(error.keyPattern)[0];
+        await sequelizeTx.rollback();
+
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            const field = error.errors?.[0]?.path || 'campo';
             return res.status(400).json({
                 success: false,
-                message: `El ${field} ya esta registrado`
+                message: `El ${field} ya está registrado`
             });
         }
         res.status(400).json({
@@ -61,38 +119,55 @@ export const createUser = async (req, res) => {
     }
 };
 
+const formatUser = (user) => ({
+    id: user.Id,
+    nombre: user.Name,
+    apellido: user.Surname,
+    username: user.Username,
+    email: user.Email,
+    celular: user.UserProfile?.Phone,
+    estado: user.Status,
+    creadoEn: user.CreatedAt
+});
+
 // GET /api/admin/users
 export const getUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
-
         const estadoParam = req.query.estado;
-        const estadoFiltro = estadoParam === undefined
-            ? true
-            : estadoParam === 'true';
+        const estadoFiltro = estadoParam === undefined ? true : estadoParam === 'true';
 
-        const filter = { rol: 'cliente', estado: estadoFiltro };
+        const offset = (parseInt(page) - 1) * parseInt(limit);
 
-        const users = await User.find(filter, { password: 0 })
-            .limit(parseInt(limit))
-            .skip((parseInt(page) - 1) * parseInt(limit))
-            .sort({ createdAt: -1 });
-
-        const total = await User.countDocuments(filter);
+        const { count: total, rows: users } = await User.findAndCountAll({
+            where: { Status: estadoFiltro },
+            include: [
+                { model: UserProfile, as: 'UserProfile', required: false },
+                {
+                    model: UserRole,
+                    as: 'UserRoles',
+                    required: false,
+                    include: [{ model: Role, as: 'Role', required: false }]
+                }
+            ],
+            attributes: { exclude: ['Password'] },
+            distinct: true,
+            limit: parseInt(limit),
+            offset,
+            order: [['created_at', 'DESC']]
+        });
 
         const usersWithData = await Promise.all(
             users.map(async (user) => {
-                const account = await Account.findOne({ usuario: user._id, estado: true });
+                const account = await Account.findOne({ usuario: user.Id, estado: true });
                 let lastTransactions = [];
                 if (account) {
                     lastTransactions = await Transaction.find({
                         $or: [{ cuentaOrigen: account._id }, { cuentaDestino: account._id }]
-                    })
-                    .sort({ createdAt: -1 })
-                    .limit(5);
+                    }).sort({ createdAt: -1 }).limit(5);
                 }
                 return {
-                    ...user.toObject(),
+                    ...formatUser(user),
                     cuenta: account,
                     ultimosMovimientos: lastTransactions
                 };
@@ -121,10 +196,10 @@ export const getUsers = async (req, res) => {
 // GET /api/admin/users/:id
 export const getUserById = async (req, res) => {
     try {
-        const user = await User.findOne(
-            { _id: req.params.id, rol: 'cliente' },
-            { password: 0 }
-        );
+        const user = await User.findByPk(req.params.id, {
+            include: [{ model: UserProfile, as: 'UserProfile' }],
+            attributes: { exclude: ['Password'] }
+        });
 
         if (!user) {
             return res.status(404).json({
@@ -133,20 +208,18 @@ export const getUserById = async (req, res) => {
             });
         }
 
-        const account = await Account.findOne({ usuario: user._id, estado: true });
+        const account = await Account.findOne({ usuario: user.Id, estado: true });
         let lastTransactions = [];
         if (account) {
             lastTransactions = await Transaction.find({
                 $or: [{ cuentaOrigen: account._id }, { cuentaDestino: account._id }]
-            })
-            .sort({ createdAt: -1 })
-            .limit(5);
+            }).sort({ createdAt: -1 }).limit(5);
         }
 
         res.status(200).json({
             success: true,
             data: {
-                ...user.toObject(),
+                ...formatUser(user),
                 cuenta: account,
                 ultimosMovimientos: lastTransactions
             }
@@ -163,26 +236,30 @@ export const getUserById = async (req, res) => {
 // PUT /api/admin/users/:id
 export const updateUser = async (req, res) => {
     try {
-        const { dpi, password, rol, estado, ...rawFields } = req.body;
+        const fieldMap = {
+            nombre: 'Name',
+            apellido: 'Surname',
+            username: 'Username',
+            email: 'Email'
+        };
 
-        const allowedFields = Object.fromEntries(
-            Object.entries(rawFields).filter(
-                ([, value]) => value !== undefined && value !== null && value !== ''
-            )
-        );
+        const allowedFields = {};
+        for (const [key, value] of Object.entries(req.body)) {
+            if (value !== undefined && value !== null && value !== '') {
+                if (fieldMap[key]) {
+                    allowedFields[fieldMap[key]] = value;
+                }
+            }
+        }
 
         if (Object.keys(allowedFields).length === 0) {
             return res.status(400).json({
                 success: false,
-                message: 'No se proporcionaron campos validos para actualizar'
+                message: 'No se proporcionaron campos válidos para actualizar. Campos permitidos: nombre, apellido, username, email'
             });
         }
 
-        const user = await User.findOneAndUpdate(
-            { _id: req.params.id, rol: 'cliente' },
-            { $set: allowedFields },
-            { new: true, runValidators: true, projection: { password: 0 } }
-        );
+        const user = await User.findByPk(req.params.id);
 
         if (!user) {
             return res.status(404).json({
@@ -191,10 +268,19 @@ export const updateUser = async (req, res) => {
             });
         }
 
+        await user.update(allowedFields);
+
+        if (req.body.celular) {
+            await UserProfile.update(
+                { Phone: req.body.celular },
+                { where: { UserId: user.Id } }
+            );
+        }
+
         res.status(200).json({
             success: true,
             message: 'Usuario actualizado exitosamente',
-            data: user
+            data: formatUser(user)
         });
     } catch (error) {
         res.status(400).json({
@@ -205,14 +291,10 @@ export const updateUser = async (req, res) => {
     }
 };
 
-// DELETE /api/admin/users/:id
+// DELETE /api/admin/users/:id  (desactivación lógica)
 export const deleteUser = async (req, res) => {
     try {
-        const user = await User.findOneAndUpdate(
-            { _id: req.params.id, rol: 'cliente' },
-            { $set: { estado: false } },
-            { new: true }
-        );
+        const user = await User.findByPk(req.params.id);
 
         if (!user) {
             return res.status(404).json({
@@ -221,7 +303,9 @@ export const deleteUser = async (req, res) => {
             });
         }
 
-        await Account.updateMany({ usuario: user._id }, { $set: { estado: false } });
+        await user.update({ Status: false });
+
+        await Account.updateMany({ usuario: user.Id }, { $set: { estado: false } });
 
         res.status(200).json({
             success: true,

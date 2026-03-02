@@ -34,7 +34,6 @@ export const getAccountHistory = async (req, res) => {
         const transactions = await Transaction.find(filter)
             .populate('cuentaOrigen', 'numeroCuenta tipoCuenta')
             .populate('cuentaDestino', 'numeroCuenta tipoCuenta')
-            .populate('ejecutadaPor', 'nombre username')
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });
