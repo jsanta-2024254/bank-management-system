@@ -1,5 +1,6 @@
 'use strict';
 import { User, UserProfile, UserEmail, UserPasswordReset } from './user-model.js';
+import { ClientProfile } from './clientProfile.model.js';
 import { UserRole, Role } from '../auth/role.model.js';
 import Account from '../accounts/account.model.js';
 import Transaction from '../transactions/transaction.model.js';
@@ -8,17 +9,17 @@ import { hashPassword } from '../../utils/password-utils.js';
 import { USER_ROLE } from '../../helpers/role-constants.js';
 import { Op } from 'sequelize';
 
-// POST /api/admin/users
+// POST /api/v1/admin/users  – Crear cliente
 export const createUser = async (req, res) => {
     const sequelizeTx = await User.sequelize.transaction();
     try {
         const {
-            nombre,      
-            apellido,     
-            username,     
-            email,        
-            password,     
-            celular,     
+            nombre,
+            apellido,
+            username,
+            email,
+            password,
+            celular,
             dpi,
             direccion,
             nombreTrabajo,
@@ -26,7 +27,8 @@ export const createUser = async (req, res) => {
             tipoCuenta = 'monetaria'
         } = req.body;
 
-        if (ingresosMensuales < 100) {
+        // Validación de ingresos mínimos (también está en el middleware, pero se repite aquí por seguridad)
+        if (Number(ingresosMensuales) < 100) {
             await sequelizeTx.rollback();
             return res.status(400).json({
                 success: false,
@@ -42,13 +44,22 @@ export const createUser = async (req, res) => {
             Username: username.toLowerCase(),
             Email: email.toLowerCase(),
             Password: hashedPassword,
-            Status: true  
+            Status: true
         }, { transaction: sequelizeTx });
 
-        // Crear perfil con teléfono y datos extra en metadata
+        // Perfil base (teléfono)
         await UserProfile.create({
             UserId: user.Id,
             Phone: celular,
+        }, { transaction: sequelizeTx });
+
+        // Perfil bancario (DPI, dirección, trabajo, ingresos)
+        await ClientProfile.create({
+            UserId: user.Id,
+            Dpi: dpi,
+            Direccion: direccion,
+            NombreTrabajo: nombreTrabajo,
+            IngresosMensuales: Number(ingresosMensuales),
         }, { transaction: sequelizeTx });
 
         await UserEmail.create({
@@ -56,12 +67,11 @@ export const createUser = async (req, res) => {
             EmailVerified: true,
         }, { transaction: sequelizeTx });
 
-        // Crear registro de password reset vacío
         await UserPasswordReset.create({
             UserId: user.Id,
         }, { transaction: sequelizeTx });
 
-        // Asignar rol de usuario normal
+        // Asignar rol USER_ROLE
         const userRole = await Role.findOne({ where: { Name: USER_ROLE } }, { transaction: sequelizeTx });
         if (userRole) {
             await UserRole.create({
@@ -72,12 +82,13 @@ export const createUser = async (req, res) => {
 
         await sequelizeTx.commit();
 
+        // Crear cuenta bancaria en MongoDB
         const numeroCuenta = await generateAccountNumber();
         const account = new Account({
             numeroCuenta,
             tipoCuenta,
             saldo: 0,
-            usuario: user.Id  
+            usuario: user.Id
         });
         await account.save();
 
@@ -119,6 +130,7 @@ export const createUser = async (req, res) => {
     }
 };
 
+// Helper para formatear usuario
 const formatUser = (user) => ({
     id: user.Id,
     nombre: user.Name,
@@ -126,11 +138,15 @@ const formatUser = (user) => ({
     username: user.Username,
     email: user.Email,
     celular: user.UserProfile?.Phone,
+    dpi: user.ClientProfile?.Dpi,
+    direccion: user.ClientProfile?.Direccion,
+    nombreTrabajo: user.ClientProfile?.NombreTrabajo,
+    ingresosMensuales: user.ClientProfile?.IngresosMensuales,
     estado: user.Status,
     creadoEn: user.CreatedAt
 });
 
-// GET /api/admin/users
+// GET /api/v1/admin/users  – Listar clientes 
 export const getUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
@@ -143,11 +159,17 @@ export const getUsers = async (req, res) => {
             where: { Status: estadoFiltro },
             include: [
                 { model: UserProfile, as: 'UserProfile', required: false },
+                { model: ClientProfile, as: 'ClientProfile', required: false },
                 {
                     model: UserRole,
                     as: 'UserRoles',
-                    required: false,
-                    include: [{ model: Role, as: 'Role', required: false }]
+                    required: true,       
+                    include: [{
+                        model: Role,
+                        as: 'Role',
+                        required: true,
+                        where: { Name: USER_ROLE }  
+                    }]
                 }
             ],
             attributes: { exclude: ['Password'] },
@@ -164,7 +186,11 @@ export const getUsers = async (req, res) => {
                 if (account) {
                     lastTransactions = await Transaction.find({
                         $or: [{ cuentaOrigen: account._id }, { cuentaDestino: account._id }]
-                    }).sort({ createdAt: -1 }).limit(5);
+                    })
+                        .populate('cuentaOrigen', 'numeroCuenta tipoCuenta')
+                        .populate('cuentaDestino', 'numeroCuenta tipoCuenta')
+                        .sort({ createdAt: -1 })
+                        .limit(5);
                 }
                 return {
                     ...formatUser(user),
@@ -193,19 +219,19 @@ export const getUsers = async (req, res) => {
     }
 };
 
-// GET /api/admin/users/:id
+// GET /api/v1/admin/users/:id  – Ver un cliente
 export const getUserById = async (req, res) => {
     try {
         const user = await User.findByPk(req.params.id, {
-            include: [{ model: UserProfile, as: 'UserProfile' }],
+            include: [
+                { model: UserProfile, as: 'UserProfile' },
+                { model: ClientProfile, as: 'ClientProfile' }
+            ],
             attributes: { exclude: ['Password'] }
         });
 
         if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            });
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
         }
 
         const account = await Account.findOne({ usuario: user.Id, estado: true });
@@ -213,7 +239,11 @@ export const getUserById = async (req, res) => {
         if (account) {
             lastTransactions = await Transaction.find({
                 $or: [{ cuentaOrigen: account._id }, { cuentaDestino: account._id }]
-            }).sort({ createdAt: -1 }).limit(5);
+            })
+                .populate('cuentaOrigen', 'numeroCuenta tipoCuenta')
+                .populate('cuentaDestino', 'numeroCuenta tipoCuenta')
+                .sort({ createdAt: -1 })
+                .limit(5);
         }
 
         res.status(200).json({
@@ -233,56 +263,76 @@ export const getUserById = async (req, res) => {
     }
 };
 
-// PUT /api/admin/users/:id
+// PUT /api/v1/admin/users/:id  – Actualizar cliente
+// el admin NO puede modificar DPI ni contraseña
 export const updateUser = async (req, res) => {
+    const sequelizeTx = await User.sequelize.transaction();
     try {
-        const fieldMap = {
-            nombre: 'Name',
-            apellido: 'Surname',
-            username: 'Username',
-            email: 'Email'
-        };
+        const user = await User.findByPk(req.params.id, { transaction: sequelizeTx });
 
-        const allowedFields = {};
-        for (const [key, value] of Object.entries(req.body)) {
-            if (value !== undefined && value !== null && value !== '') {
-                if (fieldMap[key]) {
-                    allowedFields[fieldMap[key]] = value;
-                }
+        if (!user) {
+            await sequelizeTx.rollback();
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        // Campos de User que el admin puede modificar (no contraseña, no DPI)
+        const userFieldMap = { nombre: 'Name', apellido: 'Surname', username: 'Username', email: 'Email' };
+        const userUpdates = {};
+        for (const [bodyKey, modelKey] of Object.entries(userFieldMap)) {
+            if (req.body[bodyKey] !== undefined && req.body[bodyKey] !== null && req.body[bodyKey] !== '') {
+                userUpdates[modelKey] = req.body[bodyKey];
             }
         }
 
-        if (Object.keys(allowedFields).length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No se proporcionaron campos válidos para actualizar. Campos permitidos: nombre, apellido, username, email'
-            });
+        if (Object.keys(userUpdates).length > 0) {
+            await user.update(userUpdates, { transaction: sequelizeTx });
         }
 
-        const user = await User.findByPk(req.params.id);
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            });
-        }
-
-        await user.update(allowedFields);
-
+        // Actualizar teléfono en UserProfile
         if (req.body.celular) {
             await UserProfile.update(
                 { Phone: req.body.celular },
-                { where: { UserId: user.Id } }
+                { where: { UserId: user.Id }, transaction: sequelizeTx }
             );
         }
+
+        // Actualizar campos bancarios en ClientProfile 
+        const clientUpdates = {};
+        if (req.body.direccion      !== undefined) clientUpdates.Direccion        = req.body.direccion;
+        if (req.body.nombreTrabajo  !== undefined) clientUpdates.NombreTrabajo    = req.body.nombreTrabajo;
+        if (req.body.ingresosMensuales !== undefined) {
+            if (Number(req.body.ingresosMensuales) < 100) {
+                await sequelizeTx.rollback();
+                return res.status(400).json({
+                    success: false,
+                    message: 'Los ingresos mensuales deben ser al menos Q100'
+                });
+            }
+            clientUpdates.IngresosMensuales = Number(req.body.ingresosMensuales);
+        }
+
+        if (Object.keys(clientUpdates).length > 0) {
+            await ClientProfile.update(clientUpdates, { where: { UserId: user.Id }, transaction: sequelizeTx });
+        }
+
+        await sequelizeTx.commit();
+
+        // Recargar para respuesta actualizada
+        const updatedUser = await User.findByPk(user.Id, {
+            include: [
+                { model: UserProfile, as: 'UserProfile' },
+                { model: ClientProfile, as: 'ClientProfile' }
+            ],
+            attributes: { exclude: ['Password'] }
+        });
 
         res.status(200).json({
             success: true,
             message: 'Usuario actualizado exitosamente',
-            data: formatUser(user)
+            data: formatUser(updatedUser)
         });
     } catch (error) {
+        await sequelizeTx.rollback();
         res.status(400).json({
             success: false,
             message: 'Error al actualizar el usuario',
@@ -291,20 +341,16 @@ export const updateUser = async (req, res) => {
     }
 };
 
-// DELETE /api/admin/users/:id  (desactivación lógica)
+// DELETE /api/v1/admin/users/:id  
 export const deleteUser = async (req, res) => {
     try {
         const user = await User.findByPk(req.params.id);
 
         if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            });
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
         }
 
         await user.update({ Status: false });
-
         await Account.updateMany({ usuario: user.Id }, { $set: { estado: false } });
 
         res.status(200).json({
