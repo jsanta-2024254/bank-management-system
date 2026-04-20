@@ -7,7 +7,23 @@ import { handleValidationErrors } from '../../middlewares/validators.middleware.
 
 const router = Router();
 
-// GET /api/v1/me  – Ver perfil propio
+/**
+ * @swagger
+ * /me:
+ *   get:
+ *     tags: [Me]
+ *     summary: Obtiene el perfil propio del cliente
+ *     description: Retorna la información del perfil del cliente autenticado.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Perfil del cliente
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de cliente
+ */
 router.get(
     '/',
     verifyToken,
@@ -15,7 +31,46 @@ router.get(
     getMyProfile
 );
 
-// PUT /api/v1/me  – Editar perfil propio (nombre, direccion, nombreTrabajo, ingresosMensuales)
+/**
+ * @swagger
+ * /me:
+ *   put:
+ *     tags: [Me]
+ *     summary: Actualiza el perfil propio del cliente
+ *     description: Permite al cliente editar su nombre, dirección, nombre de trabajo e ingresos mensuales.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 description: Nombre del cliente
+ *               direccion:
+ *                 type: string
+ *                 description: Dirección del cliente
+ *               nombreTrabajo:
+ *                 type: string
+ *                 description: Nombre del lugar de trabajo
+ *               ingresosMensuales:
+ *                 type: number
+ *                 minimum: 100
+ *                 example: 5000.00
+ *                 description: Ingresos mensuales (mínimo Q100)
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado exitosamente
+ *       400:
+ *         description: Parámetros inválidos
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de cliente
+ */
 router.put(
     '/',
     verifyToken,

@@ -7,7 +7,6 @@ import { handleValidationErrors } from '../../middlewares/validators.middleware.
 
 const router = Router();
 
-// Validaciones para crear cliente
 const createUserValidations = [
     body('nombre').notEmpty().withMessage('El nombre es requerido').trim(),
     body('apellido').notEmpty().withMessage('El apellido es requerido').trim(),
@@ -22,7 +21,6 @@ const createUserValidations = [
     body('tipoCuenta').optional().isIn(['monetaria', 'ahorro']).withMessage('Tipo de cuenta inválido')
 ];
 
-// Validaciones para actualizar cliente (admin NO puede tocar DPI ni contraseña)
 const updateUserValidations = [
     body('nombre').optional().notEmpty().withMessage('El nombre no puede estar vacío').trim(),
     body('apellido').optional().notEmpty().withMessage('El apellido no puede estar vacío').trim(),
@@ -32,12 +30,82 @@ const updateUserValidations = [
     body('direccion').optional().notEmpty().withMessage('La dirección no puede estar vacía'),
     body('nombreTrabajo').optional().notEmpty().withMessage('El nombre de trabajo no puede estar vacío'),
     body('ingresosMensuales').optional().isFloat({ min: 100 }).withMessage('Los ingresos deben ser al menos Q100'),
-    // Bloqueamos explícitamente los campos no permitidos
     body('dpi').not().exists().withMessage('El administrador no puede modificar el DPI'),
     body('password').not().exists().withMessage('El administrador no puede modificar la contraseña'),
 ];
 
-// POST /api/v1/admin/users
+/**
+ * @swagger
+ * /admin/users:
+ *   post:
+ *     tags: [Admin - Users]
+ *     summary: Crea un nuevo cliente
+ *     description: Registra un nuevo usuario cliente con su perfil y cuenta bancaria. Solo accesible por administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre
+ *               - apellido
+ *               - username
+ *               - email
+ *               - password
+ *               - dpi
+ *               - direccion
+ *               - celular
+ *               - nombreTrabajo
+ *               - ingresosMensuales
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               apellido:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 8
+ *               dpi:
+ *                 type: string
+ *                 pattern: '^\d{13}$'
+ *                 description: DPI con exactamente 13 dígitos
+ *               direccion:
+ *                 type: string
+ *               celular:
+ *                 type: string
+ *                 pattern: '^\d{8}$'
+ *                 description: Celular con exactamente 8 dígitos
+ *               nombreTrabajo:
+ *                 type: string
+ *               ingresosMensuales:
+ *                 type: number
+ *                 minimum: 100
+ *                 example: 5000.00
+ *               tipoCuenta:
+ *                 type: string
+ *                 enum: [monetaria, ahorro]
+ *                 description: Tipo de cuenta a crear (opcional)
+ *     responses:
+ *       201:
+ *         description: Cliente creado exitosamente
+ *       400:
+ *         description: Parámetros inválidos
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de administrador
+ *       409:
+ *         description: Email, username o DPI ya existe
+ */
 router.post(
     '/',
     verifyToken,
@@ -47,7 +115,47 @@ router.post(
     createUser
 );
 
-// GET /api/v1/admin/users
+/**
+ * @swagger
+ * /admin/users:
+ *   get:
+ *     tags: [Admin - Users]
+ *     summary: Lista todos los clientes
+ *     description: Retorna la lista de usuarios con paginación y filtro por estado. Solo accesible por administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Número de página
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Resultados por página
+ *       - in: query
+ *         name: estado
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         description: Filtrar por estado activo/inactivo
+ *     responses:
+ *       200:
+ *         description: Lista de clientes
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de administrador
+ */
 router.get(
     '/',
     verifyToken,
@@ -61,7 +169,32 @@ router.get(
     getUsers
 );
 
-// GET /api/v1/admin/users/:id
+/**
+ * @swagger
+ * /admin/users/{id}:
+ *   get:
+ *     tags: [Admin - Users]
+ *     summary: Obtiene un cliente por ID
+ *     description: Retorna el detalle de un usuario específico. Solo accesible por administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Detalle del cliente
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de administrador
+ *       404:
+ *         description: Usuario no encontrado
+ */
 router.get(
     '/:id',
     verifyToken,
@@ -71,7 +204,60 @@ router.get(
     getUserById
 );
 
-// PUT /api/v1/admin/users/:id
+/**
+ * @swagger
+ * /admin/users/{id}:
+ *   put:
+ *     tags: [Admin - Users]
+ *     summary: Actualiza un cliente
+ *     description: Modifica los datos de un usuario. El administrador NO puede cambiar DPI ni contraseña. Solo accesible por administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               apellido:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               celular:
+ *                 type: string
+ *                 pattern: '^\d{8}$'
+ *               direccion:
+ *                 type: string
+ *               nombreTrabajo:
+ *                 type: string
+ *               ingresosMensuales:
+ *                 type: number
+ *                 minimum: 100
+ *     responses:
+ *       200:
+ *         description: Cliente actualizado exitosamente
+ *       400:
+ *         description: Parámetros inválidos
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de administrador
+ *       404:
+ *         description: Usuario no encontrado
+ */
 router.put(
     '/:id',
     verifyToken,
@@ -81,7 +267,32 @@ router.put(
     updateUser
 );
 
-// DELETE /api/v1/admin/users/:id
+/**
+ * @swagger
+ * /admin/users/{id}:
+ *   delete:
+ *     tags: [Admin - Users]
+ *     summary: Elimina un cliente
+ *     description: Elimina o desactiva un usuario del sistema. Solo accesible por administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Cliente eliminado exitosamente
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de administrador
+ *       404:
+ *         description: Usuario no encontrado
+ */
 router.delete(
     '/:id',
     verifyToken,

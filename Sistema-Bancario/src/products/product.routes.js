@@ -35,7 +35,48 @@ const paginationValidations = [
     query('categoria').optional().isIn(CATEGORIAS).withMessage('Categoria invalida')
 ];
 
-// GET /api/v1/products
+/**
+ * @swagger
+ * /products:
+ *   get:
+ *     tags: [Products]
+ *     summary: Lista todos los productos
+ *     description: Retorna los productos disponibles con paginación y filtro por categoría.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Número de página
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Resultados por página
+ *       - in: query
+ *         name: categoria
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [calzado, ropa, tecnologia, servicios, hogar, salud, entretenimiento, otros]
+ *         description: Filtrar por categoría
+ *     responses:
+ *       200:
+ *         description: Lista de productos
+ *       400:
+ *         description: Parámetros inválidos
+ *       401:
+ *         description: Token inválido o no proporcionado
+ */
 router.get(
     '/',
     verifyToken,
@@ -44,7 +85,32 @@ router.get(
     getProducts
 );
 
-// GET /api/v1/products/:id
+/**
+ * @swagger
+ * /products/{id}:
+ *   get:
+ *     tags: [Products]
+ *     summary: Obtiene un producto por ID
+ *     description: Retorna el detalle de un producto específico.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del producto (MongoDB ObjectId)
+ *     responses:
+ *       200:
+ *         description: Detalle del producto
+ *       400:
+ *         description: ID inválido
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       404:
+ *         description: Producto no encontrado
+ */
 router.get(
     '/:id',
     verifyToken,
@@ -53,7 +119,57 @@ router.get(
     getProductById
 );
 
-// POST /api/v1/admin/products (solo admin)
+/**
+ * @swagger
+ * /admin/products:
+ *   post:
+ *     tags: [Products]
+ *     summary: Crea un nuevo producto
+ *     description: Agrega un producto al catálogo. Solo accesible por administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre
+ *               - descripcion
+ *               - precio
+ *               - categoria
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 description: Nombre del producto
+ *               descripcion:
+ *                 type: string
+ *                 description: Descripción del producto
+ *               precio:
+ *                 type: number
+ *                 minimum: 0.01
+ *                 example: 199.99
+ *                 description: Precio del producto
+ *               categoria:
+ *                 type: string
+ *                 enum: [calzado, ropa, tecnologia, servicios, hogar, salud, entretenimiento, otros]
+ *                 description: Categoría del producto
+ *               stock:
+ *                 type: integer
+ *                 minimum: 0
+ *                 example: 50
+ *                 description: Stock disponible (opcional)
+ *     responses:
+ *       201:
+ *         description: Producto creado exitosamente
+ *       400:
+ *         description: Parámetros inválidos
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de administrador
+ */
 router.post(
     '/',
     verifyToken,
@@ -63,7 +179,57 @@ router.post(
     createProduct
 );
 
-// PUT /api/v1/admin/products/:id (solo admin)
+/**
+ * @swagger
+ * /admin/products/{id}:
+ *   put:
+ *     tags: [Products]
+ *     summary: Actualiza un producto
+ *     description: Modifica los datos de un producto existente. Solo accesible por administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del producto (MongoDB ObjectId)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *               precio:
+ *                 type: number
+ *                 minimum: 0.01
+ *               categoria:
+ *                 type: string
+ *                 enum: [calzado, ropa, tecnologia, servicios, hogar, salud, entretenimiento, otros]
+ *               stock:
+ *                 type: integer
+ *                 minimum: 0
+ *               exclusivo:
+ *                 type: boolean
+ *                 description: Si el producto es exclusivo para clientes premium
+ *     responses:
+ *       200:
+ *         description: Producto actualizado exitosamente
+ *       400:
+ *         description: ID o datos inválidos
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de administrador
+ *       404:
+ *         description: Producto no encontrado
+ */
 router.put(
     '/:id',
     verifyToken,
@@ -73,7 +239,34 @@ router.put(
     updateProduct
 );
 
-// DELETE /api/v1/admin/products/:id (solo admin)
+/**
+ * @swagger
+ * /admin/products/{id}:
+ *   delete:
+ *     tags: [Products]
+ *     summary: Elimina un producto
+ *     description: Elimina un producto del catálogo. Solo accesible por administradores.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del producto (MongoDB ObjectId)
+ *     responses:
+ *       200:
+ *         description: Producto eliminado exitosamente
+ *       400:
+ *         description: ID inválido
+ *       401:
+ *         description: Token inválido o no proporcionado
+ *       403:
+ *         description: No tiene permisos de administrador
+ *       404:
+ *         description: Producto no encontrado
+ */
 router.delete(
     '/:id',
     verifyToken,
