@@ -1,5 +1,4 @@
 'use strict';
-import mongoose from 'mongoose';
 import Transaction from './transaction.model.js';
 import Account from '../accounts/account.model.js';
 import DailyLimit from '../deposits/dailyLimit.model.js';
@@ -102,15 +101,17 @@ export const getTransactionById = async (req, res) => {
 
 // POST /api/transactions/transfer
 export const transfer = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let cuentaOrigenActualizada = false;
+    let cuentaDestinoActualizada = false;
+    let saldoOriginalOrigen = null;
+    let saldoOriginalDestino = null;
+    let cuentaOrigenRef = null;
+    let cuentaDestinoRef = null;
 
     try {
         const { numeroCuentaDestino, tipoCuentaDestino, tipoCuentaOrigen, monto, descripcion } = req.body;
 
         if (monto > 2000) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(400).json({
                 success: false,
                 message: 'No puede transferir mas de Q2,000 por operacion'
@@ -122,11 +123,9 @@ export const transfer = async (req, res) => {
             filtroOrigen.tipoCuenta = tipoCuentaOrigen;
         }
 
-        const cuentaOrigen = await Account.findOne(filtroOrigen).session(session);
+        const cuentaOrigen = await Account.findOne(filtroOrigen);
 
         if (!cuentaOrigen) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(404).json({
                 success: false,
                 message: tipoCuentaOrigen
@@ -136,8 +135,6 @@ export const transfer = async (req, res) => {
         }
 
         if (cuentaOrigen.saldo < monto) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(400).json({
                 success: false,
                 message: 'Saldo insuficiente para realizar la transferencia'
@@ -148,11 +145,9 @@ export const transfer = async (req, res) => {
             numeroCuenta: numeroCuentaDestino,
             tipoCuenta: tipoCuentaDestino,
             estado: true
-        }).session(session);
+        });
 
         if (!cuentaDestino) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(404).json({
                 success: false,
                 message: 'Cuenta destino no encontrada o inactiva'
@@ -160,8 +155,6 @@ export const transfer = async (req, res) => {
         }
 
         if (cuentaOrigen._id.toString() === cuentaDestino._id.toString()) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(400).json({
                 success: false,
                 message: 'No puedes transferir a tu propia cuenta'
@@ -169,19 +162,21 @@ export const transfer = async (req, res) => {
         }
 
         const hoy = new Date().toISOString().split('T')[0];
-        let dailyLimit = await DailyLimit.findOne(
-            { usuario: req.user.id, fecha: hoy }
-        ).session(session);
+        let dailyLimit = await DailyLimit.findOne({ usuario: req.user.id, fecha: hoy });
 
         const totalHoy = dailyLimit ? dailyLimit.totalTransferido : 0;
         if (totalHoy + monto > 10000) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(400).json({
                 success: false,
                 message: `Limite diario excedido. Disponible hoy: Q${(10000 - totalHoy).toFixed(2)}`
             });
         }
+
+        // Guardar saldos originales para rollback manual si algo falla
+        saldoOriginalOrigen  = cuentaOrigen.saldo;
+        saldoOriginalDestino = cuentaDestino.saldo;
+        cuentaOrigenRef  = cuentaOrigen;
+        cuentaDestinoRef = cuentaDestino;
 
         const saldoAnteriorOrigen  = cuentaOrigen.saldo;
         const saldoAnteriorDestino = cuentaDestino.saldo;
@@ -189,8 +184,11 @@ export const transfer = async (req, res) => {
         cuentaOrigen.saldo  -= monto;
         cuentaDestino.saldo += monto;
 
-        await cuentaOrigen.save({ session });
-        await cuentaDestino.save({ session });
+        await cuentaOrigen.save();
+        cuentaOrigenActualizada = true;
+
+        await cuentaDestino.save();
+        cuentaDestinoActualizada = true;
 
         const transaction = new Transaction({
             tipo: 'transferencia',
@@ -204,20 +202,14 @@ export const transfer = async (req, res) => {
             saldoPosteriorDestino: cuentaDestino.saldo,
             ejecutadaPor: req.user.id
         });
-        await transaction.save({ session });
+        await transaction.save();
 
         if (dailyLimit) {
             dailyLimit.totalTransferido += monto;
-            await dailyLimit.save({ session });
+            await dailyLimit.save();
         } else {
-            await DailyLimit.create(
-                [{ usuario: req.user.id, fecha: hoy, totalTransferido: monto }],
-                { session }
-            );
+            await DailyLimit.create({ usuario: req.user.id, fecha: hoy, totalTransferido: monto });
         }
-
-        await session.commitTransaction();
-        session.endSession();
 
         res.status(201).json({
             success: true,
@@ -225,8 +217,20 @@ export const transfer = async (req, res) => {
             data: transaction
         });
     } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
+        // Rollback manual: revertir saldos si ya se habían modificado
+        try {
+            if (cuentaOrigenActualizada && cuentaOrigenRef !== null) {
+                cuentaOrigenRef.saldo = saldoOriginalOrigen;
+                await cuentaOrigenRef.save();
+            }
+            if (cuentaDestinoActualizada && cuentaDestinoRef !== null) {
+                cuentaDestinoRef.saldo = saldoOriginalDestino;
+                await cuentaDestinoRef.save();
+            }
+        } catch (rollbackError) {
+            console.error('Error en rollback de transferencia:', rollbackError);
+        }
+
         res.status(500).json({
             success: false,
             message: 'Error al realizar la transferencia',

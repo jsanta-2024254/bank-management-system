@@ -7,7 +7,68 @@ import { handleValidationErrors } from '../../middlewares/validators.middleware.
 
 const router = Router();
 
-// GET /api/currency/convert?from=GTQ&to=USD&amount=500
+/**
+ * @swagger
+ * /currency/convert:
+ *   get:
+ *     tags: [Currency]
+ *     summary: Convierte un monto entre divisas
+ *     description: Convierte un monto de una moneda a otra usando tasas de cambio en tiempo real. Por defecto convierte desde GTQ.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: to
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: USD
+ *         description: Moneda destino (ej. USD, EUR, MXN)
+ *       - in: query
+ *         name: from
+ *         required: false
+ *         schema:
+ *           type: string
+ *           default: GTQ
+ *           example: GTQ
+ *         description: Moneda origen (por defecto GTQ)
+ *       - in: query
+ *         name: amount
+ *         required: false
+ *         schema:
+ *           type: number
+ *           minimum: 0.01
+ *           default: 1
+ *           example: 500
+ *         description: Monto a convertir (por defecto 1)
+ *     responses:
+ *       200:
+ *         description: Conversión exitosa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 from:
+ *                   type: string
+ *                   example: GTQ
+ *                 to:
+ *                   type: string
+ *                   example: USD
+ *                 amount:
+ *                   type: number
+ *                   example: 500
+ *                 result:
+ *                   type: number
+ *                   example: 64.85
+ *                 rate:
+ *                   type: number
+ *                   example: 0.1297
+ *       400:
+ *         description: Parámetros inválidos
+ *       401:
+ *         description: Token inválido o no proporcionado
+ */
 router.get(
     '/convert',
     verifyToken,

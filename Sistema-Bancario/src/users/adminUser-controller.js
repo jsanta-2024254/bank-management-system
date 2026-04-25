@@ -14,6 +14,7 @@ import { generateAccountNumber } from '../../configs/accountNumber.js';
 import { hashPassword } from '../../utils/password-utils.js';
 import { USER_ROLE } from '../../helpers/role-constants.js';
 import { Op } from 'sequelize';
+import { sequelize } from '../../configs/db.js';
 
 // POST /api/v1/admin/users  – Crear cliente
 export const createUser = async (req, res) => {
@@ -95,7 +96,6 @@ export const createUser = async (req, res) => {
     );
 
     // Asignar rol USER_ROLE
-    // ✅ FIX: el transaction debe ir en el mismo objeto options
     const userRole = await Role.findOne({
       where: { Name: USER_ROLE },
       transaction: sequelizeTx,
@@ -198,12 +198,12 @@ export const getUsers = async (req, res) => {
         {
           model: UserRole,
           as: 'UserRoles',
-          required: true,
+          required: false, 
           include: [
             {
               model: Role,
               as: 'Role',
-              required: true,
+              required: false, 
               where: { Name: USER_ROLE },
             },
           ],
@@ -211,16 +211,14 @@ export const getUsers = async (req, res) => {
       ],
       attributes: { exclude: ['Password'] },
 
-      // ✅ IMPORTANT: evita subquery con include + pagination (suele causar el error "missing FROM-clause entry")
+      // Evita subquery con include + pagination
       distinct: true,
       subQuery: false,
 
       limit: limitNum,
       offset,
 
-      // ✅ FIX: "created_at" no coincide con tu modelo (tú usas CreatedAt)
-      // Si en tu modelo es "createdAt", cambia a: order: [['createdAt', 'DESC']]
-      order: [['CreatedAt', 'DESC']],
+      order: [[sequelize.col('User.created_at'), 'DESC']],
     });
 
     const usersWithData = await Promise.all(

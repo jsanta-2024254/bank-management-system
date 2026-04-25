@@ -6,7 +6,13 @@ import Transaction from '../transactions/transaction.model.js';
 // Helper: obtener ID del usuario
 const getAuthUserId = (req) => {
   return (
-    req.user?.id ?? req.user?.Id ?? req.user?.userId ?? req.user?.UserId ?? null
+    req.userId ??
+    req.user?.id ??
+    req.user?.Id ??
+    req.user?.dataValues?.Id ??
+    req.user?.userId ??
+    req.user?.UserId ??
+    null
   );
 };
 

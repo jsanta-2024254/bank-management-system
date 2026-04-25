@@ -21,48 +21,49 @@ const router = Router();
 
 /**
  * @swagger
- * /api/v1/auth/register:
+ * /auth/register:
  *   post:
  *     tags: [Authentication]
  *     summary: Registra un nuevo usuario
  *     description: Crea una nueva cuenta de usuario con validaciones de seguridad
- *     consumes:
- *       - multipart/form-data
- *     parameters:
- *       - name: name
- *         in: formData
- *         required: true
- *         type: string
- *         description: Nombre del usuario
- *       - name: surname
- *         in: formData
- *         required: true
- *         type: string
- *         description: Apellido del usuario
- *       - name: username
- *         in: formData
- *         required: true
- *         type: string
- *         description: Nombre de usuario único
- *       - name: email
- *         in: formData
- *         required: true
- *         type: string
- *         description: Email del usuario
- *       - name: password
- *         in: formData
- *         required: true
- *         type: string
- *         description: Contraseña (mínimo 8 caracteres)
- *       - name: phone
- *         in: formData
- *         required: true
- *         type: string
- *         description: Teléfono (8 dígitos)
- *       - name: profilePicture
- *         in: formData
- *         type: file
- *         description: Imagen de perfil (opcional)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - surname
+ *               - username
+ *               - email
+ *               - password
+ *               - phone
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Nombre del usuario
+ *               surname:
+ *                 type: string
+ *                 description: Apellido del usuario
+ *               username:
+ *                 type: string
+ *                 description: Nombre de usuario único
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email del usuario
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Contraseña (mínimo 8 caracteres)
+ *               phone:
+ *                 type: string
+ *                 description: Teléfono (8 dígitos)
+ *               profilePicture:
+ *                 type: string
+ *                 format: binary
+ *                 description: Imagen de perfil (opcional)
  *     responses:
  *       201:
  *         description: Usuario registrado exitosamente
@@ -82,7 +83,7 @@ router.post(
 
 /**
  * @swagger
- * /api/v1/auth/login:
+ * /auth/login:
  *   post:
  *     tags: [Authentication]
  *     summary: Autentica un usuario
@@ -102,6 +103,7 @@ router.post(
  *                 description: Email o nombre de usuario
  *               password:
  *                 type: string
+ *                 format: password
  *                 description: Contraseña del usuario
  *     responses:
  *       200:
@@ -115,7 +117,7 @@ router.post('/login', authRateLimit, validateLogin, authController.login);
 
 /**
  * @swagger
- * /api/v1/auth/verify-email:
+ * /auth/verify-email:
  *   post:
  *     tags: [Authentication]
  *     summary: Verifica el email del usuario
@@ -147,7 +149,7 @@ router.post(
 
 /**
  * @swagger
- * /api/v1/auth/resend-verification:
+ * /auth/resend-verification:
  *   post:
  *     tags: [Authentication]
  *     summary: Reenvía el email de verificación
@@ -163,6 +165,7 @@ router.post(
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
  *                 description: Email del usuario
  *     responses:
  *       200:
@@ -179,7 +182,7 @@ router.post(
 
 /**
  * @swagger
- * /api/v1/auth/forgot-password:
+ * /auth/forgot-password:
  *   post:
  *     tags: [Authentication]
  *     summary: Inicia recuperación de contraseña
@@ -195,6 +198,7 @@ router.post(
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
  *                 description: Email del usuario
  *     responses:
  *       200:
@@ -209,7 +213,7 @@ router.post(
 
 /**
  * @swagger
- * /api/v1/auth/reset-password:
+ * /auth/reset-password:
  *   post:
  *     tags: [Authentication]
  *     summary: Resetea la contraseña
@@ -229,6 +233,7 @@ router.post(
  *                 description: Token de recuperación de contraseña
  *               newPassword:
  *                 type: string
+ *                 format: password
  *                 description: Nueva contraseña
  *     responses:
  *       200:
@@ -245,10 +250,10 @@ router.post(
 
 /**
  * @swagger
- * /api/v1/auth/profile:
+ * /auth/profile:
  *   get:
  *     tags: [Profile]
- *     summary: Obtiene el perfil del usuario
+ *     summary: Obtiene el perfil del usuario autenticado
  *     description: Devuelve la información del usuario autenticado
  *     security:
  *       - bearerAuth: []
@@ -264,11 +269,13 @@ router.get('/profile', validateJWT, authController.getProfile);
 
 /**
  * @swagger
- * /api/v1/auth/profile/by-id:
+ * /auth/profile/by-id:
  *   post:
  *     tags: [Profile]
- *     summary: Obtiene el perfil del usuario por ID
+ *     summary: Obtiene el perfil de un usuario por ID
  *     description: Devuelve la información del usuario basándose en el userId proporcionado
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -293,7 +300,7 @@ router.post('/profile/by-id', requestLimit, validateJWT, authController.getProfi
 
 /**
  * @swagger
- * /api/v1/auth/send-2fa:
+ * /auth/send-2fa:
  *   post:
  *     tags: [Authentication]
  *     summary: Envía código de verificación 2FA al correo
@@ -327,11 +334,13 @@ router.post(
 
 /**
  * @swagger
- * /api/v1/auth/verify-2fa:
+ * /auth/verify-2fa:
  *   post:
  *     tags: [Authentication]
  *     summary: Verifica el código 2FA y devuelve JWT de sesión
  *     description: Valida el código de 6 dígitos recibido por correo y retorna el token JWT
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:

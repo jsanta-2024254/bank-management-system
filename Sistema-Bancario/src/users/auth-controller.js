@@ -1,5 +1,6 @@
 'use strict';
 import { User } from '../users/user-model.js';
+import { UserRole, Role } from '../auth/role.model.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../configs/jwt.js';
 import { verifyPassword } from '../../utils/password-utils.js';
 
@@ -24,7 +25,14 @@ export const login = async (req, res) => {
             });
         }
 
-        const payload = { id: user.Id, username: user.Username };
+        // Obtener el rol del usuario
+        const userRole = await UserRole.findOne({
+            where: { UserId: user.Id },
+            include: [{ model: Role, as: 'Role' }]
+        });
+        const role = userRole?.Role?.Name ?? 'USER_ROLE';
+
+        const payload = { id: user.Id, username: user.Username, role };
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
 
@@ -72,7 +80,14 @@ export const refreshToken = async (req, res) => {
             });
         }
 
-        const payload = { id: user.Id, username: user.Username };
+        // Obtener el rol del usuario
+        const userRole = await UserRole.findOne({
+            where: { UserId: user.Id },
+            include: [{ model: Role, as: 'Role' }]
+        });
+        const role = userRole?.Role?.Name ?? 'USER_ROLE';
+
+        const payload = { id: user.Id, username: user.Username, role };
         const newAccessToken = generateAccessToken(payload);
 
         res.status(200).json({
