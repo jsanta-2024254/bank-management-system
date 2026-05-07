@@ -26,6 +26,10 @@ x-common-env: &common-env
   FRONTEND_URL: ${FRONTEND_URL}
   ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
   ADMIN_ALLOWED_ORIGINS: ${ADMIN_ALLOWED_ORIGINS}
+  
+  # Currency
+  CURRENCY_API_KEY: ${CURRENCY_API_KEY}
+  CURRENCY_API_URL: ${CURRENCY_API_URL}
 
   # URLs internas entre microservicios
   AUTH_SERVICE_URL: http://auth-service:3001
