@@ -2,36 +2,24 @@ name: bank-management-microservices
 
 x-common-env: &common-env
   NODE_ENV: ${NODE_ENV:-development}
-
-  # PostgreSQL interno para contenedores
   DB_HOST: postgres_db
   DB_PORT: 5432
   DB_NAME: ${DB_NAME}
   DB_USERNAME: ${DB_USERNAME}
   DB_PASSWORD: ${DB_PASSWORD}
   DB_SQL_LOGGING: ${DB_SQL_LOGGING:-false}
-
-  # MongoDB interno para contenedores
   MONGO_URI: mongodb://mongo_db:27017/${DB_NAME}?replicaSet=rs0
-
-  # JWT compartido entre servicios
   JWT_SECRET: ${JWT_SECRET}
   JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
   JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
   JWT_ISSUER: ${JWT_ISSUER}
   JWT_AUDIENCE: ${JWT_AUDIENCE}
-
-  # Seguridad e integraciones internas
   INTERNAL_API_KEY: ${INTERNAL_API_KEY}
   FRONTEND_URL: ${FRONTEND_URL}
   ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
   ADMIN_ALLOWED_ORIGINS: ${ADMIN_ALLOWED_ORIGINS}
-  
-  # Currency
   CURRENCY_API_KEY: ${CURRENCY_API_KEY}
   CURRENCY_API_URL: ${CURRENCY_API_URL}
-
-  # URLs internas entre microservicios
   AUTH_SERVICE_URL: http://auth-service:3001
   USERS_SERVICE_URL: http://users-service:3002
   ACCOUNTS_SERVICE_URL: http://accounts-service:3003
@@ -75,6 +63,27 @@ services:
         "-lc",
         "sleep 5 && mongosh --host mongo_db:27017 --eval 'try { rs.status() } catch (e) { rs.initiate({_id:\"rs0\", members:[{_id:0, host:\"mongo_db:27017\"}]}) }'"
       ]
+
+  api-gateway:
+    build: ./services/api-gateway
+    container_name: bank_api_gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - users-service
+      - accounts-service
+      - transactions-service
+      - finance-service
+      - products-service
+    env_file: .env
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USERS_SERVICE_URL=http://users-service:3002
+      - ACCOUNTS_SERVICE_URL=http://accounts-service:3003
+      - TRANSACTIONS_SERVICE_URL=http://transactions-service:3004
+      - FINANCE_SERVICE_URL=http://finance-service:3005
+      - PRODUCTS_SERVICE_URL=http://products-service:3006
 
   auth-service:
     build:

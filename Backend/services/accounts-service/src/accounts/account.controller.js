@@ -109,8 +109,11 @@ export const getTopMovements = async (req, res) => {
 // GET /api/v1/accounts/my-accounts  – Cuentas del cliente autenticado
 export const getMyAccounts = async (req, res) => {
     try {
-        const accounts = await Account.find({ usuario: req.user.sub, estado: true });
+        const query = req.user.role === 'ADMIN_ROLE'
+            ? { estado: true }
+            : { usuario: req.user.sub, estado: true };
 
+        const accounts = await Account.find(query);
         res.status(200).json({ success: true, data: accounts });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error al obtener las cuentas', error: error.message });

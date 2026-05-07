@@ -76,7 +76,6 @@ router.get(
 router.get(
     '/my-accounts',
     verifyToken,
-    isCliente,
     getMyAccounts
 );
 
