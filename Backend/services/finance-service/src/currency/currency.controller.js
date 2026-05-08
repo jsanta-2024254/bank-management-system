@@ -25,7 +25,7 @@ export const convertCurrency = async (req, res) => {
                 });
             }
             // El cliente solo puede ver su propia cuenta
-            if (account.usuario.toString() !== req.user.id && req.user.rol !== 'admin') {
+            if (account.usuario.toString() !== req.user.id && req.user.role !== 'ADMIN_ROLE') {
                 return res.status(403).json({
                     success: false,
                     message: 'No tienes permiso para ver esta cuenta'
