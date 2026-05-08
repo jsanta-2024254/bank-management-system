@@ -104,7 +104,7 @@ const DepositForm = ({ onClose }) => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl text-sm transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-sm transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         {isSubmitting ? 'Procesando...' : (
                             <>
