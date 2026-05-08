@@ -30,10 +30,11 @@ app.use(createProxyMiddleware({
 }));
 
 // Proxy para el Accounts Service
+// Proxy para el Accounts Service
 app.use(createProxyMiddleware({
     target: process.env.ACCOUNTS_SERVICE_URL || 'http://localhost:3003',
     changeOrigin: true,
-    pathFilter: (path) => path.startsWith(`${BASE_PATH}/accounts`)
+    pathFilter: (path) => path.startsWith(`${BASE_PATH}/accounts`) || path.startsWith(`${BASE_PATH}/internal/accounts`)
 }));
 
 // Proxy para el Transactions Service
