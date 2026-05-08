@@ -9,6 +9,7 @@ import {
     LogOut,
     X,
     Landmark,
+    User,
 } from 'lucide-react'
 import useAuthStore from '../../../features/auth/store/authStore'
 
@@ -19,6 +20,7 @@ const navItems = [
     { label: 'Depósitos', path: '/deposits', icon: TrendingUp, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
     { label: 'Productos', path: '/products', icon: Package, roles: ['ADMIN_ROLE'] },
     { label: 'Usuarios', path: '/users', icon: Users, roles: ['ADMIN_ROLE'] },
+    { label: 'Mi Perfil', path: '/profile', icon: User, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
 ]
 
 const Sidebar = ({ isOpen, onClose }) => {
