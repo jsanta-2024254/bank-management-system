@@ -5,6 +5,7 @@ import DashboardPage from '../layouts/DashboardPage'
 import Dashboard from '../../features/dashboard/components/Dashboard'
 import UserList from '../../features/users/components/UserList'
 import AccountList from '../../features/accounts/components/AccountList'
+import TransactionList from '../../features/transactions/components/TransactionList'
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuthStore()
@@ -43,7 +44,7 @@ const AppRoutes = () => {
                             </AdminRoute>
                         }
                     />
-                    <Route path="transactions" element={<div className="text-white">Transacciones (próximamente)</div>} />
+                    <Route path="transactions" element={<TransactionList />} />
                     <Route path="deposits" element={<div className="text-white">Depósitos (próximamente)</div>} />
                     <Route path="products" element={<div className="text-white">Productos (próximamente)</div>} />
                 </Route>
