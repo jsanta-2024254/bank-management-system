@@ -51,7 +51,13 @@ app.use(createProxyMiddleware({
     pathFilter: (path) =>
         path.startsWith(`${BASE_PATH}/deposits`) ||
         path.startsWith(`${BASE_PATH}/currency`) ||
-        path.startsWith(`${BASE_PATH}/favorites`)
+        path.startsWith(`${BASE_PATH}/favorites`),
+    pathRewrite: (path) => {
+        if (path.startsWith(`${BASE_PATH}/deposits`)) {
+            return path.replace(`${BASE_PATH}/deposits`, `${BASE_PATH}/admin/deposits`);
+        }
+        return path;
+    }
 }));
 
 // Proxy para el Products Service
