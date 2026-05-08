@@ -26,10 +26,18 @@ app.use(createProxyMiddleware({
 app.use(createProxyMiddleware({
     target: process.env.USERS_SERVICE_URL || 'http://localhost:3002',
     changeOrigin: true,
-    pathFilter: (path) => path.startsWith(`${BASE_PATH}/users`)
+    pathFilter: (path) => path.startsWith(`${BASE_PATH}/users`) || path.startsWith(`${BASE_PATH}/me`),
+    pathRewrite: (path) => {
+        // Si el admin pide /users sin ID, usualmente es el listado que en el microservicio está en /admin/users
+        // Pero el microservicio también tiene /users para registro.
+        // Si el frontend espera que /users sea el listado admin, debemos remapearlo.
+        if (path === `${BASE_PATH}/users` || path === `${BASE_PATH}/users/`) {
+            return path.replace(`${BASE_PATH}/users`, `${BASE_PATH}/admin/users`);
+        }
+        return path;
+    }
 }));
 
-// Proxy para el Accounts Service
 // Proxy para el Accounts Service
 app.use(createProxyMiddleware({
     target: process.env.ACCOUNTS_SERVICE_URL || 'http://localhost:3003',
