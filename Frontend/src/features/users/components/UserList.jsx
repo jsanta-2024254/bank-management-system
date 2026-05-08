@@ -126,7 +126,7 @@ const UserList = () => {
                                     {filtered.map((user) => {
                                         const username = user.Username || user.username || '—'
                                         const email = user.Email || user.email || '—'
-                                        const role = user.roles?.[0] || 'USER_ROLE'
+                                        const role = user.role || 'USER_ROLE'
                                         const status = user.Status ?? user.status
                                         const id = user.Id || user.id || user._id
                                         return (
