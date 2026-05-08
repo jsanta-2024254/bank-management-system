@@ -18,7 +18,7 @@ export const getAccountHistory = async (req, res) => {
         }
 
         // El cliente solo puede ver su propia cuenta
-        if (req.user.rol === 'cliente' && account.usuario.toString() !== req.user.id) {
+        if (req.user.role === 'USER_ROLE' && account.usuario.toString() !== req.user.id) {
             return res.status(403).json({
                 success: false,
                 message: 'No tienes permiso para ver esta cuenta'
@@ -73,7 +73,7 @@ export const getTransactionById = async (req, res) => {
             });
         }
 
-        if (req.user.rol === 'cliente') {
+        if (req.user.role === 'USER_ROLE') {
             const uid = req.user.id;
             const esOrigen  = transaction.cuentaOrigen?.usuario?.toString() === uid;
             const esDestino = transaction.cuentaDestino?.usuario?.toString() === uid;

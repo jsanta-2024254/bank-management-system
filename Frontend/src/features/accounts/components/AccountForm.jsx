@@ -21,10 +21,12 @@ const AccountForm = ({ account, onClose }) => {
         const toastId = toast.loading(isEditing ? 'Actualizando cuenta...' : 'Creando cuenta...')
         try {
             const payload = {
-                ...data,
+                userId: data.usuario,
+                tipoCuenta: data.tipoCuenta,
                 saldo: parseFloat(data.saldo),
                 estado: data.estado === 'true' || data.estado === true,
             }
+
             if (isEditing) {
                 await updateAccount(account._id, payload)
                 toast.success('Cuenta actualizada correctamente', { id: toastId })

@@ -53,7 +53,7 @@ const Dashboard = () => {
                     </div>
                     <div>
                         <h1 className="text-3xl font-black text-white">
-                            Bienvenido, {user?.username || 'Usuario'} 👋
+                            Bienvenido, {user?.username || 'Usuario'}
                         </h1>
                         <p className="text-zinc-500 text-sm mt-0.5 flex items-center gap-1.5">
                             <Shield size={13} /> {role}

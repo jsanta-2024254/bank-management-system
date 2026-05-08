@@ -24,7 +24,7 @@ const navItems = [
 const Sidebar = ({ isOpen, onClose }) => {
     const logout = useAuthStore((state) => state.logout)
     const user = useAuthStore((state) => state.user)
-    const role = user?.roles?.[0] || 'USER_ROLE'
+    const role = user?.role || 'USER_ROLE'
 
     const filtered = navItems.filter((item) => item.roles.includes(role))
 

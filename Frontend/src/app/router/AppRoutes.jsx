@@ -5,6 +5,8 @@ import DashboardPage from '../layouts/DashboardPage'
 import Dashboard from '../../features/dashboard/components/Dashboard'
 import UserList from '../../features/users/components/UserList'
 import AccountList from '../../features/accounts/components/AccountList'
+import TransactionList from '../../features/transactions/components/TransactionList'
+import DepositList from '../../features/deposits/components/DepositList'
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuthStore()
@@ -14,7 +16,7 @@ const ProtectedRoute = ({ children }) => {
 const AdminRoute = ({ children }) => {
     const { isAuthenticated, user } = useAuthStore()
     if (!isAuthenticated) return <Navigate to="/login" />
-    if (user?.roles?.[0] !== 'ADMIN_ROLE') return <Navigate to="/accounts" />
+    if (user?.role !== 'ADMIN_ROLE') return <Navigate to="/accounts" />
     return children
 }
 
@@ -43,8 +45,15 @@ const AppRoutes = () => {
                             </AdminRoute>
                         }
                     />
-                    <Route path="transactions" element={<div className="text-white">Transacciones (próximamente)</div>} />
-                    <Route path="deposits" element={<div className="text-white">Depósitos (próximamente)</div>} />
+                    <Route path="transactions" element={<TransactionList />} />
+                    <Route 
+                        path="deposits" 
+                        element={
+                            <AdminRoute>
+                                <DepositList />
+                            </AdminRoute>
+                        } 
+                    />
                     <Route path="products" element={<div className="text-white">Productos (próximamente)</div>} />
                 </Route>
 

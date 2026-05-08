@@ -54,10 +54,9 @@ const Navbar = ({ onMenuClick }) => {
                                 {user?.username || 'Admin'}
                             </span>
                             <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-tighter flex items-center gap-1">
-                                {user?.roles?.[0] || 'Usuario'}
+                                {user?.role || 'Usuario'}
                                 <ChevronDown size={10} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                            </span>
-                        </div>
+                            </span>                        </div>
 
                         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 p-0.5 shadow-lg shadow-blue-500/10 group-hover:shadow-blue-500/20 transition-all group-hover:scale-105">
                             <div className="w-full h-full rounded-[14px] bg-zinc-900 flex items-center justify-center">

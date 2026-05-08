@@ -28,13 +28,17 @@ const UserList = () => {
         }
     }
 
-    const filtered = users.filter((u) => {
+    const filtered = (users || []).filter((u) => {
         const q = search.toLowerCase()
         return (
             (u.Username || u.username || '').toLowerCase().includes(q) ||
             (u.Email || u.email || '').toLowerCase().includes(q)
         )
     })
+
+    const Skeleton = ({ className }) => (
+        <div className={`bg-zinc-800 animate-pulse ${className}`} />
+    )
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pb-10">
@@ -122,7 +126,7 @@ const UserList = () => {
                                     {filtered.map((user) => {
                                         const username = user.Username || user.username || '—'
                                         const email = user.Email || user.email || '—'
-                                        const role = user.roles?.[0] || 'USER_ROLE'
+                                        const role = user.role || 'USER_ROLE'
                                         const status = user.Status ?? user.status
                                         const id = user.Id || user.id || user._id
                                         return (

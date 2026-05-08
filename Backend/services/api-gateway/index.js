@@ -26,14 +26,23 @@ app.use(createProxyMiddleware({
 app.use(createProxyMiddleware({
     target: process.env.USERS_SERVICE_URL || 'http://localhost:3002',
     changeOrigin: true,
-    pathFilter: (path) => path.startsWith(`${BASE_PATH}/users`)
+    pathFilter: (path) => path.startsWith(`${BASE_PATH}/users`) || path.startsWith(`${BASE_PATH}/me`),
+    pathRewrite: (path) => {
+        // Si el admin pide /users sin ID, usualmente es el listado que en el microservicio está en /admin/users
+        // Pero el microservicio también tiene /users para registro.
+        // Si el frontend espera que /users sea el listado admin, debemos remapearlo.
+        if (path === `${BASE_PATH}/users` || path === `${BASE_PATH}/users/`) {
+            return path.replace(`${BASE_PATH}/users`, `${BASE_PATH}/admin/users`);
+        }
+        return path;
+    }
 }));
 
 // Proxy para el Accounts Service
 app.use(createProxyMiddleware({
     target: process.env.ACCOUNTS_SERVICE_URL || 'http://localhost:3003',
     changeOrigin: true,
-    pathFilter: (path) => path.startsWith(`${BASE_PATH}/accounts`)
+    pathFilter: (path) => path.startsWith(`${BASE_PATH}/accounts`) || path.startsWith(`${BASE_PATH}/internal/accounts`)
 }));
 
 // Proxy para el Transactions Service
@@ -50,7 +59,13 @@ app.use(createProxyMiddleware({
     pathFilter: (path) =>
         path.startsWith(`${BASE_PATH}/deposits`) ||
         path.startsWith(`${BASE_PATH}/currency`) ||
-        path.startsWith(`${BASE_PATH}/favorites`)
+        path.startsWith(`${BASE_PATH}/favorites`),
+    pathRewrite: (path) => {
+        if (path.startsWith(`${BASE_PATH}/deposits`)) {
+            return path.replace(`${BASE_PATH}/deposits`, `${BASE_PATH}/admin/deposits`);
+        }
+        return path;
+    }
 }));
 
 // Proxy para el Products Service
