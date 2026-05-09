@@ -10,15 +10,34 @@ import DepositList from '../../features/deposits/components/DepositList'
 import ProfilePage from '../../features/profile/pages/ProfilePage'
 import ProductList from '../../features/products/components/ProductList'
 
+const getUserRole = (user) => {
+    return (
+        user?.role ||
+        user?.Role ||
+        user?.roles?.[0] ||
+        user?.Roles?.[0] ||
+        'USER_ROLE'
+    )
+}
+
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuthStore()
-    return isAuthenticated ? children : <Navigate to="/login" />
+    return isAuthenticated ? children : <Navigate to="/login" replace />
 }
 
 const AdminRoute = ({ children }) => {
     const { isAuthenticated, user } = useAuthStore()
-    if (!isAuthenticated) return <Navigate to="/login" />
-    if (user?.role !== 'ADMIN_ROLE') return <Navigate to="/accounts" />
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />
+    }
+
+    const role = getUserRole(user)
+
+    if (role !== 'ADMIN_ROLE') {
+        return <Navigate to="/accounts" replace />
+    }
+
     return children
 }
 
@@ -36,10 +55,12 @@ const AppRoutes = () => {
                         </ProtectedRoute>
                     }
                 >
-                    <Route index element={<Navigate to="/dashboard" />} />
+                    <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="accounts" element={<AccountList />} />
+                    <Route path="transactions" element={<TransactionList />} />
+
                     <Route
                         path="users"
                         element={
@@ -48,7 +69,7 @@ const AppRoutes = () => {
                             </AdminRoute>
                         }
                     />
-                    <Route path="transactions" element={<TransactionList />} />
+
                     <Route
                         path="deposits"
                         element={
@@ -57,6 +78,7 @@ const AppRoutes = () => {
                             </AdminRoute>
                         }
                     />
+
                     <Route
                         path="products"
                         element={
@@ -67,7 +89,7 @@ const AppRoutes = () => {
                     />
                 </Route>
 
-                <Route path="*" element={<Navigate to="/login" />} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         </BrowserRouter>
     )
