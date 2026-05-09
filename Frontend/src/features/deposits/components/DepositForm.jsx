@@ -1,13 +1,17 @@
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { Landmark, CreditCard, DollarSign, AlignLeft, PlusCircle } from 'lucide-react'
+import { CreditCard, DollarSign, AlignLeft, PlusCircle } from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import useDepositStore from '../store/depositStore'
 
 const DepositForm = ({ onClose }) => {
-    const { createDeposit } = useDepositStore()
-    
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    const { createDeposit, loading } = useDepositStore()
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm({
         defaultValues: {
             tipoCuenta: 'monetaria',
             monto: 0,
@@ -15,31 +19,42 @@ const DepositForm = ({ onClose }) => {
         },
     })
 
+    const isLoading = loading || isSubmitting
+
     const onSubmit = async (data) => {
         const toastId = toast.loading('Procesando depósito...')
+
         try {
             await createDeposit({
                 ...data,
-                monto: parseFloat(data.monto)
+                monto: parseFloat(data.monto),
             })
+
             toast.success('Depósito realizado con éxito', { id: toastId })
             onClose()
         } catch (error) {
-            toast.error(error?.response?.data?.message || 'Error al realizar el depósito', { id: toastId })
+            toast.error(
+                error?.response?.data?.message || 'Error al realizar el depósito',
+                { id: toastId }
+            )
         }
     }
 
-    const inputClass = "w-full bg-zinc-800/50 border border-zinc-700/50 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-zinc-600 text-sm"
+    const inputClass =
+        'w-full bg-zinc-900 border border-zinc-800 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all placeholder:text-zinc-600 text-sm'
 
     return (
         <Modal title="Nuevo Depósito Administrativo" onClose={onClose}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">Tipo de Cuenta</label>
-                        <select 
-                            {...register('tipoCuenta', { required: 'Requerido' })} 
+                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                            Tipo de Cuenta
+                        </label>
+                        <select
+                            {...register('tipoCuenta', { required: 'Requerido' })}
                             className={`${inputClass} appearance-none`}
+                            disabled={isLoading}
                         >
                             <option value="monetaria">Monetaria</option>
                             <option value="ahorro">Ahorro</option>
@@ -47,41 +62,59 @@ const DepositForm = ({ onClose }) => {
                     </div>
 
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">Monto (GTQ)</label>
+                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                            Monto GTQ
+                        </label>
                         <div className="relative">
                             <DollarSign size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
                             <input
-                                {...register('monto', { 
-                                    required: 'El monto es requerido', 
-                                    min: { value: 0.01, message: 'Mínimo Q0.01' }
+                                {...register('monto', {
+                                    required: 'El monto es requerido',
+                                    min: { value: 0.01, message: 'Mínimo Q0.01' },
                                 })}
                                 type="number"
                                 step="0.01"
                                 placeholder="0.00"
                                 className={`${inputClass} pl-10`}
+                                disabled={isLoading}
                             />
                         </div>
-                        {errors.monto && <p className="text-red-400 text-[10px] mt-1 ml-1">{errors.monto.message}</p>}
+                        {errors.monto && (
+                            <p className="text-red-400 text-[10px] mt-1 ml-1">
+                                {errors.monto.message}
+                            </p>
+                        )}
                     </div>
                 </div>
 
                 <div className="bg-white/5 h-px w-full my-2" />
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">Número de Cuenta Destino</label>
+                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                        Número de Cuenta Destino
+                    </label>
                     <div className="relative">
                         <CreditCard size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
                         <input
-                            {...register('numeroCuenta', { required: 'El número de cuenta es requerido' })}
+                            {...register('numeroCuenta', {
+                                required: 'El número de cuenta es requerido',
+                            })}
                             placeholder="Ingrese el número de cuenta"
                             className={`${inputClass} pl-10 font-mono`}
+                            disabled={isLoading}
                         />
                     </div>
-                    {errors.numeroCuenta && <p className="text-red-400 text-[10px] mt-1 ml-1">{errors.numeroCuenta.message}</p>}
+                    {errors.numeroCuenta && (
+                        <p className="text-red-400 text-[10px] mt-1 ml-1">
+                            {errors.numeroCuenta.message}
+                        </p>
+                    )}
                 </div>
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">Descripción (Opcional)</label>
+                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                        Descripción Opcional
+                    </label>
                     <div className="relative">
                         <AlignLeft size={14} className="absolute left-4 top-4 text-zinc-500" />
                         <textarea
@@ -89,6 +122,7 @@ const DepositForm = ({ onClose }) => {
                             placeholder="Motivo del depósito..."
                             rows={3}
                             className={`${inputClass} pl-10 resize-none`}
+                            disabled={isLoading}
                         />
                     </div>
                 </div>
@@ -97,16 +131,20 @@ const DepositForm = ({ onClose }) => {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-4 rounded-2xl text-sm font-semibold transition-all"
+                        disabled={isLoading}
+                        className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-4 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Cancelar
                     </button>
+
                     <button
                         type="submit"
-                        disabled={isSubmitting}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-sm transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                        disabled={isLoading}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-sm transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        {isSubmitting ? 'Procesando...' : (
+                        {isLoading ? (
+                            'Procesando...'
+                        ) : (
                             <>
                                 <PlusCircle size={18} />
                                 Realizar Depósito
