@@ -1,5 +1,23 @@
 import { create } from 'zustand'
-import { getDeposits, createDeposit } from '../../../shared/api/deposits'
+import { toast } from 'react-hot-toast'
+import {
+    getDeposits,
+    createDeposit as createDepositRequest,
+    revertDeposit as revertDepositRequest,
+} from '../../../shared/api/deposits'
+
+const getErrorMessage = (error, fallback) => {
+    return (
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        fallback
+    )
+}
+
+const getDepositList = (response) => {
+    return response?.data?.data || response?.data?.deposits || response?.data || []
+}
 
 const useDepositStore = create((set, get) => ({
     deposits: [],
@@ -8,53 +26,84 @@ const useDepositStore = create((set, get) => ({
     pagination: {
         total: 0,
         page: 1,
-        limit: 10
+        limit: 10,
     },
 
     fetchDeposits: async (page = 1, limit = 10) => {
         set({ loading: true, error: null })
+
         try {
             const response = await getDeposits({ page, limit })
-            set({ 
-                deposits: response.data.data || [], 
+
+            set({
+                deposits: getDepositList(response),
                 pagination: {
-                    total: response.data.total || 0,
+                    total: response.data?.total || response.data?.pagination?.total || 0,
                     page,
-                    limit
+                    limit,
                 },
-                loading: false 
+                loading: false,
+                error: null,
             })
         } catch (error) {
-            set({ 
-                error: error.response?.data?.message || error.message, 
-                loading: false, 
-                deposits: [] 
+            const message = getErrorMessage(error, 'Error al cargar los depósitos')
+
+            set({
+                error: message,
+                loading: false,
+                deposits: [],
             })
+
+            toast.error(message)
         }
     },
 
     createDeposit: async (data) => {
         set({ loading: true, error: null })
+
         try {
-            const response = await createDeposit(data)
+            const response = await createDepositRequest(data)
             await get().fetchDeposits()
-            set({ loading: false })
+
+            set({
+                loading: false,
+                error: null,
+            })
+
             return response.data
         } catch (error) {
-            set({ error: error.response?.data?.message || error.message, loading: false })
+            const message = getErrorMessage(error, 'Error al realizar el depósito')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
             throw error
         }
     },
 
     revertDeposit: async (id) => {
         set({ loading: true, error: null })
+
         try {
-            const response = await revertDeposit(id)
+            const response = await revertDepositRequest(id)
             await get().fetchDeposits()
-            set({ loading: false })
+
+            set({
+                loading: false,
+                error: null,
+            })
+
             return response.data
         } catch (error) {
-            set({ error: error.response?.data?.message || error.message, loading: false })
+            const message = getErrorMessage(error, 'Error al revertir el depósito')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
             throw error
         }
     },
