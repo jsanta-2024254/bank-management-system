@@ -15,30 +15,21 @@ const productSchema = mongoose.Schema(
             trim: true,
             maxLength: [500, 'La descripcion no puede exceder 500 caracteres']
         },
-        precio: {
-            type: Number,
-            required: [true, 'El precio es requerido'],
-            min: [0.01, 'El precio debe ser mayor que 0']
-        },
-        categoria: {
+        tipo: {
             type: String,
-            required: [true, 'La categoria es requerida'],
+            required: [true, 'El tipo es requerido'],
             trim: true,
             enum: {
-                values: ['calzado', 'ropa', 'tecnologia', 'servicios', 'hogar', 'salud', 'entretenimiento', 'otros'],
-                message: 'Categoria invalida'
+                values: ['ahorro', 'credito', 'inversion'],
+                message: 'Tipo invalido'
             }
         },
-        stock: {
+        tasaInteres: {
             type: Number,
-            default: 0,
-            min: [0, 'El stock no puede ser negativo']
+            required: [true, 'La tasa de interes es requerida'],
+            min: [0, 'La tasa de interes no puede ser negativa']
         },
-        exclusivo: {
-            type: Boolean,
-            default: true
-        },
-        activo: {
+        estado: {
             type: Boolean,
             default: true
         },
@@ -53,8 +44,6 @@ const productSchema = mongoose.Schema(
     }
 );
 
-productSchema.index({ activo: 1 });
-productSchema.index({ categoria: 1 });
-productSchema.index({ activo: 1, categoria: 1 });
+productSchema.index({ estado: 1 });
 
 export default mongoose.model('Product', productSchema);

@@ -8,6 +8,7 @@ import AccountList from '../../features/accounts/components/AccountList'
 import TransactionList from '../../features/transactions/components/TransactionList'
 import DepositList from '../../features/deposits/components/DepositList'
 import ProfilePage from '../../features/profile/pages/ProfilePage'
+import ProductList from '../../features/products/components/ProductList'
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuthStore()
@@ -56,7 +57,14 @@ const AppRoutes = () => {
                             </AdminRoute>
                         }
                     />
-                    <Route path="products" element={<div className="text-white">Productos (próximamente)</div>} />
+                    <Route
+                        path="products"
+                        element={
+                            <AdminRoute>
+                                <ProductList />
+                            </AdminRoute>
+                        }
+                    />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/login" />} />

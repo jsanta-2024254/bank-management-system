@@ -10,29 +10,26 @@ import { handleValidationErrors } from '../../middlewares/validators.middleware.
 
 const router = Router();
 
-const CATEGORIAS = ['calzado', 'ropa', 'tecnologia', 'servicios', 'hogar', 'salud', 'entretenimiento', 'otros'];
+const TIPOS = ['ahorro', 'credito', 'inversion'];
 
 const createValidations = [
     body('nombre').notEmpty().withMessage('El nombre es requerido').trim(),
     body('descripcion').notEmpty().withMessage('La descripcion es requerida').trim(),
-    body('precio').isFloat({ min: 0.01 }).withMessage('El precio debe ser mayor que 0'),
-    body('categoria').isIn(CATEGORIAS).withMessage('Categoria invalida'),
-    body('stock').optional().isInt({ min: 0 }).withMessage('El stock debe ser mayor o igual a 0')
+    body('tipo').isIn(TIPOS).withMessage('Tipo invalido'),
+    body('tasaInteres').isFloat({ min: 0 }).withMessage('La tasa de interes debe ser mayor o igual a 0')
 ];
 
 const updateValidations = [
     body('nombre').optional().notEmpty().withMessage('El nombre no puede estar vacío').trim(),
     body('descripcion').optional().notEmpty().withMessage('La descripcion no puede estar vacía').trim(),
-    body('precio').optional().isFloat({ min: 0.01 }).withMessage('El precio debe ser mayor que 0'),
-    body('categoria').optional().isIn(CATEGORIAS).withMessage('Categoria invalida'),
-    body('stock').optional().isInt({ min: 0 }).withMessage('El stock debe ser mayor o igual a 0'),
-    body('exclusivo').optional().isBoolean().withMessage('El campo exclusivo debe ser booleano')
+    body('tipo').optional().isIn(TIPOS).withMessage('Tipo invalido'),
+    body('tasaInteres').optional().isFloat({ min: 0 }).withMessage('La tasa de interes debe ser mayor o igual a 0')
 ];
 
 const paginationValidations = [
     query('page').optional().isInt({ min: 1 }).withMessage('La pagina debe ser mayor que 0'),
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('El limite debe estar entre 1 y 100'),
-    query('categoria').optional().isIn(CATEGORIAS).withMessage('Categoria invalida')
+    query('tipo').optional().isIn(TIPOS).withMessage('Tipo invalido')
 ];
 
 /**

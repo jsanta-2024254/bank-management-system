@@ -6,14 +6,13 @@ export const getProducts = async (req, res) => {
     try {
         const page  = Math.max(1, parseInt(req.query.page)  || 1);
         const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
-        const { categoria } = req.query;
+        const { tipo } = req.query;
 
-        const filter = { activo: true };
-        if (categoria) filter.categoria = categoria;
+        const filter = { estado: true };
+        if (tipo) filter.tipo = tipo;
 
         const [products, total] = await Promise.all([
             Product.find(filter)
-                
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit),
@@ -41,8 +40,7 @@ export const getProducts = async (req, res) => {
 
 export const getProductById = async (req, res) => {
     try {
-        const product = await Product.findOne({ _id: req.params.id, activo: true })
-            ;
+        const product = await Product.findOne({ _id: req.params.id, estado: true });
 
         if (!product) {
             return res.status(404).json({
@@ -63,15 +61,13 @@ export const getProductById = async (req, res) => {
 
 export const createProduct = async (req, res) => {
     try {
-        const { nombre, descripcion, precio, categoria, stock, exclusivo } = req.body;
+        const { nombre, descripcion, tipo, tasaInteres } = req.body;
 
         const product = new Product({
             nombre,
             descripcion,
-            precio,
-            categoria,
-            ...(stock !== undefined && { stock }),
-            ...(exclusivo !== undefined && { exclusivo }),
+            tipo,
+            tasaInteres,
             creadoPor: req.user.id
         });
 
@@ -93,14 +89,12 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
     try {
-        const { nombre, descripcion, precio, categoria, stock, exclusivo } = req.body;
+        const { nombre, descripcion, tipo, tasaInteres } = req.body;
         const updateData = {};
         if (nombre      !== undefined) updateData.nombre      = nombre;
         if (descripcion !== undefined) updateData.descripcion = descripcion;
-        if (precio      !== undefined) updateData.precio      = precio;
-        if (categoria   !== undefined) updateData.categoria   = categoria;
-        if (stock       !== undefined) updateData.stock       = stock;
-        if (exclusivo   !== undefined) updateData.exclusivo   = exclusivo;
+        if (tipo        !== undefined) updateData.tipo        = tipo;
+        if (tasaInteres !== undefined) updateData.tasaInteres = tasaInteres;
 
         if (Object.keys(updateData).length === 0) {
             return res.status(400).json({
@@ -109,9 +103,8 @@ export const updateProduct = async (req, res) => {
             });
         }
 
-        // Filtra por activo: true para respetar el soft-delete
         const product = await Product.findOneAndUpdate(
-            { _id: req.params.id, activo: true },
+            { _id: req.params.id, estado: true },
             { $set: updateData },
             { new: true, runValidators: true }
         );
@@ -140,10 +133,9 @@ export const updateProduct = async (req, res) => {
 // DELETE /api/v1/admin/products/:id  (soft delete)
 export const deleteProduct = async (req, res) => {
     try {
-        // Filtra por activo: true para no operar sobre productos ya eliminados
         const product = await Product.findOneAndUpdate(
-            { _id: req.params.id, activo: true },
-            { $set: { activo: false } },
+            { _id: req.params.id, estado: true },
+            { $set: { estado: false } },
             { new: true }
         );
 
