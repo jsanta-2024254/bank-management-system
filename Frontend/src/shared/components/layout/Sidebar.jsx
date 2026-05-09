@@ -10,13 +10,16 @@ import {
     X,
     Landmark,
     User,
+    Star
 } from 'lucide-react'
 import useAuthStore from '../../../features/auth/store/authStore'
+
 
 const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
     { label: 'Cuentas', path: '/accounts', icon: CreditCard, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
     { label: 'Transacciones', path: '/transactions', icon: ArrowLeftRight, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
+    { label: 'Favoritos', path: '/favorites', icon: Star, roles: ['USER_ROLE'] },
     { label: 'Depósitos', path: '/deposits', icon: TrendingUp, roles: ['ADMIN_ROLE'] },
     { label: 'Productos', path: '/products', icon: Package, roles: ['ADMIN_ROLE'] },
     { label: 'Usuarios', path: '/users', icon: Users, roles: ['ADMIN_ROLE'] },
@@ -80,10 +83,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 if (window.innerWidth < 1024) onClose()
                             }}
                             className={() =>
-                                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all group ${
-                                    active
-                                        ? 'bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/20'
-                                        : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
+                                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all group ${active
+                                    ? 'bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/20'
+                                    : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
                                 }`
                             }
                         >
