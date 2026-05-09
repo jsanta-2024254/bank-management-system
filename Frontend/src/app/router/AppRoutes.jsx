@@ -9,6 +9,8 @@ import TransactionList from '../../features/transactions/components/TransactionL
 import DepositList from '../../features/deposits/components/DepositList'
 import ProfilePage from '../../features/profile/pages/ProfilePage'
 import ProductList from '../../features/products/components/ProductList'
+import FavoriteList from '../../features/favorites/components/FavoriteList'
+
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuthStore()
@@ -19,6 +21,13 @@ const AdminRoute = ({ children }) => {
     const { isAuthenticated, user } = useAuthStore()
     if (!isAuthenticated) return <Navigate to="/login" />
     if (user?.role !== 'ADMIN_ROLE') return <Navigate to="/accounts" />
+    return children
+}
+
+const ClientRoute = ({ children }) => {
+    const { isAuthenticated, user } = useAuthStore()
+    if (!isAuthenticated) return <Navigate to="/login" />
+    if (user?.role !== 'USER_ROLE') return <Navigate to="/dashboard" />
     return children
 }
 
@@ -65,6 +74,14 @@ const AppRoutes = () => {
                             </AdminRoute>
                         }
                     />
+                    <Route
+                    path="favorites"
+                    element={
+                        <ClientRoute>
+                            <FavoriteList />
+                        </ClientRoute>
+                    }
+                />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/login" />} />

@@ -10,13 +10,16 @@ import {
     X,
     Landmark,
     User,
+    Star 
 } from 'lucide-react'
 import useAuthStore from '../../../features/auth/store/authStore'
+
 
 const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
     { label: 'Cuentas', path: '/accounts', icon: CreditCard, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
     { label: 'Transacciones', path: '/transactions', icon: ArrowLeftRight, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
+    { label: 'Favoritos', path: '/favorites', icon: Star, roles: ['USER_ROLE'] },
     { label: 'Depósitos', path: '/deposits', icon: TrendingUp, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
     { label: 'Productos', path: '/products', icon: Package, roles: ['ADMIN_ROLE'] },
     { label: 'Usuarios', path: '/users', icon: Users, roles: ['ADMIN_ROLE'] },
