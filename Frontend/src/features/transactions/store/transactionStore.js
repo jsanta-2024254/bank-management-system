@@ -1,5 +1,22 @@
 import { create } from 'zustand'
-import { getTransactions, createTransaction } from '../../../shared/api/transactions'
+import { toast } from 'react-hot-toast'
+import {
+    getTransactions,
+    createTransaction as createTransactionRequest,
+} from '../../../shared/api/transactions'
+
+const getErrorMessage = (error, fallback) => {
+    return (
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        fallback
+    )
+}
+
+const getTransactionList = (response) => {
+    return response?.data?.data || response?.data?.transactions || response?.data || []
+}
 
 const useTransactionStore = create((set, get) => ({
     transactions: [],
@@ -9,32 +26,67 @@ const useTransactionStore = create((set, get) => ({
 
     setCurrentAccountId: (id) => {
         set({ currentAccountId: id })
-        if (id) get().fetchTransactions()
+
+        if (!id) {
+            set({ transactions: [] })
+            return
+        }
+
+        get().fetchTransactions(id)
     },
 
-    fetchTransactions: async () => {
-        const { currentAccountId } = get()
-        if (!currentAccountId) return
+    fetchTransactions: async (accountId) => {
+        const id = accountId || get().currentAccountId
+
+        if (!id) {
+            set({ transactions: [], error: null })
+            return
+        }
 
         set({ loading: true, error: null })
+
         try {
-            const response = await getTransactions(currentAccountId)
-            set({ transactions: response.data.data || [], loading: false })
+            const response = await getTransactions(id)
+
+            set({
+                transactions: getTransactionList(response),
+                loading: false,
+                error: null,
+            })
         } catch (error) {
-            set({ error: error.message, loading: false, transactions: [] })
+            const message = getErrorMessage(error, 'Error al cargar las transacciones')
+
+            set({
+                error: message,
+                loading: false,
+                transactions: [],
+            })
+
+            toast.error(message)
         }
     },
 
     createTransaction: async (data) => {
         set({ loading: true, error: null })
+
         try {
-            const response = await createTransaction(data)
-            // Refresh transactions after a new one
+            const response = await createTransactionRequest(data)
             await get().fetchTransactions()
-            set({ loading: false })
+
+            set({
+                loading: false,
+                error: null,
+            })
+
             return response.data
         } catch (error) {
-            set({ error: error.message, loading: false })
+            const message = getErrorMessage(error, 'Error al realizar la transferencia')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
             throw error
         }
     },
