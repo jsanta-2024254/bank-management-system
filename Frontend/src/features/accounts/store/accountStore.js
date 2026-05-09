@@ -1,5 +1,28 @@
 import { create } from 'zustand'
-import { getAccounts, createAccount, updateAccount, deleteAccount } from '../../../shared/api/accounts'
+import { toast } from 'react-hot-toast'
+import {
+    getAccounts,
+    createAccount as createAccountRequest,
+    updateAccount as updateAccountRequest,
+    deleteAccount as deleteAccountRequest,
+} from '../../../shared/api/accounts'
+
+const getErrorMessage = (error, fallback) => {
+    return (
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        fallback
+    )
+}
+
+const getAccountList = (response) => {
+    return response?.data?.data || response?.data?.accounts || response?.data || []
+}
+
+const getAccountItem = (response) => {
+    return response?.data?.account || response?.data?.data || response?.data
+}
 
 const useAccountStore = create((set) => ({
     accounts: [],
@@ -8,29 +31,105 @@ const useAccountStore = create((set) => ({
 
     fetchAccounts: async () => {
         set({ loading: true, error: null })
+
         try {
             const response = await getAccounts()
-            set({ accounts: response.data.data || [], loading: false })
+
+            set({
+                accounts: getAccountList(response),
+                loading: false,
+                error: null,
+            })
         } catch (error) {
-            set({ error: error.message, loading: false })
+            const message = getErrorMessage(error, 'Error al cargar las cuentas')
+
+            set({
+                error: message,
+                loading: false,
+                accounts: [],
+            })
+
+            toast.error(message)
         }
     },
 
     createAccount: async (data) => {
-        const response = await createAccount(data)
-        set((state) => ({ accounts: [...state.accounts, response.data.account || response.data] }))
+        set({ loading: true, error: null })
+
+        try {
+            const response = await createAccountRequest(data)
+            const account = getAccountItem(response)
+
+            set((state) => ({
+                accounts: account ? [...state.accounts, account] : state.accounts,
+                loading: false,
+                error: null,
+            }))
+
+            return account
+        } catch (error) {
+            const message = getErrorMessage(error, 'Error al crear la cuenta')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
+            throw error
+        }
     },
 
     updateAccount: async (id, data) => {
-        const response = await updateAccount(id, data)
-        set((state) => ({
-            accounts: state.accounts.map((a) => (a._id === id ? response.data.account || response.data : a)),
-        }))
+        set({ loading: true, error: null })
+
+        try {
+            const response = await updateAccountRequest(id, data)
+            const account = getAccountItem(response)
+
+            set((state) => ({
+                accounts: state.accounts.map((a) =>
+                    a._id === id || a.id === id || a.Id === id ? account : a
+                ),
+                loading: false,
+                error: null,
+            }))
+
+            return account
+        } catch (error) {
+            const message = getErrorMessage(error, 'Error al actualizar la cuenta')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
+            throw error
+        }
     },
 
     deleteAccount: async (id) => {
-        await deleteAccount(id)
-        set((state) => ({ accounts: state.accounts.filter((a) => a._id !== id) }))
+        set({ loading: true, error: null })
+
+        try {
+            await deleteAccountRequest(id)
+
+            set((state) => ({
+                accounts: state.accounts.filter(
+                    (a) => a._id !== id && a.id !== id && a.Id !== id
+                ),
+                loading: false,
+                error: null,
+            }))
+        } catch (error) {
+            const message = getErrorMessage(error, 'Error al eliminar la cuenta')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
+            throw error
+        }
     },
 }))
 
