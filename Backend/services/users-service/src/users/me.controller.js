@@ -2,7 +2,7 @@
 
 import { User, UserProfile } from './user-model.js';
 import { ClientProfile } from './clientProfile.model.js';
-import { getAccountByUser } from '../../clients/accounts.client.js';
+import { getAccountsByUser } from '../../clients/accounts.client.js';
 import { getTransactionsByAccount } from '../../clients/transactions.client.js';
 
 const getAuthenticatedUserId = (req) => {
@@ -18,7 +18,37 @@ const obtenerTextoLimpio = (valor) => {
   return texto === '' ? null : texto;
 };
 
-const formatearPerfil = (user, role, account = null, lastTransactions = []) => {
+const formatearCuenta = (account) => ({
+  id: account._id || account.id,
+  numeroCuenta: account.numeroCuenta,
+  tipoCuenta: account.tipoCuenta,
+  saldo: account.saldo,
+});
+
+const ordenarMovimientosRecientes = (movimientos) => {
+  return movimientos
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+const obtenerUltimosMovimientosPorCuentas = async (accounts, limit = 5) => {
+  if (!accounts.length) {
+    return [];
+  }
+
+  const movimientosPorCuenta = await Promise.all(
+    accounts.map(async (account) => {
+      const accountId = account._id || account.id;
+      return getTransactionsByAccount(accountId, limit);
+    })
+  );
+
+  return ordenarMovimientosRecientes(movimientosPorCuenta.flat()).slice(0, limit);
+};
+
+const formatearPerfil = (user, role, accounts = [], lastTransactions = []) => {
+  const cuentas = accounts.map(formatearCuenta);
+
   return {
     id: user.Id,
     nombre: user.Name,
@@ -34,14 +64,8 @@ const formatearPerfil = (user, role, account = null, lastTransactions = []) => {
     estado: user.Status,
     role,
     roles: [role],
-    cuenta: account
-      ? {
-          id: account._id || account.id,
-          numeroCuenta: account.numeroCuenta,
-          tipoCuenta: account.tipoCuenta,
-          saldo: account.saldo,
-        }
-      : null,
+    cuenta: cuentas[0] || null,
+    cuentas,
     ultimosMovimientos: lastTransactions,
   };
 };
@@ -67,21 +91,17 @@ export const getMyProfile = async (req, res) => {
       });
     }
 
-    let account = null;
+    let accounts = [];
     let lastTransactions = [];
 
     if (role === 'USER_ROLE') {
-      account = await getAccountByUser(user.Id, { estado: true });
-
-      if (account) {
-        const accountId = account._id || account.id;
-        lastTransactions = await getTransactionsByAccount(accountId, 5);
-      }
+      accounts = await getAccountsByUser(user.Id, { estado: true });
+      lastTransactions = await obtenerUltimosMovimientosPorCuentas(accounts, 5);
     }
 
     return res.status(200).json({
       success: true,
-      data: formatearPerfil(user, role, account, lastTransactions),
+      data: formatearPerfil(user, role, accounts, lastTransactions),
     });
   } catch (error) {
     return res.status(error.status || 500).json({
@@ -95,6 +115,7 @@ export const getMyProfile = async (req, res) => {
 // PUT /api/v1/me
 export const updateMyProfile = async (req, res) => {
   const sequelizeTx = await User.sequelize.transaction();
+  let transactionFinished = false;
 
   try {
     const userId = getAuthenticatedUserId(req);
@@ -110,6 +131,7 @@ export const updateMyProfile = async (req, res) => {
 
     if (!user) {
       await sequelizeTx.rollback();
+      transactionFinished = true;
 
       return res.status(404).json({
         success: false,
@@ -171,6 +193,7 @@ export const updateMyProfile = async (req, res) => {
 
       if (Number.isNaN(ingresos) || ingresos < 100) {
         await sequelizeTx.rollback();
+        transactionFinished = true;
 
         return res.status(400).json({
           success: false,
@@ -197,6 +220,7 @@ export const updateMyProfile = async (req, res) => {
 
     if (!huboCambios) {
       await sequelizeTx.rollback();
+      transactionFinished = true;
 
       return res.status(400).json({
         success: false,
@@ -206,6 +230,7 @@ export const updateMyProfile = async (req, res) => {
     }
 
     await sequelizeTx.commit();
+    transactionFinished = true;
 
     const updated = await User.findByPk(userId, {
       include: [
@@ -215,13 +240,23 @@ export const updateMyProfile = async (req, res) => {
       attributes: { exclude: ['Password'] },
     });
 
+    const accounts = role === 'USER_ROLE'
+      ? await getAccountsByUser(userId, { estado: true })
+      : [];
+
+    const lastTransactions = role === 'USER_ROLE'
+      ? await obtenerUltimosMovimientosPorCuentas(accounts, 5)
+      : [];
+
     return res.status(200).json({
       success: true,
       message: 'Perfil actualizado exitosamente',
-      data: formatearPerfil(updated, role),
+      data: formatearPerfil(updated, role, accounts, lastTransactions),
     });
   } catch (error) {
-    await sequelizeTx.rollback();
+    if (!transactionFinished) {
+      await sequelizeTx.rollback();
+    }
 
     return res.status(400).json({
       success: false,

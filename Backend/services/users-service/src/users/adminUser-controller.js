@@ -15,7 +15,7 @@ import { sequelize } from '../../configs/db.js';
 import {
   createAccountForUser,
   deactivateAccountsByUser,
-  getAccountByUser,
+  getAccountsByUser,
 } from '../../clients/accounts.client.js';
 import { getTransactionsByAccount } from '../../clients/transactions.client.js';
 
@@ -36,21 +36,48 @@ const formatUser = (user) => ({
   creadoEn: user.CreatedAt,
 });
 
-const getAccountWithTransactions = async (userId) => {
-  const account = await getAccountByUser(userId, { estado: true });
+const formatearCuenta = (account) => ({
+  id: account._id || account.id,
+  _id: account._id || account.id,
+  numeroCuenta: account.numeroCuenta,
+  tipoCuenta: account.tipoCuenta,
+  saldo: account.saldo,
+  usuario: account.usuario,
+  usuarioId: account.usuario,
+  estado: account.estado,
+  createdAt: account.createdAt,
+  updatedAt: account.updatedAt,
+});
 
-  if (!account) {
-    return {
-      cuenta: null,
-      ultimosMovimientos: [],
-    };
+const ordenarMovimientosRecientes = (movimientos) => {
+  return movimientos
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+const obtenerUltimosMovimientosPorCuentas = async (accounts, limit = 5) => {
+  if (!accounts.length) {
+    return [];
   }
 
-  const accountId = account._id || account.id;
-  const lastTransactions = await getTransactionsByAccount(accountId, 5);
+  const movimientosPorCuenta = await Promise.all(
+    accounts.map(async (account) => {
+      const accountId = account._id || account.id;
+      return getTransactionsByAccount(accountId, limit);
+    })
+  );
+
+  return ordenarMovimientosRecientes(movimientosPorCuenta.flat()).slice(0, limit);
+};
+
+const getAccountsWithTransactions = async (userId) => {
+  const accounts = await getAccountsByUser(userId, { estado: true });
+  const cuentas = accounts.map(formatearCuenta);
+  const lastTransactions = await obtenerUltimosMovimientosPorCuentas(accounts, 5);
 
   return {
-    cuenta: account,
+    cuenta: cuentas[0] || null,
+    cuentas,
     ultimosMovimientos: lastTransactions,
   };
 };
@@ -289,7 +316,7 @@ export const getUsers = async (req, res) => {
 
     const usersWithData = await Promise.all(
       users.map(async (user) => {
-        const financialData = await getAccountWithTransactions(user.Id);
+        const financialData = await getAccountsWithTransactions(user.Id);
 
         return {
           ...formatUser(user),
@@ -335,7 +362,7 @@ export const getUserById = async (req, res) => {
       });
     }
 
-    const financialData = await getAccountWithTransactions(user.Id);
+    const financialData = await getAccountsWithTransactions(user.Id);
 
     return res.status(200).json({
       success: true,

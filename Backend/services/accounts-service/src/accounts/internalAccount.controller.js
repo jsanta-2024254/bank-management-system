@@ -3,6 +3,25 @@
 import Account from './account.model.js';
 import { generateAccountNumber } from '../../configs/accountNumber.js';
 
+const TIPOS_CUENTA_PERMITIDOS = ['monetaria', 'ahorro'];
+
+const obtenerSaldoInicial = (saldo) => {
+  const saldoNumerico = Number(saldo);
+  return Number.isFinite(saldoNumerico) && saldoNumerico > 0 ? saldoNumerico : 0;
+};
+
+const crearFiltroCuentasPorUsuario = ({ userId, estado }) => {
+  const filter = { usuario: userId };
+
+  if (estado !== undefined) {
+    filter.estado = estado === 'true';
+  } else {
+    filter.estado = true;
+  }
+
+  return filter;
+};
+
 export const createInternalAccount = async (req, res) => {
   try {
     const { userId, tipoCuenta = 'monetaria', saldo = 0 } = req.body;
@@ -14,7 +33,7 @@ export const createInternalAccount = async (req, res) => {
       });
     }
 
-    if (!['monetaria', 'ahorro'].includes(tipoCuenta)) {
+    if (!TIPOS_CUENTA_PERMITIDOS.includes(tipoCuenta)) {
       return res.status(400).json({
         success: false,
         message: 'tipoCuenta inválido. Valores permitidos: monetaria, ahorro',
@@ -40,7 +59,7 @@ export const createInternalAccount = async (req, res) => {
     const account = await Account.create({
       numeroCuenta,
       tipoCuenta,
-      saldo: Math.max(Number(saldo) || 0, 0),
+      saldo: obtenerSaldoInicial(saldo),
       usuario: userId,
       estado: true,
     });
@@ -51,6 +70,13 @@ export const createInternalAccount = async (req, res) => {
       data: account,
     });
   } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'El usuario ya tiene una cuenta activa del tipo indicado',
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: 'Error al crear cuenta interna',
@@ -62,33 +88,21 @@ export const createInternalAccount = async (req, res) => {
 export const getInternalAccountByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const estadoParam = req.query.estado;
+    const filter = crearFiltroCuentasPorUsuario({
+      userId,
+      estado: req.query.estado,
+    });
 
-    const filter = { usuario: userId };
-
-    if (estadoParam !== undefined) {
-      filter.estado = estadoParam === 'true';
-    } else {
-      filter.estado = true;
-    }
-
-    const account = await Account.findOne(filter);
-
-    if (!account) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cuenta no encontrada para el usuario',
-      });
-    }
+    const accounts = await Account.find(filter).sort({ tipoCuenta: 1, createdAt: -1 });
 
     return res.status(200).json({
       success: true,
-      data: account,
+      data: accounts,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Error al obtener cuenta interna por usuario',
+      message: 'Error al obtener cuentas internas por usuario',
       error: error.message,
     });
   }

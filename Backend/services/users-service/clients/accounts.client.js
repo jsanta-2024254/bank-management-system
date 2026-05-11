@@ -5,6 +5,18 @@ import { internalRequest } from './internal-http.client.js';
 const ACCOUNTS_SERVICE_URL =
   process.env.ACCOUNTS_SERVICE_URL || 'http://localhost:3003';
 
+const normalizarListaCuentas = (data) => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  return [data];
+};
+
 export const createAccountForUser = async ({
   userId,
   tipoCuenta = 'monetaria',
@@ -26,7 +38,7 @@ export const createAccountForUser = async ({
   return response.data;
 };
 
-export const getAccountByUser = async (userId, { estado = true } = {}) => {
+export const getAccountsByUser = async (userId, { estado = true } = {}) => {
   try {
     const response = await internalRequest(
       ACCOUNTS_SERVICE_URL,
@@ -36,14 +48,19 @@ export const getAccountByUser = async (userId, { estado = true } = {}) => {
       }
     );
 
-    return response.data;
+    return normalizarListaCuentas(response.data);
   } catch (error) {
     if (error.status === 404) {
-      return null;
+      return [];
     }
 
     throw error;
   }
+};
+
+export const getAccountByUser = async (userId, { estado = true } = {}) => {
+  const accounts = await getAccountsByUser(userId, { estado });
+  return accounts[0] || null;
 };
 
 export const deactivateAccountsByUser = async (userId) => {
