@@ -2,8 +2,22 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
 import Modal from '../../../shared/components/ui/Modal'
 import useAccountStore from '../store/accountStore'
+import useAuthStore from '../../auth/store/authStore'
+
+const getUserRole = (user) => {
+    return (
+        user?.role ||
+        user?.Role ||
+        user?.roles?.[0] ||
+        user?.Roles?.[0] ||
+        'USER_ROLE'
+    )
+}
 
 const AccountForm = ({ account, onClose }) => {
+    const user = useAuthStore((state) => state.user)
+    const role = getUserRole(user)
+    const esAdmin = role === 'ADMIN_ROLE'
     const estaEditando = !!account
 
     const {
@@ -19,21 +33,28 @@ const AccountForm = ({ account, onClose }) => {
         },
     })
 
-    const { createAccount, updateAccount } = useAccountStore()
+    const { createAccount, createMyAccount, updateAccount } = useAccountStore()
 
     const prepararDatos = (data) => {
-        const payload = {
-            tipoCuenta: data.tipoCuenta,
-            saldo: Number(data.saldo),
+        if (!esAdmin) {
+            return {
+                tipoCuenta: data.tipoCuenta,
+            }
         }
 
         if (estaEditando) {
-            payload.estado = data.estado === 'true' || data.estado === true
-        } else {
-            payload.userId = data.usuario?.trim()
+            return {
+                tipoCuenta: data.tipoCuenta,
+                saldo: Number(data.saldo),
+                estado: data.estado === 'true' || data.estado === true,
+            }
         }
 
-        return payload
+        return {
+            userId: data.usuario?.trim(),
+            tipoCuenta: data.tipoCuenta,
+            saldo: Number(data.saldo),
+        }
     }
 
     const onSubmit = async (data) => {
@@ -45,11 +66,19 @@ const AccountForm = ({ account, onClose }) => {
             const payload = prepararDatos(data)
 
             if (estaEditando) {
+                if (!esAdmin) {
+                    toast.error('No tienes permiso para editar cuentas', { id: toastId })
+                    return
+                }
+
                 await updateAccount(account._id || account.id, payload)
                 toast.success('Cuenta actualizada correctamente', { id: toastId })
-            } else {
+            } else if (esAdmin) {
                 await createAccount(payload)
                 toast.success('Cuenta creada correctamente', { id: toastId })
+            } else {
+                await createMyAccount(payload)
+                toast.success('Cuenta creada correctamente con saldo inicial Q0.00', { id: toastId })
             }
 
             onClose()
@@ -66,7 +95,16 @@ const AccountForm = ({ account, onClose }) => {
         'w-full bg-zinc-800/50 border border-zinc-700/50 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-zinc-600'
 
     return (
-        <Modal title={estaEditando ? 'Editar Cuenta' : 'Nueva Cuenta'} onClose={onClose}>
+        <Modal
+            title={
+                estaEditando
+                    ? 'Editar Cuenta'
+                    : esAdmin
+                      ? 'Nueva Cuenta Administrativa'
+                      : 'Abrir Nueva Cuenta'
+            }
+            onClose={onClose}
+        >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div>
                     <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
@@ -86,57 +124,68 @@ const AccountForm = ({ account, onClose }) => {
                     )}
                 </div>
 
-                <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                        Saldo (Q)
-                    </label>
-                    <input
-                        {...register('saldo', {
-                            required: 'El saldo es requerido',
-                            min: {
-                                value: 0,
-                                message: 'El saldo no puede ser negativo',
-                            },
-                        })}
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        className={inputClass}
-                    />
-                    {errors.saldo && (
-                        <p className="text-red-400 text-xs mt-1.5 ml-1">
-                            {errors.saldo.message}
-                        </p>
-                    )}
-                </div>
+                {esAdmin && (
+                    <div>
+                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                            Saldo {estaEditando ? 'actual' : 'inicial'} (Q)
+                        </label>
+                        <input
+                            {...register('saldo', {
+                                required: 'El saldo es requerido',
+                                min: {
+                                    value: 0,
+                                    message: 'El saldo no puede ser negativo',
+                                },
+                            })}
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            className={inputClass}
+                        />
+                        {errors.saldo && (
+                            <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                {errors.saldo.message}
+                            </p>
+                        )}
+                    </div>
+                )}
 
-                <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                        ID de Usuario
-                    </label>
-                    <input
-                        {...register('usuario', {
-                            required: !estaEditando ? 'El usuario es requerido' : false,
-                        })}
-                        placeholder="ID del usuario"
-                        className={`${inputClass} ${
-                            estaEditando ? 'opacity-60 cursor-not-allowed' : ''
-                        }`}
-                        disabled={estaEditando}
-                    />
-                    {errors.usuario && (
-                        <p className="text-red-400 text-xs mt-1.5 ml-1">
-                            {errors.usuario.message}
-                        </p>
-                    )}
-                    {estaEditando && (
-                        <p className="text-zinc-500 text-xs mt-1.5 ml-1">
-                            El usuario propietario de la cuenta no se puede cambiar.
-                        </p>
-                    )}
-                </div>
+                {esAdmin && (
+                    <div>
+                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                            ID de Usuario
+                        </label>
+                        <input
+                            {...register('usuario', {
+                                required: !estaEditando ? 'El usuario es requerido' : false,
+                            })}
+                            placeholder="ID del usuario"
+                            className={`${inputClass} ${
+                                estaEditando ? 'opacity-60 cursor-not-allowed' : ''
+                            }`}
+                            disabled={estaEditando}
+                        />
+                        {errors.usuario && (
+                            <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                {errors.usuario.message}
+                            </p>
+                        )}
+                        {estaEditando && (
+                            <p className="text-zinc-500 text-xs mt-1.5 ml-1">
+                                El usuario propietario de la cuenta no se puede cambiar.
+                            </p>
+                        )}
+                    </div>
+                )}
 
-                {estaEditando && (
+                {!esAdmin && !estaEditando && (
+                    <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-2xl px-4 py-3 text-sm">
+                        Tu cuenta será creada a tu nombre y comenzará con saldo Q0.00.
+                        El saldo únicamente puede cambiar por operaciones bancarias válidas.
+                    </div>
+                )}
+
+                {esAdmin && estaEditando && (
                     <div>
                         <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
                             Estado
@@ -171,7 +220,9 @@ const AccountForm = ({ account, onClose }) => {
                                 : 'Creando...'
                             : estaEditando
                               ? 'Guardar Cambios'
-                              : 'Crear Cuenta'}
+                              : esAdmin
+                                ? 'Crear Cuenta'
+                                : 'Abrir Cuenta'}
                     </button>
                 </div>
             </form>

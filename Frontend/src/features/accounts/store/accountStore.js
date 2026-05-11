@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast'
 import {
     getAccounts,
     createAccount as createAccountRequest,
+    createMyAccount as createMyAccountRequest,
     updateAccount as updateAccountRequest,
     deleteAccount as deleteAccountRequest,
 } from '../../../shared/api/accounts'
@@ -79,6 +80,32 @@ const useAccountStore = create((set) => ({
         }
     },
 
+    createMyAccount: async (data) => {
+        set({ loading: true, error: null })
+
+        try {
+            const response = await createMyAccountRequest(data)
+            const account = getAccountItem(response)
+
+            set((state) => ({
+                accounts: account ? [...state.accounts, account] : state.accounts,
+                loading: false,
+                error: null,
+            }))
+
+            return account
+        } catch (error) {
+            const message = getErrorMessage(error, 'Error al crear tu cuenta')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
+            throw error
+        }
+    },
+
     updateAccount: async (id, data) => {
         set({ loading: true, error: null })
 
@@ -121,7 +148,7 @@ const useAccountStore = create((set) => ({
                 error: null,
             }))
         } catch (error) {
-            const message = getErrorMessage(error, 'Error al eliminar la cuenta')
+            const message = getErrorMessage(error, 'Error al desactivar la cuenta')
 
             set({
                 error: message,
