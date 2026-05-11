@@ -3,13 +3,14 @@
 import { Router } from 'express';
 import {
     createAccount,
+    createMyAccount,
     deleteAccount,
     getBalance,
     getMyAccounts,
     getTopMovements,
     updateAccount,
 } from './account.controller.js';
-import { verifyToken, isAdmin } from '../../middlewares/auth.middleware.js';
+import { verifyToken, isAdmin, isCliente } from '../../middlewares/auth.middleware.js';
 import { body, param, query } from 'express-validator';
 import { handleValidationErrors } from '../../middlewares/validators.middleware.js';
 
@@ -40,6 +41,36 @@ router.get(
 );
 
 router.post(
+    '/my-accounts',
+    verifyToken,
+    isCliente,
+    [
+        body('tipoCuenta')
+            .optional()
+            .isIn(['monetaria', 'ahorro'])
+            .withMessage('tipoCuenta debe ser monetaria o ahorro'),
+        body('saldo')
+            .not()
+            .exists()
+            .withMessage('El cliente no puede definir monto inicial'),
+        body('userId')
+            .not()
+            .exists()
+            .withMessage('El cliente no puede asignar la cuenta a otro usuario'),
+        body('usuario')
+            .not()
+            .exists()
+            .withMessage('El cliente no puede asignar la cuenta a otro usuario'),
+        body('estado')
+            .not()
+            .exists()
+            .withMessage('El cliente no puede definir el estado de la cuenta'),
+    ],
+    handleValidationErrors,
+    createMyAccount
+);
+
+router.post(
     '/',
     verifyToken,
     isAdmin,
@@ -56,7 +87,7 @@ router.post(
         body('saldo')
             .optional()
             .isFloat({ min: 0 })
-            .withMessage('El saldo debe ser mayor o igual a 0'),
+            .withMessage('El saldo inicial debe ser mayor o igual a 0'),
     ],
     handleValidationErrors,
     createAccount

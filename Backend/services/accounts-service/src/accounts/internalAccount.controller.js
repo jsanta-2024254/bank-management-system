@@ -40,7 +40,7 @@ export const createInternalAccount = async (req, res) => {
     const account = await Account.create({
       numeroCuenta,
       tipoCuenta,
-      saldo: Number(saldo) || 0,
+      saldo: Math.max(Number(saldo) || 0, 0),
       usuario: userId,
       estado: true,
     });

@@ -19,6 +19,8 @@ import {
 } from '../../clients/accounts.client.js';
 import { getTransactionsByAccount } from '../../clients/transactions.client.js';
 
+const TIPOS_CUENTA_PERMITIDOS = ['monetaria', 'ahorro'];
+
 const formatUser = (user) => ({
   id: user.Id,
   nombre: user.Name,
@@ -53,6 +55,14 @@ const getAccountWithTransactions = async (userId) => {
   };
 };
 
+const obtenerMontoInicial = (saldoInicial) => {
+  if (saldoInicial === undefined || saldoInicial === null || saldoInicial === '') {
+    return 0;
+  }
+
+  return Number(saldoInicial);
+};
+
 // POST /api/v1/admin/users
 export const createUser = async (req, res) => {
   const sequelizeTx = await User.sequelize.transaction();
@@ -72,7 +82,30 @@ export const createUser = async (req, res) => {
       nombreTrabajo,
       ingresosMensuales,
       tipoCuenta = 'monetaria',
+      saldoInicial = 0,
     } = req.body;
+
+    const montoInicial = obtenerMontoInicial(saldoInicial);
+
+    if (!TIPOS_CUENTA_PERMITIDOS.includes(tipoCuenta)) {
+      await sequelizeTx.rollback();
+      transactionFinished = true;
+
+      return res.status(400).json({
+        success: false,
+        message: 'tipoCuenta inválido. Valores permitidos: monetaria, ahorro',
+      });
+    }
+
+    if (Number.isNaN(montoInicial) || montoInicial < 0) {
+      await sequelizeTx.rollback();
+      transactionFinished = true;
+
+      return res.status(400).json({
+        success: false,
+        message: 'El saldo inicial debe ser un número mayor o igual a 0',
+      });
+    }
 
     if (Number(ingresosMensuales) < 100) {
       await sequelizeTx.rollback();
@@ -157,7 +190,7 @@ export const createUser = async (req, res) => {
       account = await createAccountForUser({
         userId: user.Id,
         tipoCuenta,
-        saldo: 0,
+        saldo: montoInicial,
       });
     } catch (internalError) {
       await User.update({ Status: false }, { where: { Id: user.Id } }).catch(
@@ -186,7 +219,8 @@ export const createUser = async (req, res) => {
           dpi,
           direccion,
           nombreTrabajo,
-          ingresosMensuales,
+          ingresosMensuales: Number(ingresosMensuales),
+          saldoInicial: montoInicial,
           estado: user.Status,
         },
         cuenta: account,
@@ -199,6 +233,7 @@ export const createUser = async (req, res) => {
 
     if (error.name === 'SequelizeUniqueConstraintError') {
       const field = error.errors?.[0]?.path || 'campo';
+
       return res.status(400).json({
         success: false,
         message: `El ${field} ya está registrado`,
