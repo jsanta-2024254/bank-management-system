@@ -1,0 +1,218 @@
+name: bank-management-microservices
+
+x-common-env: &common-env
+  NODE_ENV: ${NODE_ENV:-development}
+  DB_HOST: postgres_db
+  DB_PORT: 5432
+  DB_NAME: ${DB_NAME}
+  DB_USERNAME: ${DB_USERNAME}
+  DB_PASSWORD: ${DB_PASSWORD}
+  DB_SQL_LOGGING: ${DB_SQL_LOGGING:-false}
+  MONGO_URI: mongodb://mongo_db:27017/${DB_NAME}?replicaSet=rs0
+  JWT_SECRET: ${JWT_SECRET}
+  JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+  JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+  JWT_ISSUER: ${JWT_ISSUER}
+  JWT_AUDIENCE: ${JWT_AUDIENCE}
+  INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+  FRONTEND_URL: ${FRONTEND_URL}
+  ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+  ADMIN_ALLOWED_ORIGINS: ${ADMIN_ALLOWED_ORIGINS}
+  CURRENCY_API_KEY: ${CURRENCY_API_KEY}
+  CURRENCY_API_URL: ${CURRENCY_API_URL}
+  AUTH_SERVICE_URL: http://auth-service:3001
+  USERS_SERVICE_URL: http://users-service:3002
+  ACCOUNTS_SERVICE_URL: http://accounts-service:3003
+  TRANSACTIONS_SERVICE_URL: http://transactions-service:3004
+  FINANCE_SERVICE_URL: http://finance-service:3005
+  PRODUCTS_SERVICE_URL: http://products-service:3006
+
+services:
+  postgres_db:
+    image: postgres:16
+    container_name: bank_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT:-5436}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongo_db:
+    image: mongo:7
+    container_name: bank_mongo
+    restart: always
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-init:
+    image: mongo:7
+    container_name: bank_mongo_init
+    depends_on:
+      - mongo_db
+    restart: "no"
+    entrypoint:
+      [
+        "bash",
+        "-lc",
+        "sleep 5 && mongosh --host mongo_db:27017 --eval 'try { rs.status() } catch (e) { rs.initiate({_id:\"rs0\", members:[{_id:0, host:\"mongo_db:27017\"}]}) }'"
+      ]
+
+  api-gateway:
+    build: ./services/api-gateway
+    container_name: bank_api_gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - users-service
+      - accounts-service
+      - transactions-service
+      - finance-service
+      - products-service
+    env_file: .env
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USERS_SERVICE_URL=http://users-service:3002
+      - ACCOUNTS_SERVICE_URL=http://accounts-service:3003
+      - TRANSACTIONS_SERVICE_URL=http://transactions-service:3004
+      - FINANCE_SERVICE_URL=http://finance-service:3005
+      - PRODUCTS_SERVICE_URL=http://products-service:3006
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+    container_name: bank_auth_service
+    restart: always
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+      PORT: 3001
+      SERVICE_NAME: auth-service
+      DB_SYNC_MODE: ${AUTH_DB_SYNC_MODE:-sync}
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./services/auth-service:/app
+      - auth_node_modules:/app/node_modules
+    depends_on:
+      - postgres_db
+
+  users-service:
+    build:
+      context: ./services/users-service
+    container_name: bank_users_service
+    restart: always
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+      PORT: 3002
+      SERVICE_NAME: users-service
+      DB_SYNC_MODE: ${USERS_DB_SYNC_MODE:-none}
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./services/users-service:/app
+      - users_node_modules:/app/node_modules
+    depends_on:
+      - postgres_db
+      - accounts-service
+      - transactions-service
+
+  accounts-service:
+    build:
+      context: ./services/accounts-service
+    container_name: bank_accounts_service
+    restart: always
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+      PORT: 3003
+      SERVICE_NAME: accounts-service
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./services/accounts-service:/app
+      - accounts_node_modules:/app/node_modules
+    depends_on:
+      - mongo_db
+      - mongo-init
+
+  transactions-service:
+    build:
+      context: ./services/transactions-service
+    container_name: bank_transactions_service
+    restart: always
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+      PORT: 3004
+      SERVICE_NAME: transactions-service
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./services/transactions-service:/app
+      - transactions_node_modules:/app/node_modules
+    depends_on:
+      - mongo_db
+      - mongo-init
+
+  finance-service:
+    build:
+      context: ./services/finance-service
+    container_name: bank_finance_service
+    restart: always
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+      PORT: 3005
+      SERVICE_NAME: finance-service
+    ports:
+      - "3005:3005"
+    volumes:
+      - ./services/finance-service:/app
+      - finance_node_modules:/app/node_modules
+    depends_on:
+      - mongo_db
+      - mongo-init
+
+  products-service:
+    build:
+      context: ./services/products-service
+    container_name: bank_products_service
+    restart: always
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+      PORT: 3006
+      SERVICE_NAME: products-service
+    ports:
+      - "3006:3006"
+    volumes:
+      - ./services/products-service:/app
+      - products_node_modules:/app/node_modules
+    depends_on:
+      - mongo_db
+      - mongo-init
+
+volumes:
+  postgres_data:
+  mongo_data:
+  auth_node_modules:
+  users_node_modules:
+  accounts_node_modules:
+  transactions_node_modules:
+  finance_node_modules:
+  products_node_modules:
