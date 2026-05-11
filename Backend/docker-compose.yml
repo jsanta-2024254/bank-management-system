@@ -96,6 +96,7 @@ services:
       <<: *common-env
       PORT: 3001
       SERVICE_NAME: auth-service
+      DB_SYNC_MODE: ${AUTH_DB_SYNC_MODE:-sync}
     ports:
       - "3001:3001"
     volumes:
@@ -115,6 +116,7 @@ services:
       <<: *common-env
       PORT: 3002
       SERVICE_NAME: users-service
+      DB_SYNC_MODE: ${USERS_DB_SYNC_MODE:-none}
     ports:
       - "3002:3002"
     volumes:

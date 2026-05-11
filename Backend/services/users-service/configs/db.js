@@ -28,7 +28,51 @@ export const sequelize = new Sequelize({
   },
 });
 
+const MODOS_SINCRONIZACION_PERMITIDOS = ['none', 'sync', 'alter'];
+
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const obtenerModoSincronizacion = () => {
+  const modo = String(process.env.DB_SYNC_MODE || 'none').toLowerCase().trim();
+
+  if (!MODOS_SINCRONIZACION_PERMITIDOS.includes(modo)) {
+    console.warn(
+      `PostgreSQL | DB_SYNC_MODE "${modo}" no es valido. Se usara "none".`
+    );
+
+    return 'none';
+  }
+
+  return modo;
+};
+
+const sincronizarModelos = async () => {
+  const modoSincronizacion = obtenerModoSincronizacion();
+  const syncLogging = process.env.DB_SQL_LOGGING === 'true' ? console.log : false;
+
+  if (modoSincronizacion === 'none') {
+    console.log('PostgreSQL | Model synchronization skipped. DB_SYNC_MODE=none');
+    return;
+  }
+
+  if (modoSincronizacion === 'alter' && process.env.DB_ALLOW_ALTER_SYNC !== 'true') {
+    throw new Error(
+      'DB_SYNC_MODE=alter requiere DB_ALLOW_ALTER_SYNC=true. Use migrations o DB_SYNC_MODE=sync para desarrollo inicial.'
+    );
+  }
+
+  const syncOptions = {
+    logging: syncLogging,
+  };
+
+  if (modoSincronizacion === 'alter') {
+    syncOptions.alter = true;
+  }
+
+  await sequelize.sync(syncOptions);
+
+  console.log(`PostgreSQL | Models synchronized with database. DB_SYNC_MODE=${modoSincronizacion}`);
+};
 
 export const dbConnection = async () => {
   const maxRetries = 10;
@@ -45,13 +89,7 @@ export const dbConnection = async () => {
       console.log('PostgreSQL | Connected to PostgreSQL');
       console.log('PostgreSQL | Connection to database established');
 
-      if (process.env.NODE_ENV === 'development') {
-        const syncLogging =
-          process.env.DB_SQL_LOGGING === 'true' ? console.log : false;
-
-        await sequelize.sync({ alter: true, logging: syncLogging });
-        console.log('PostgreSQL | Models synchronized with database');
-      }
+      await sincronizarModelos();
 
       return;
     } catch (error) {
