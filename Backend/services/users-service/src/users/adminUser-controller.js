@@ -90,6 +90,20 @@ const obtenerMontoInicial = (saldoInicial) => {
   return Number(saldoInicial);
 };
 
+const desactivarCuentasAntesQueUsuario = async (user) => {
+  try {
+    await deactivateAccountsByUser(user.Id);
+  } catch (internalError) {
+    const error = new Error(
+      'No se pudo desactivar el usuario porque primero deben desactivarse sus cuentas bancarias.'
+    );
+
+    error.statusCode = 502;
+    error.originalError = internalError;
+    throw error;
+  }
+};
+
 // POST /api/v1/admin/users
 export const createUser = async (req, res) => {
   const sequelizeTx = await User.sequelize.transaction();
@@ -499,28 +513,29 @@ export const deleteUser = async (req, res) => {
       });
     }
 
-    await user.update({ Status: false });
-
-    try {
-      await deactivateAccountsByUser(user.Id);
-    } catch (internalError) {
-      return res.status(502).json({
-        success: false,
-        message:
-          'El usuario fue desactivado, pero no se pudieron desactivar sus cuentas bancarias.',
-        error: internalError.message,
+    if (user.Status === false) {
+      return res.status(200).json({
+        success: true,
+        message: 'Usuario ya se encontraba desactivado',
       });
     }
 
+    await desactivarCuentasAntesQueUsuario(user);
+
+    await user.update({ Status: false });
+
     return res.status(200).json({
       success: true,
-      message: 'Usuario desactivado exitosamente',
+      message: 'Usuario y cuentas bancarias desactivados exitosamente',
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: 'Error al eliminar el usuario',
-      error: error.message,
+      message:
+        error.statusCode === 502
+          ? error.message
+          : 'Error al eliminar el usuario',
+      error: error.originalError?.message || error.message,
     });
   }
 };
