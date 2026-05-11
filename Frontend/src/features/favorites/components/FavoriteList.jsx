@@ -1,10 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Trash2, Plus, Search, Hash, CreditCard } from 'lucide-react'
+import {
+    Star,
+    Trash2,
+    Plus,
+    Search,
+    Hash,
+    CreditCard,
+    ArrowLeftRight,
+    DollarSign,
+    AlignLeft,
+} from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useFavoriteStore from '../store/favoriteStore'
+import useAccountStore from '../../accounts/store/accountStore'
 import FavoriteForm from './FavoriteForm'
 import ConfirmDialog from '../../../shared/components/ui/ConfirmDialog'
+import Modal from '../../../shared/components/ui/Modal'
 
 const getTipoCuentaLabel = (tipoCuenta) => {
     if (tipoCuenta === 'monetaria') return 'Monetaria'
@@ -12,15 +25,232 @@ const getTipoCuentaLabel = (tipoCuenta) => {
     return 'Sin tipo'
 }
 
+const getFavoriteAccountNumber = (favorite) => {
+    return favorite?.numeroCuenta || favorite?.numeroCuentaDestino || favorite?.cuenta?.numeroCuenta || ''
+}
+
+const getFavoriteAccountType = (favorite) => {
+    return favorite?.tipoCuenta || favorite?.cuenta?.tipoCuenta || ''
+}
+
+const getAccountId = (account) => {
+    return account?._id || account?.id || account?.Id
+}
+
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('es-GT', {
+        style: 'currency',
+        currency: 'GTQ',
+    }).format(Number(value || 0))
+}
+
+const getActiveAccounts = (accounts) => {
+    return (accounts || []).filter((account) => account?.estado !== false && account?.tipoCuenta)
+}
+
+const buildFallbackAccounts = () => [
+    {
+        _id: 'monetaria',
+        tipoCuenta: 'monetaria',
+        numeroCuenta: 'Cuenta monetaria',
+        saldo: 0,
+    },
+    {
+        _id: 'ahorro',
+        tipoCuenta: 'ahorro',
+        numeroCuenta: 'Cuenta de ahorro',
+        saldo: 0,
+    },
+]
+
+const TransferFavoriteModal = ({ favorite, accounts, onClose, onTransferred }) => {
+    const { transferToFavorite } = useFavoriteStore()
+
+    const activeAccounts = useMemo(() => {
+        const cuentasActivas = getActiveAccounts(accounts)
+        return cuentasActivas.length > 0 ? cuentasActivas : buildFallbackAccounts()
+    }, [accounts])
+
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        formState: { errors, isSubmitting },
+    } = useForm({
+        defaultValues: {
+            tipoCuentaOrigen: activeAccounts[0]?.tipoCuenta || 'monetaria',
+            monto: '',
+            descripcion: '',
+        },
+    })
+
+    useEffect(() => {
+        if (activeAccounts[0]?.tipoCuenta) {
+            setValue('tipoCuentaOrigen', activeAccounts[0].tipoCuenta)
+        }
+    }, [activeAccounts, setValue])
+
+    const onSubmit = async (data) => {
+        const toastId = toast.loading('Procesando transferencia...')
+
+        try {
+            await transferToFavorite(favorite._id, {
+                monto: Number(data.monto),
+                tipoCuentaOrigen: data.tipoCuentaOrigen,
+                descripcion: data.descripcion?.trim() || undefined,
+            })
+
+            toast.success('Transferencia realizada correctamente', { id: toastId })
+            onTransferred()
+        } catch (error) {
+            toast.error(
+                error?.response?.data?.message || 'Error al transferir al favorito',
+                { id: toastId }
+            )
+        }
+    }
+
+    const inputClass =
+        'w-full bg-zinc-900 border border-zinc-800 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all placeholder:text-zinc-600 text-sm'
+
+    return (
+        <Modal title="Transferir a favorito" onClose={onClose}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4">
+                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                        Destino
+                    </p>
+                    <p className="text-white font-bold">{favorite.alias}</p>
+                    <p className="text-zinc-400 text-sm font-mono mt-1">
+                        {getFavoriteAccountNumber(favorite)}
+                    </p>
+                    <p className="text-zinc-500 text-xs mt-1">
+                        Tipo de cuenta destino: {getTipoCuentaLabel(getFavoriteAccountType(favorite))}
+                    </p>
+                </div>
+
+                <div>
+                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <CreditCard size={11} /> Cuenta origen
+                    </label>
+                    <select
+                        {...register('tipoCuentaOrigen', {
+                            required: 'Seleccione la cuenta origen',
+                        })}
+                        className={`${inputClass} appearance-none`}
+                        disabled={isSubmitting}
+                    >
+                        {activeAccounts.map((account) => (
+                            <option key={getAccountId(account)} value={account.tipoCuenta}>
+                                {getTipoCuentaLabel(account.tipoCuenta)} - {account.numeroCuenta}
+                                {account.saldo !== undefined ? ` (${formatCurrency(account.saldo)})` : ''}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.tipoCuentaOrigen && (
+                        <p className="text-red-400 text-xs mt-1.5 ml-1">
+                            {errors.tipoCuentaOrigen.message}
+                        </p>
+                    )}
+                    <p className="text-zinc-500 text-xs mt-1.5 ml-1">
+                        Esta es la cuenta desde donde saldrá el dinero.
+                    </p>
+                </div>
+
+                <div>
+                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <DollarSign size={11} /> Monto
+                    </label>
+                    <div className="relative">
+                        <DollarSign
+                            size={14}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+                        />
+                        <input
+                            {...register('monto', {
+                                required: 'El monto es requerido',
+                                min: { value: 0.01, message: 'Mínimo Q0.01' },
+                                max: { value: 2000, message: 'Máximo Q2,000 por transferencia' },
+                            })}
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            className={`${inputClass} pl-10`}
+                            disabled={isSubmitting}
+                        />
+                    </div>
+                    {errors.monto && (
+                        <p className="text-red-400 text-xs mt-1.5 ml-1">
+                            {errors.monto.message}
+                        </p>
+                    )}
+                </div>
+
+                <div>
+                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <AlignLeft size={11} /> Descripción opcional
+                    </label>
+                    <textarea
+                        {...register('descripcion')}
+                        rows={3}
+                        placeholder="Motivo de la transferencia..."
+                        className={`${inputClass} resize-none`}
+                        disabled={isSubmitting}
+                    />
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isSubmitting}
+                        className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-4 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-sm transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {isSubmitting ? (
+                            'Procesando...'
+                        ) : (
+                            <>
+                                <ArrowLeftRight size={17} />
+                                Transferir
+                            </>
+                        )}
+                    </button>
+                </div>
+            </form>
+        </Modal>
+    )
+}
+
 const FavoriteList = () => {
-    const { favorites, loading, error, fetchFavorites, deleteFavorite } = useFavoriteStore()
+    const {
+        favorites,
+        loading,
+        error,
+        fetchFavorites,
+        deleteFavorite,
+    } = useFavoriteStore()
+
+    const {
+        accounts,
+        fetchAccounts,
+    } = useAccountStore()
+
     const [showForm, setShowForm] = useState(false)
     const [confirmId, setConfirmId] = useState(null)
+    const [transferTarget, setTransferTarget] = useState(null)
     const [search, setSearch] = useState('')
 
     useEffect(() => {
         fetchFavorites()
-    }, [fetchFavorites])
+        fetchAccounts()
+    }, [fetchFavorites, fetchAccounts])
 
     const handleDelete = async () => {
         const toastId = toast.loading('Eliminando favorito...')
@@ -37,11 +267,17 @@ const FavoriteList = () => {
         }
     }
 
+    const handleTransferred = async () => {
+        setTransferTarget(null)
+        await fetchAccounts()
+        await fetchFavorites()
+    }
+
     const filtered = favorites.filter((favorite) => {
         const query = search.toLowerCase()
         const alias = favorite.alias || ''
-        const numeroCuenta = favorite.numeroCuenta || ''
-        const tipoCuenta = getTipoCuentaLabel(favorite.tipoCuenta)
+        const numeroCuenta = getFavoriteAccountNumber(favorite)
+        const tipoCuenta = getTipoCuentaLabel(getFavoriteAccountType(favorite))
 
         return (
             alias.toLowerCase().includes(query) ||
@@ -65,11 +301,22 @@ const FavoriteList = () => {
                 )}
             </AnimatePresence>
 
+            <AnimatePresence>
+                {transferTarget && (
+                    <TransferFavoriteModal
+                        favorite={transferTarget}
+                        accounts={accounts}
+                        onClose={() => setTransferTarget(null)}
+                        onTransferred={handleTransferred}
+                    />
+                )}
+            </AnimatePresence>
+
             {confirmId && (
                 <ConfirmDialog
                     message={
                         confirmTarget
-                            ? `¿Eliminar "${confirmTarget.alias}" (${confirmTarget.numeroCuenta})?`
+                            ? `¿Eliminar "${confirmTarget.alias}" (${getFavoriteAccountNumber(confirmTarget)})?`
                             : '¿Eliminar este favorito?'
                     }
                     onConfirm={handleDelete}
@@ -188,17 +435,29 @@ const FavoriteList = () => {
 
                                 <div className="px-8 py-5 flex items-center gap-2 text-zinc-400">
                                     <Hash size={13} className="text-zinc-600 shrink-0" />
-                                    <span className="font-mono text-sm">{favorite.numeroCuenta}</span>
+                                    <span className="font-mono text-sm">{getFavoriteAccountNumber(favorite)}</span>
                                 </div>
 
                                 <div className="px-8 py-5 flex items-center gap-2 text-zinc-400">
                                     <CreditCard size={13} className="text-zinc-600 shrink-0" />
                                     <span className="text-xs font-bold uppercase tracking-wide bg-zinc-800 text-zinc-300 rounded-xl px-3 py-1">
-                                        {getTipoCuentaLabel(favorite.tipoCuenta)}
+                                        {getTipoCuentaLabel(getFavoriteAccountType(favorite))}
                                     </span>
                                 </div>
 
-                                <div className="px-8 py-5">
+                                <div className="px-8 py-5 flex items-center gap-4">
+                                    <button
+                                        onClick={() => setTransferTarget(favorite)}
+                                        className="flex items-center gap-1.5 text-zinc-500 hover:text-blue-400 transition-colors text-xs font-bold group"
+                                        title="Transferir a favorito"
+                                    >
+                                        <ArrowLeftRight
+                                            size={15}
+                                            className="group-hover:scale-110 transition-transform"
+                                        />
+                                        Transferir
+                                    </button>
+
                                     <button
                                         onClick={() => setConfirmId(favorite._id)}
                                         className="flex items-center gap-1.5 text-zinc-500 hover:text-red-400 transition-colors text-xs font-bold group"
