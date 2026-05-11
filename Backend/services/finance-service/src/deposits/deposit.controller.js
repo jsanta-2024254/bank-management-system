@@ -1,9 +1,16 @@
 'use strict';
+import mongoose from 'mongoose';
 import Deposit from './deposit.model.js';
 import Account from '../accounts/account.model.js';
 import Transaction from '../transactions/transaction.model.js';
 
-// Helper: obtener ID del usuario
+const crearErrorHttp = (statusCode, message, error = null) => {
+  const httpError = new Error(message);
+  httpError.statusCode = statusCode;
+  httpError.error = error;
+  return httpError;
+};
+
 const getAuthUserId = (req) => {
   return (
     req.userId ??
@@ -16,75 +23,115 @@ const getAuthUserId = (req) => {
   );
 };
 
+const obtenerMontoNumerico = (monto) => {
+  const montoNumerico = Number(monto);
+
+  if (!Number.isFinite(montoNumerico) || montoNumerico < 0.01) {
+    throw crearErrorHttp(
+      400,
+      'Monto inválido',
+      'El monto debe ser numérico y mayor que 0'
+    );
+  }
+
+  return montoNumerico;
+};
+
+const obtenerCuentaActiva = async ({ numeroCuenta, tipoCuenta, session }) => {
+  const account = await Account.findOne({
+    numeroCuenta,
+    tipoCuenta,
+    estado: true,
+  }).session(session);
+
+  if (!account) {
+    throw crearErrorHttp(404, 'Cuenta no encontrada o inactiva');
+  }
+
+  return account;
+};
+
+const crearDepositoConHistorial = async ({ account, montoNum, descripcion, adminId, session }) => {
+  const saldoAnterior = Number(account.saldo || 0);
+  account.saldo = saldoAnterior + montoNum;
+  await account.save({ session });
+
+  const reversibleHasta = new Date(Date.now() + 60 * 1000);
+  const descripcionDeposito = descripcion || 'Deposito administrativo';
+
+  const [deposit] = await Deposit.create(
+    [
+      {
+        cuenta: account._id,
+        montoOriginal: montoNum,
+        montoActual: montoNum,
+        descripcion: descripcionDeposito,
+        admin: adminId,
+        reversibleHasta,
+      },
+    ],
+    { session }
+  );
+
+  const [transaction] = await Transaction.create(
+    [
+      {
+        tipo: 'deposito',
+        monto: montoNum,
+        descripcion: descripcionDeposito,
+        cuentaOrigen: null,
+        cuentaDestino: account._id,
+        saldoAnteriorDestino: saldoAnterior,
+        saldoPosteriorDestino: account.saldo,
+        ejecutadaPor: adminId,
+      },
+    ],
+    { session }
+  );
+
+  deposit.transaccion = transaction._id;
+  await deposit.save({ session });
+
+  return {
+    deposit,
+    reversibleHasta,
+  };
+};
+
 // POST /api/v1/admin/deposits
 export const createDeposit = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
     const adminId = getAuthUserId(req);
     if (!adminId) {
-      return res.status(401).json({
-        success: false,
-        message: 'No se pudo identificar al administrador desde el token',
-        error:
-          'req.user.id / req.user.Id no existe. Revisa verifyToken middleware.',
-      });
+      throw crearErrorHttp(
+        401,
+        'No se pudo identificar al administrador desde el token',
+        'req.user.id / req.user.Id no existe. Revisa verifyToken middleware.'
+      );
     }
 
     const { numeroCuenta, tipoCuenta, monto, descripcion } = req.body;
+    const montoNum = obtenerMontoNumerico(monto);
 
-    // asegurar número
-    const montoNum = Number(monto);
-    if (!Number.isFinite(montoNum) || montoNum < 0.01) {
-      return res.status(400).json({
-        success: false,
-        message: 'Monto inválido',
-        error: 'El monto debe ser numérico y mayor que 0',
-      });
-    }
+    session.startTransaction();
 
-    const account = await Account.findOne({
+    const account = await obtenerCuentaActiva({
       numeroCuenta,
       tipoCuenta,
-      estado: true,
+      session,
     });
-    if (!account) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cuenta no encontrada o inactiva',
-      });
-    }
 
-    const saldoAnterior = Number(account.saldo || 0);
-    account.saldo = saldoAnterior + montoNum;
-    await account.save();
-
-    // Ventana de reversión: 1 minuto
-    const reversibleHasta = new Date(Date.now() + 60 * 1000);
-
-    const deposit = new Deposit({
-      cuenta: account._id,
-      montoOriginal: montoNum,
-      montoActual: montoNum,
-      descripcion: descripcion || 'Deposito administrativo',
-      admin: adminId,
-      reversibleHasta,
+    const { deposit, reversibleHasta } = await crearDepositoConHistorial({
+      account,
+      montoNum,
+      descripcion,
+      adminId,
+      session,
     });
-    await deposit.save();
 
-    // Registrar transacción en historial
-    const transaction = new Transaction({
-      tipo: 'deposito',
-      monto: montoNum,
-      descripcion: deposit.descripcion,
-      cuentaOrigen: null,
-      cuentaDestino: account._id,
-      saldoAnteriorDestino: saldoAnterior,
-      saldoPosteriorDestino: account.saldo,
-      ejecutadaPor: adminId,
-    });
-    await transaction.save();
-
-    deposit.transaccion = transaction._id;
-    await deposit.save();
+    await session.commitTransaction();
 
     return res.status(201).json({
       success: true,
@@ -93,11 +140,20 @@ export const createDeposit = async (req, res) => {
       reversibleHasta,
     });
   } catch (error) {
-    return res.status(500).json({
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
+    const statusCode = error.statusCode || 500;
+
+    return res.status(statusCode).json({
       success: false,
-      message: 'Error al realizar el deposito',
-      error: error.message,
+      message: statusCode === 500 ? 'Error al realizar el deposito' : error.message,
+      ...(error.error ? { error: error.error } : {}),
+      ...(statusCode === 500 ? { error: error.message } : {}),
     });
+  } finally {
+    await session.endSession();
   }
 };
 
