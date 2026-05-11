@@ -31,6 +31,45 @@ const convertirEstado = (estado) => {
     return estado === true || estado === 'true';
 };
 
+const esErrorIndiceUnico = (error) => {
+    return error?.code === 11000;
+};
+
+const esErrorCuentaActivaDuplicada = (error) => {
+    return (
+        esErrorIndiceUnico(error) &&
+        (
+            error?.keyPattern?.usuario === 1 ||
+            error?.keyPattern?.tipoCuenta === 1 ||
+            error?.message?.includes('idx_usuario_tipo_cuenta_activa_unica')
+        )
+    );
+};
+
+const responderErrorCuenta = (res, error, mensajeGenerico) => {
+    if (esErrorCuentaActivaDuplicada(error)) {
+        const tipoCuenta = error?.keyValue?.tipoCuenta || 'indicada';
+
+        return res.status(409).json({
+            success: false,
+            message: `El usuario ya tiene una cuenta ${tipoCuenta} activa`,
+        });
+    }
+
+    if (esErrorIndiceUnico(error)) {
+        return res.status(409).json({
+            success: false,
+            message: 'Ya existe una cuenta con los datos indicados',
+        });
+    }
+
+    return res.status(500).json({
+        success: false,
+        message: mensajeGenerico,
+        error: error.message,
+    });
+};
+
 const buscarCuentaActivaPorTipo = async ({ usuario, tipoCuenta, excluirCuentaId = null }) => {
     const filtro = {
         usuario,
@@ -131,11 +170,7 @@ export const createAccount = async (req, res) => {
             data: formatearCuenta(account),
         });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: 'Error al crear la cuenta',
-            error: error.message,
-        });
+        return responderErrorCuenta(res, error, 'Error al crear la cuenta');
     }
 };
 
@@ -185,11 +220,7 @@ export const createMyAccount = async (req, res) => {
             data: formatearCuenta(account),
         });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: 'Error al crear tu cuenta',
-            error: error.message,
-        });
+        return responderErrorCuenta(res, error, 'Error al crear tu cuenta');
     }
 };
 
@@ -272,11 +303,7 @@ export const updateAccount = async (req, res) => {
             data: formatearCuenta(account),
         });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: 'Error al actualizar la cuenta',
-            error: error.message,
-        });
+        return responderErrorCuenta(res, error, 'Error al actualizar la cuenta');
     }
 };
 
@@ -303,11 +330,7 @@ export const deleteAccount = async (req, res) => {
             data: formatearCuenta(account),
         });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: 'Error al desactivar la cuenta',
-            error: error.message,
-        });
+        return responderErrorCuenta(res, error, 'Error al desactivar la cuenta');
     }
 };
 

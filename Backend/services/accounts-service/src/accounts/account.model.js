@@ -23,7 +23,7 @@ const accountSchema = mongoose.Schema(
             min: [0, 'El saldo no puede ser negativo']
         },
         usuario: {
-            type: String,   // ID de Sequelize (ej: usr_vF5fBBwn7jsi)
+            type: String,
             required: [true, 'El usuario es requerido'],
             trim: true
         },
@@ -42,5 +42,14 @@ accountSchema.index({ usuario: 1 });
 accountSchema.index({ estado: 1 });
 accountSchema.index({ usuario: 1, estado: 1 });
 accountSchema.index({ usuario: 1, tipoCuenta: 1, estado: 1 });
+
+accountSchema.index(
+    { usuario: 1, tipoCuenta: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { estado: true },
+        name: 'idx_usuario_tipo_cuenta_activa_unica'
+    }
+);
 
 export default mongoose.models.Account || mongoose.model('Account', accountSchema);
