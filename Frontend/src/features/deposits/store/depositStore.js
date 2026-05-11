@@ -16,7 +16,19 @@ const getErrorMessage = (error, fallback) => {
 }
 
 const getDepositList = (response) => {
-    return response?.data?.data || response?.data?.deposits || response?.data || []
+    const deposits = response?.data?.data || response?.data?.deposits || response?.data || []
+    return Array.isArray(deposits) ? deposits : []
+}
+
+const getDepositPagination = (response, page, limit) => {
+    const pagination = response?.data?.pagination || {}
+
+    return {
+        total: response?.data?.total || pagination.totalRecords || pagination.total || 0,
+        page: pagination.currentPage || page,
+        totalPages: pagination.totalPages || 1,
+        limit: pagination.limit || limit,
+    }
 }
 
 const useDepositStore = create((set, get) => ({
@@ -26,6 +38,7 @@ const useDepositStore = create((set, get) => ({
     pagination: {
         total: 0,
         page: 1,
+        totalPages: 1,
         limit: 10,
     },
 
@@ -37,11 +50,7 @@ const useDepositStore = create((set, get) => ({
 
             set({
                 deposits: getDepositList(response),
-                pagination: {
-                    total: response.data?.total || response.data?.pagination?.total || 0,
-                    page,
-                    limit,
-                },
+                pagination: getDepositPagination(response, page, limit),
                 loading: false,
                 error: null,
             })
