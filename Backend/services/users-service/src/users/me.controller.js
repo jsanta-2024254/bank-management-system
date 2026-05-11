@@ -9,10 +9,48 @@ const getAuthenticatedUserId = (req) => {
   return req.user?.id || req.user?.sub || req.userId;
 };
 
+const obtenerTextoLimpio = (valor) => {
+  if (valor === undefined || valor === null) {
+    return null;
+  }
+
+  const texto = String(valor).trim();
+  return texto === '' ? null : texto;
+};
+
+const formatearPerfil = (user, role, account = null, lastTransactions = []) => {
+  return {
+    id: user.Id,
+    nombre: user.Name,
+    apellido: user.Surname,
+    username: user.Username,
+    email: user.Email,
+    celular: user.UserProfile?.Phone || '',
+    profilePicture: user.UserProfile?.ProfilePicture || '',
+    dpi: user.ClientProfile?.Dpi || '',
+    direccion: user.ClientProfile?.Direccion || '',
+    nombreTrabajo: user.ClientProfile?.NombreTrabajo || '',
+    ingresosMensuales: user.ClientProfile?.IngresosMensuales || '',
+    estado: user.Status,
+    role,
+    roles: [role],
+    cuenta: account
+      ? {
+          id: account._id || account.id,
+          numeroCuenta: account.numeroCuenta,
+          tipoCuenta: account.tipoCuenta,
+          saldo: account.saldo,
+        }
+      : null,
+    ultimosMovimientos: lastTransactions,
+  };
+};
+
 // GET /api/v1/me
 export const getMyProfile = async (req, res) => {
   try {
     const userId = getAuthenticatedUserId(req);
+    const role = req.user?.role || 'USER_ROLE';
 
     const user = await User.findByPk(userId, {
       include: [
@@ -29,39 +67,21 @@ export const getMyProfile = async (req, res) => {
       });
     }
 
-    const account = await getAccountByUser(user.Id, { estado: true });
-
+    let account = null;
     let lastTransactions = [];
 
-    if (account) {
-      const accountId = account._id || account.id;
-      lastTransactions = await getTransactionsByAccount(accountId, 5);
+    if (role === 'USER_ROLE') {
+      account = await getAccountByUser(user.Id, { estado: true });
+
+      if (account) {
+        const accountId = account._id || account.id;
+        lastTransactions = await getTransactionsByAccount(accountId, 5);
+      }
     }
 
     return res.status(200).json({
       success: true,
-      data: {
-        id: user.Id,
-        nombre: user.Name,
-        apellido: user.Surname,
-        username: user.Username,
-        email: user.Email,
-        celular: user.UserProfile?.Phone,
-        dpi: user.ClientProfile?.Dpi,
-        direccion: user.ClientProfile?.Direccion,
-        nombreTrabajo: user.ClientProfile?.NombreTrabajo,
-        ingresosMensuales: user.ClientProfile?.IngresosMensuales,
-        estado: user.Status,
-        cuenta: account
-          ? {
-              id: account._id || account.id,
-              numeroCuenta: account.numeroCuenta,
-              tipoCuenta: account.tipoCuenta,
-              saldo: account.saldo,
-            }
-          : null,
-        ultimosMovimientos: lastTransactions,
-      },
+      data: formatearPerfil(user, role, account, lastTransactions),
     });
   } catch (error) {
     return res.status(error.status || 500).json({
@@ -78,8 +98,15 @@ export const updateMyProfile = async (req, res) => {
 
   try {
     const userId = getAuthenticatedUserId(req);
+    const role = req.user?.role || 'USER_ROLE';
 
-    const user = await User.findByPk(userId, { transaction: sequelizeTx });
+    const user = await User.findByPk(userId, {
+      include: [
+        { model: UserProfile, as: 'UserProfile' },
+        { model: ClientProfile, as: 'ClientProfile' },
+      ],
+      transaction: sequelizeTx,
+    });
 
     if (!user) {
       await sequelizeTx.rollback();
@@ -91,29 +118,55 @@ export const updateMyProfile = async (req, res) => {
     }
 
     const userUpdates = {};
+    const nombre = obtenerTextoLimpio(req.body.nombre);
+    const apellido = obtenerTextoLimpio(req.body.apellido);
 
-    if (req.body.nombre !== undefined && req.body.nombre.trim() !== '') {
-      userUpdates.Name = req.body.nombre.trim();
+    if (nombre) {
+      userUpdates.Name = nombre;
+    }
+
+    if (apellido) {
+      userUpdates.Surname = apellido;
     }
 
     if (Object.keys(userUpdates).length > 0) {
       await user.update(userUpdates, { transaction: sequelizeTx });
     }
 
+    const celular = obtenerTextoLimpio(req.body.celular);
+
+    if (celular) {
+      const perfilUsuario = await UserProfile.findOne({
+        where: { UserId: userId },
+        transaction: sequelizeTx,
+      });
+
+      if (perfilUsuario) {
+        await perfilUsuario.update({ Phone: celular }, { transaction: sequelizeTx });
+      } else {
+        await UserProfile.create(
+          {
+            UserId: userId,
+            Phone: celular,
+          },
+          { transaction: sequelizeTx }
+        );
+      }
+    }
+
     const clientUpdates = {};
+    const direccion = obtenerTextoLimpio(req.body.direccion);
+    const nombreTrabajo = obtenerTextoLimpio(req.body.nombreTrabajo);
 
-    if (req.body.direccion !== undefined && req.body.direccion.trim() !== '') {
-      clientUpdates.Direccion = req.body.direccion.trim();
+    if (direccion) {
+      clientUpdates.Direccion = direccion;
     }
 
-    if (
-      req.body.nombreTrabajo !== undefined &&
-      req.body.nombreTrabajo.trim() !== ''
-    ) {
-      clientUpdates.NombreTrabajo = req.body.nombreTrabajo.trim();
+    if (nombreTrabajo) {
+      clientUpdates.NombreTrabajo = nombreTrabajo;
     }
 
-    if (req.body.ingresosMensuales !== undefined) {
+    if (req.body.ingresosMensuales !== undefined && req.body.ingresosMensuales !== '') {
       const ingresos = Number(req.body.ingresosMensuales);
 
       if (Number.isNaN(ingresos) || ingresos < 100) {
@@ -128,23 +181,27 @@ export const updateMyProfile = async (req, res) => {
       clientUpdates.IngresosMensuales = ingresos;
     }
 
-    if (Object.keys(clientUpdates).length > 0) {
+    const tienePerfilCliente = !!user.ClientProfile;
+
+    if (Object.keys(clientUpdates).length > 0 && tienePerfilCliente) {
       await ClientProfile.update(clientUpdates, {
         where: { UserId: userId },
         transaction: sequelizeTx,
       });
     }
 
-    if (
-      Object.keys(userUpdates).length === 0 &&
-      Object.keys(clientUpdates).length === 0
-    ) {
+    const huboCambios =
+      Object.keys(userUpdates).length > 0 ||
+      !!celular ||
+      (Object.keys(clientUpdates).length > 0 && tienePerfilCliente);
+
+    if (!huboCambios) {
       await sequelizeTx.rollback();
 
       return res.status(400).json({
         success: false,
         message:
-          'No se proporcionaron campos válidos para actualizar. Campos permitidos: nombre, direccion, nombreTrabajo, ingresosMensuales',
+          'No se proporcionaron campos válidos para actualizar. Campos permitidos: nombre, apellido, celular, direccion, nombreTrabajo, ingresosMensuales',
       });
     }
 
@@ -161,18 +218,7 @@ export const updateMyProfile = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Perfil actualizado exitosamente',
-      data: {
-        id: updated.Id,
-        nombre: updated.Name,
-        apellido: updated.Surname,
-        username: updated.Username,
-        email: updated.Email,
-        celular: updated.UserProfile?.Phone,
-        dpi: updated.ClientProfile?.Dpi,
-        direccion: updated.ClientProfile?.Direccion,
-        nombreTrabajo: updated.ClientProfile?.NombreTrabajo,
-        ingresosMensuales: updated.ClientProfile?.IngresosMensuales,
-      },
+      data: formatearPerfil(updated, role),
     });
   } catch (error) {
     await sequelizeTx.rollback();

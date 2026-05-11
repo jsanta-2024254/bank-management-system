@@ -15,13 +15,38 @@ const ProfileForm = ({ user, onClose }) => {
         formState: { errors, isSubmitting },
     } = useForm({
         defaultValues: {
-            name: user?.name || user?.Name || '',
-            surname: user?.surname || user?.Surname || '',
-            phone: user?.phone || user?.Phone || '',
+            nombre: user?.nombre || user?.name || user?.Name || '',
+            apellido: user?.apellido || user?.surname || user?.Surname || '',
+            celular: user?.celular || user?.phone || user?.Phone || '',
+            direccion: user?.direccion || '',
+            nombreTrabajo: user?.nombreTrabajo || '',
+            ingresosMensuales: user?.ingresosMensuales || '',
         },
     })
 
     const isLoading = loading || isSubmitting
+
+    const limpiarTexto = (valor) => {
+        if (valor === undefined || valor === null) return undefined
+
+        const texto = String(valor).trim()
+        return texto === '' ? undefined : texto
+    }
+
+    const prepararDatos = (data) => {
+        const datosPerfil = {
+            nombre: limpiarTexto(data.nombre),
+            apellido: limpiarTexto(data.apellido),
+            celular: limpiarTexto(data.celular),
+            direccion: limpiarTexto(data.direccion),
+            nombreTrabajo: limpiarTexto(data.nombreTrabajo),
+            ingresosMensuales: limpiarTexto(data.ingresosMensuales),
+        }
+
+        return Object.fromEntries(
+            Object.entries(datosPerfil).filter(([, value]) => value !== undefined)
+        )
+    }
 
     const onSubmit = async (data) => {
         const toastId = toast.loading('Actualizando perfil...')
@@ -29,8 +54,9 @@ const ProfileForm = ({ user, onClose }) => {
         setLoading(true)
 
         try {
-            const response = await api.put('/users/me', data)
-            const updatedUser = response.data?.user || response.data?.data || response.data
+            const datosPerfil = prepararDatos(data)
+            const response = await api.put('/me', datosPerfil)
+            const updatedUser = response.data?.data || response.data?.user || response.data
 
             setUser(updatedUser)
 
@@ -58,14 +84,14 @@ const ProfileForm = ({ user, onClose }) => {
                             Nombre
                         </label>
                         <input
-                            {...register('name', { required: 'El nombre es requerido' })}
+                            {...register('nombre', { required: 'El nombre es requerido' })}
                             className={inputClass}
                             placeholder="Nombre"
                             disabled={isLoading}
                         />
-                        {errors.name && (
+                        {errors.nombre && (
                             <p className="text-red-400 text-xs mt-1">
-                                {errors.name.message}
+                                {errors.nombre.message}
                             </p>
                         )}
                     </div>
@@ -75,14 +101,14 @@ const ProfileForm = ({ user, onClose }) => {
                             Apellido
                         </label>
                         <input
-                            {...register('surname', { required: 'El apellido es requerido' })}
+                            {...register('apellido', { required: 'El apellido es requerido' })}
                             className={inputClass}
                             placeholder="Apellido"
                             disabled={isLoading}
                         />
-                        {errors.surname && (
+                        {errors.apellido && (
                             <p className="text-red-400 text-xs mt-1">
-                                {errors.surname.message}
+                                {errors.apellido.message}
                             </p>
                         )}
                     </div>
@@ -90,15 +116,76 @@ const ProfileForm = ({ user, onClose }) => {
 
                 <div>
                     <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                        Teléfono
+                        Celular
                     </label>
                     <input
-                        {...register('phone')}
+                        {...register('celular', {
+                            pattern: {
+                                value: /^\d{8}$/,
+                                message: 'El celular debe tener exactamente 8 dígitos',
+                            },
+                        })}
                         type="tel"
                         className={inputClass}
-                        placeholder="+502 1234 5678"
+                        placeholder="55555555"
                         disabled={isLoading}
                     />
+                    {errors.celular && (
+                        <p className="text-red-400 text-xs mt-1">
+                            {errors.celular.message}
+                        </p>
+                    )}
+                </div>
+
+                <div>
+                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                        Dirección
+                    </label>
+                    <input
+                        {...register('direccion')}
+                        className={inputClass}
+                        placeholder="Dirección"
+                        disabled={isLoading}
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                            Lugar de trabajo
+                        </label>
+                        <input
+                            {...register('nombreTrabajo')}
+                            className={inputClass}
+                            placeholder="Empresa / trabajo"
+                            disabled={isLoading}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                            Ingresos mensuales
+                        </label>
+                        <input
+                            {...register('ingresosMensuales', {
+                                min: {
+                                    value: 100,
+                                    message: 'Los ingresos deben ser al menos Q100',
+                                },
+                            })}
+                            type="number"
+                            min="100"
+                            step="0.01"
+                            className={inputClass}
+                            placeholder="5000"
+                            disabled={isLoading}
+                        />
+                        {errors.ingresosMensuales && (
+                            <p className="text-red-400 text-xs mt-1">
+                                {errors.ingresosMensuales.message}
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex gap-4 pt-4">

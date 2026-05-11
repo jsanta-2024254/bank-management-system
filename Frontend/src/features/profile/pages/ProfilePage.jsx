@@ -1,14 +1,67 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { User, Mail, Phone, Edit3, Camera } from 'lucide-react'
+import { User, Mail, Phone, Edit3, MapPin, Briefcase, Wallet } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import api from '../../../shared/api/api'
 import useAuthStore from '../../auth/store/authStore'
 import ProfileForm from '../components/ProfileForm'
 
-const ProfilePage = () => {
-    const { user } = useAuthStore()
-    const [showEditForm, setShowEditForm] = useState(false)
+const obtenerPerfilDesdeApi = async () => {
+    const response = await api.get('/me')
+    return response.data?.data || response.data?.user || response.data
+}
 
-    const fullName = `${user?.name || user?.Name || ''} ${user?.surname || user?.Surname || ''}`.trim()
+const ProfilePage = () => {
+    const { user, setUser } = useAuthStore()
+    const [showEditForm, setShowEditForm] = useState(false)
+    const [loading, setLoading] = useState(true)
+
+    const cargarPerfil = useCallback(async () => {
+        setLoading(true)
+
+        try {
+            const perfil = await obtenerPerfilDesdeApi()
+            setUser(perfil)
+        } catch (error) {
+            toast.error(error?.response?.data?.message || 'Error al cargar el perfil')
+        } finally {
+            setLoading(false)
+        }
+    }, [setUser])
+
+    useEffect(() => {
+        let estaMontado = true
+
+        const cargarPerfilInicial = async () => {
+            try {
+                const perfil = await obtenerPerfilDesdeApi()
+
+                if (estaMontado) {
+                    setUser(perfil)
+                }
+            } catch (error) {
+                if (estaMontado) {
+                    toast.error(error?.response?.data?.message || 'Error al cargar el perfil')
+                }
+            } finally {
+                if (estaMontado) {
+                    setLoading(false)
+                }
+            }
+        }
+
+        cargarPerfilInicial()
+
+        return () => {
+            estaMontado = false
+        }
+    }, [setUser])
+
+    const fullName = `${user?.nombre || user?.name || user?.Name || ''} ${user?.apellido || user?.surname || user?.Surname || ''}`.trim()
+    const username = user?.username || user?.Username || 'usuario'
+    const email = user?.email || user?.Email || 'No registrado'
+    const celular = user?.celular || user?.phone || user?.Phone || 'No registrado'
+    const role = user?.role || user?.roles?.[0] || 'USER_ROLE'
 
     return (
         <div className="pb-10">
@@ -17,15 +70,16 @@ const ProfilePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="max-w-3xl mx-auto"
             >
-                {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-black text-white">Mi Perfil</h1>
                         <p className="text-zinc-500 text-sm mt-1">Gestiona tu información personal</p>
                     </div>
+
                     <button
                         onClick={() => setShowEditForm(true)}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl text-sm font-bold transition-all"
+                        disabled={loading}
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Edit3 size={18} />
                         Editar Perfil
@@ -33,13 +87,12 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-                    {/* Profile Header */}
-                    <div className="h-40 bg-gradient-to-r from-blue-600 to-indigo-600 relative">
+                    <div className="h-40 bg-linear-to-r from-blue-600 to-indigo-600 relative">
                         <div className="absolute -bottom-12 left-8 flex items-end gap-6">
                             <div className="w-28 h-28 rounded-3xl border-4 border-zinc-900 bg-zinc-800 overflow-hidden flex items-center justify-center">
-                                {user?.profileImage ? (
+                                {user?.profilePicture || user?.profileImage ? (
                                     <img
-                                        src={user.profileImage}
+                                        src={user.profilePicture || user.profileImage}
                                         alt="Perfil"
                                         className="w-full h-full object-cover"
                                     />
@@ -49,9 +102,10 @@ const ProfilePage = () => {
                                     </div>
                                 )}
                             </div>
+
                             <div className="mb-4">
                                 <h2 className="text-2xl font-bold text-white">{fullName || 'Usuario'}</h2>
-                                <p className="text-zinc-400">@{user?.username || user?.Username}</p>
+                                <p className="text-zinc-400">@{username}</p>
                             </div>
                         </div>
                     </div>
@@ -61,30 +115,70 @@ const ProfilePage = () => {
                             <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Mail className="text-blue-400" size={20} />
-                                    <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Correo Electrónico</span>
+                                    <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">
+                                        Correo Electrónico
+                                    </span>
                                 </div>
-                                <p className="text-white text-lg">{user?.email || user?.Email || 'No registrado'}</p>
+                                <p className="text-white text-lg">{email}</p>
                             </div>
 
                             <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Phone className="text-emerald-400" size={20} />
-                                    <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Teléfono</span>
+                                    <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">
+                                        Celular
+                                    </span>
                                 </div>
-                                <p className="text-white text-lg">
-                                    {user?.phone || user?.Phone || 'No registrado'}
-                                </p>
+                                <p className="text-white text-lg">{celular}</p>
                             </div>
                         </div>
 
-                        <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6">
-                            <div className="flex items-center gap-3 mb-4">
-                                <User className="text-violet-400" size={20} />
-                                <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Rol</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <MapPin className="text-orange-400" size={20} />
+                                    <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">
+                                        Dirección
+                                    </span>
+                                </div>
+                                <p className="text-white text-lg">{user?.direccion || 'No registrada'}</p>
                             </div>
-                            <p className="text-white font-semibold">
-                                {user?.role || user?.roles?.[0] || 'USER_ROLE'}
-                            </p>
+
+                            <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Briefcase className="text-violet-400" size={20} />
+                                    <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">
+                                        Trabajo
+                                    </span>
+                                </div>
+                                <p className="text-white text-lg">{user?.nombreTrabajo || 'No registrado'}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <User className="text-violet-400" size={20} />
+                                    <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">
+                                        Rol
+                                    </span>
+                                </div>
+                                <p className="text-white font-semibold">{role}</p>
+                            </div>
+
+                            <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Wallet className="text-yellow-400" size={20} />
+                                    <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">
+                                        Ingresos
+                                    </span>
+                                </div>
+                                <p className="text-white font-semibold">
+                                    {user?.ingresosMensuales
+                                        ? `Q${Number(user.ingresosMensuales).toLocaleString('es-GT')}`
+                                        : 'No registrados'}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -93,7 +187,10 @@ const ProfilePage = () => {
             {showEditForm && (
                 <ProfileForm
                     user={user}
-                    onClose={() => setShowEditForm(false)}
+                    onClose={() => {
+                        setShowEditForm(false)
+                        cargarPerfil()
+                    }}
                 />
             )}
         </div>
