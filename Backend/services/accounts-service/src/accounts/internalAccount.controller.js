@@ -23,13 +23,14 @@ export const createInternalAccount = async (req, res) => {
 
     const existingAccount = await Account.findOne({
       usuario: userId,
+      tipoCuenta,
       estado: true,
     });
 
     if (existingAccount) {
       return res.status(409).json({
         success: false,
-        message: 'El usuario ya tiene una cuenta activa',
+        message: `El usuario ya tiene una cuenta ${tipoCuenta} activa`,
         data: existingAccount,
       });
     }

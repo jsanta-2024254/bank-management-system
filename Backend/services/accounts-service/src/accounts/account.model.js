@@ -41,5 +41,6 @@ const accountSchema = mongoose.Schema(
 accountSchema.index({ usuario: 1 });
 accountSchema.index({ estado: 1 });
 accountSchema.index({ usuario: 1, estado: 1 });
+accountSchema.index({ usuario: 1, tipoCuenta: 1, estado: 1 });
 
 export default mongoose.models.Account || mongoose.model('Account', accountSchema);
