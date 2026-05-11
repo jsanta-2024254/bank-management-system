@@ -27,12 +27,42 @@ const validarTipoCuenta = (tipoCuenta) => {
     return TIPOS_CUENTA.includes(tipoCuenta);
 };
 
-const buscarCuentaActivaPorTipo = async ({ usuario, tipoCuenta }) => {
-    return Account.findOne({
+const convertirEstado = (estado) => {
+    return estado === true || estado === 'true';
+};
+
+const buscarCuentaActivaPorTipo = async ({ usuario, tipoCuenta, excluirCuentaId = null }) => {
+    const filtro = {
         usuario,
         tipoCuenta,
         estado: true,
+    };
+
+    if (excluirCuentaId) {
+        filtro._id = { $ne: excluirCuentaId };
+    }
+
+    return Account.findOne(filtro);
+};
+
+const validarDuplicadoActivoPorTipo = async ({ usuario, tipoCuenta, excluirCuentaId = null }) => {
+    const existingAccount = await buscarCuentaActivaPorTipo({
+        usuario,
+        tipoCuenta,
+        excluirCuentaId,
     });
+
+    if (existingAccount) {
+        return {
+            duplicada: true,
+            cuenta: existingAccount,
+        };
+    }
+
+    return {
+        duplicada: false,
+        cuenta: null,
+    };
 };
 
 const crearCuentaBancaria = async ({ usuario, tipoCuenta, saldo }) => {
@@ -76,16 +106,16 @@ export const createAccount = async (req, res) => {
             });
         }
 
-        const existingAccount = await buscarCuentaActivaPorTipo({
+        const validacionDuplicado = await validarDuplicadoActivoPorTipo({
             usuario: usuarioCuenta,
             tipoCuenta,
         });
 
-        if (existingAccount) {
+        if (validacionDuplicado.duplicada) {
             return res.status(409).json({
                 success: false,
                 message: `El usuario ya tiene una cuenta ${tipoCuenta} activa`,
-                data: formatearCuenta(existingAccount),
+                data: formatearCuenta(validacionDuplicado.cuenta),
             });
         }
 
@@ -130,16 +160,16 @@ export const createMyAccount = async (req, res) => {
             });
         }
 
-        const existingAccount = await buscarCuentaActivaPorTipo({
+        const validacionDuplicado = await validarDuplicadoActivoPorTipo({
             usuario: usuarioCuenta,
             tipoCuenta,
         });
 
-        if (existingAccount) {
+        if (validacionDuplicado.duplicada) {
             return res.status(409).json({
                 success: false,
                 message: `Ya tienes una cuenta ${tipoCuenta} activa`,
-                data: formatearCuenta(existingAccount),
+                data: formatearCuenta(validacionDuplicado.cuenta),
             });
         }
 
@@ -170,6 +200,15 @@ export const updateAccount = async (req, res) => {
         const { tipoCuenta, saldo, estado } = req.body;
         const updates = {};
 
+        const account = await Account.findById(req.params.id);
+
+        if (!account) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cuenta no encontrada',
+            });
+        }
+
         if (tipoCuenta !== undefined) {
             if (!validarTipoCuenta(tipoCuenta)) {
                 return res.status(400).json({
@@ -195,7 +234,7 @@ export const updateAccount = async (req, res) => {
         }
 
         if (estado !== undefined) {
-            updates.estado = estado === true || estado === 'true';
+            updates.estado = convertirEstado(estado);
         }
 
         if (Object.keys(updates).length === 0) {
@@ -205,18 +244,27 @@ export const updateAccount = async (req, res) => {
             });
         }
 
-        const account = await Account.findByIdAndUpdate(
-            req.params.id,
-            { $set: updates },
-            { new: true, runValidators: true }
-        );
+        const tipoCuentaFinal = updates.tipoCuenta ?? account.tipoCuenta;
+        const estadoFinal = updates.estado ?? account.estado;
 
-        if (!account) {
-            return res.status(404).json({
-                success: false,
-                message: 'Cuenta no encontrada',
+        if (estadoFinal === true) {
+            const validacionDuplicado = await validarDuplicadoActivoPorTipo({
+                usuario: account.usuario,
+                tipoCuenta: tipoCuentaFinal,
+                excluirCuentaId: account._id,
             });
+
+            if (validacionDuplicado.duplicada) {
+                return res.status(409).json({
+                    success: false,
+                    message: `El usuario ya tiene una cuenta ${tipoCuentaFinal} activa`,
+                    data: formatearCuenta(validacionDuplicado.cuenta),
+                });
+            }
         }
+
+        Object.assign(account, updates);
+        await account.save();
 
         return res.status(200).json({
             success: true,
