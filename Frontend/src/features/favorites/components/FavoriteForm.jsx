@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { Star, Hash } from 'lucide-react'
+import { Star, Hash, CreditCard } from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import useFavoriteStore from '../store/favoriteStore'
 
@@ -12,7 +12,8 @@ const FavoriteForm = ({ onClose }) => {
     } = useForm({
         defaultValues: {
             alias: '',
-            numeroCuentaDestino: '',
+            numeroCuenta: '',
+            tipoCuenta: 'monetaria',
         },
     })
 
@@ -20,11 +21,14 @@ const FavoriteForm = ({ onClose }) => {
 
     const onSubmit = async (data) => {
         const toastId = toast.loading('Guardando favorito...')
+
         try {
             await addFavorite({
                 alias: data.alias.trim(),
-                numeroCuentaDestino: data.numeroCuentaDestino.trim(),
+                numeroCuenta: data.numeroCuenta.trim(),
+                tipoCuenta: data.tipoCuenta,
             })
+
             toast.success('Favorito agregado correctamente', { id: toastId })
             onClose()
         } catch (error) {
@@ -41,7 +45,6 @@ const FavoriteForm = ({ onClose }) => {
     return (
         <Modal title="Nuevo Favorito" onClose={onClose}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                {/* Alias */}
                 <div>
                     <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <Star size={11} /> Alias
@@ -50,7 +53,7 @@ const FavoriteForm = ({ onClose }) => {
                         {...register('alias', {
                             required: 'El alias es requerido',
                             minLength: { value: 2, message: 'Mínimo 2 caracteres' },
-                            maxLength: { value: 40, message: 'Máximo 40 caracteres' },
+                            maxLength: { value: 80, message: 'Máximo 80 caracteres' },
                         })}
                         placeholder="Ej. Mamá, Oficina, Proveedor..."
                         className={inputClass}
@@ -60,27 +63,48 @@ const FavoriteForm = ({ onClose }) => {
                     )}
                 </div>
 
-                {/* Número de cuenta destino */}
                 <div>
                     <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <Hash size={11} /> Número de cuenta destino
+                        <Hash size={11} /> Número de cuenta
                     </label>
                     <input
-                        {...register('numeroCuentaDestino', {
+                        {...register('numeroCuenta', {
                             required: 'El número de cuenta es requerido',
                             minLength: { value: 6, message: 'Número de cuenta inválido' },
                         })}
                         placeholder="Ej. 2024-00001"
                         className={`${inputClass} font-mono`}
                     />
-                    {errors.numeroCuentaDestino && (
+                    {errors.numeroCuenta && (
                         <p className="text-red-400 text-xs mt-1.5 ml-1">
-                            {errors.numeroCuentaDestino.message}
+                            {errors.numeroCuenta.message}
                         </p>
                     )}
                 </div>
 
-                {/* Actions */}
+                <div>
+                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <CreditCard size={11} /> Tipo de cuenta
+                    </label>
+                    <select
+                        {...register('tipoCuenta', {
+                            required: 'El tipo de cuenta es requerido',
+                        })}
+                        className={`${inputClass} appearance-none`}
+                    >
+                        <option value="monetaria">Monetaria</option>
+                        <option value="ahorro">Ahorro</option>
+                    </select>
+                    {errors.tipoCuenta && (
+                        <p className="text-red-400 text-xs mt-1.5 ml-1">
+                            {errors.tipoCuenta.message}
+                        </p>
+                    )}
+                    <p className="text-zinc-500 text-xs mt-1.5 ml-1">
+                        Debe coincidir con el tipo real de la cuenta destino.
+                    </p>
+                </div>
+
                 <div className="flex gap-4 pt-4">
                     <button
                         type="button"

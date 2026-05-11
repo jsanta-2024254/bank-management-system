@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Trash2, Plus, Search, Hash } from 'lucide-react'
+import { Star, Trash2, Plus, Search, Hash, CreditCard } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useFavoriteStore from '../store/favoriteStore'
 import FavoriteForm from './FavoriteForm'
 import ConfirmDialog from '../../../shared/components/ui/ConfirmDialog'
+
+const getTipoCuentaLabel = (tipoCuenta) => {
+    if (tipoCuenta === 'monetaria') return 'Monetaria'
+    if (tipoCuenta === 'ahorro') return 'Ahorro'
+    return 'Sin tipo'
+}
 
 const FavoriteList = () => {
     const { favorites, loading, error, fetchFavorites, deleteFavorite } = useFavoriteStore()
@@ -18,6 +24,7 @@ const FavoriteList = () => {
 
     const handleDelete = async () => {
         const toastId = toast.loading('Eliminando favorito...')
+
         try {
             await deleteFavorite(confirmId)
             setConfirmId(null)
@@ -30,19 +37,23 @@ const FavoriteList = () => {
         }
     }
 
-    const filtered = favorites.filter((f) => {
-        const q = search.toLowerCase()
+    const filtered = favorites.filter((favorite) => {
+        const query = search.toLowerCase()
+        const alias = favorite.alias || ''
+        const numeroCuenta = favorite.numeroCuenta || ''
+        const tipoCuenta = getTipoCuentaLabel(favorite.tipoCuenta)
+
         return (
-            (f.alias || '').toLowerCase().includes(q) ||
-            (f.numeroCuentaDestino || '').toLowerCase().includes(q)
+            alias.toLowerCase().includes(query) ||
+            numeroCuenta.toLowerCase().includes(query) ||
+            tipoCuenta.toLowerCase().includes(query)
         )
     })
 
-    const confirmTarget = favorites.find((f) => f._id === confirmId)
+    const confirmTarget = favorites.find((favorite) => favorite._id === confirmId)
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pb-10">
-            {/* Form Modal */}
             <AnimatePresence>
                 {showForm && (
                     <FavoriteForm
@@ -54,12 +65,11 @@ const FavoriteList = () => {
                 )}
             </AnimatePresence>
 
-            {/* Confirm Delete */}
             {confirmId && (
                 <ConfirmDialog
                     message={
                         confirmTarget
-                            ? `¿Eliminar "${confirmTarget.alias}" (${confirmTarget.numeroCuentaDestino})?`
+                            ? `¿Eliminar "${confirmTarget.alias}" (${confirmTarget.numeroCuenta})?`
                             : '¿Eliminar este favorito?'
                     }
                     onConfirm={handleDelete}
@@ -67,7 +77,6 @@ const FavoriteList = () => {
                 />
             )}
 
-            {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
@@ -89,7 +98,6 @@ const FavoriteList = () => {
                 </button>
             </div>
 
-            {/* Search */}
             <div className="relative mb-6">
                 <Search
                     size={16}
@@ -98,24 +106,22 @@ const FavoriteList = () => {
                 <input
                     type="text"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Buscar por alias o número de cuenta..."
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Buscar por alias, número o tipo de cuenta..."
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm"
                 />
             </div>
 
-            {/* Error */}
             {error && (
                 <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-2xl px-6 py-4 text-red-400 text-sm">
                     {error}
                 </div>
             )}
 
-            {/* Content */}
             {loading ? (
                 <div className="space-y-3">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="h-20 bg-zinc-900 rounded-3xl animate-pulse" />
+                    {Array.from({ length: 4 }).map((_, index) => (
+                        <div key={index} className="h-20 bg-zinc-900 rounded-3xl animate-pulse" />
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
@@ -132,7 +138,7 @@ const FavoriteList = () => {
                     </p>
                     <p className="text-zinc-600 text-sm mt-1">
                         {search
-                            ? 'Intenta con otro alias o número de cuenta.'
+                            ? 'Intenta con otro alias, número o tipo de cuenta.'
                             : 'Agrega cuentas de destino frecuentes para transferir más rápido.'}
                     </p>
                     {!search && (
@@ -146,8 +152,7 @@ const FavoriteList = () => {
                 </motion.div>
             ) : (
                 <div className="bg-zinc-900/50 border border-white/5 rounded-3xl overflow-hidden">
-                    {/* Table header */}
-                    <div className="grid grid-cols-[1fr_1fr_auto] bg-white/[0.03] border-b border-white/5">
+                    <div className="grid grid-cols-[1fr_1fr_150px_auto] bg-white/3 border-b border-white/5">
                         <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
                             Alias
                         </span>
@@ -155,40 +160,47 @@ const FavoriteList = () => {
                             Número de cuenta
                         </span>
                         <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
+                            Tipo
+                        </span>
+                        <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
                             Acciones
                         </span>
                     </div>
 
                     <AnimatePresence initial={false}>
-                        {filtered.map((fav, idx) => (
+                        {filtered.map((favorite, index) => (
                             <motion.div
-                                key={fav._id}
+                                key={favorite._id}
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className={`grid grid-cols-[1fr_1fr_auto] items-center hover:bg-white/[0.03] transition-colors ${
-                                    idx !== filtered.length - 1 ? 'border-b border-white/5' : ''
+                                className={`grid grid-cols-[1fr_1fr_150px_auto] items-center hover:bg-white/3 transition-colors ${
+                                    index !== filtered.length - 1 ? 'border-b border-white/5' : ''
                                 }`}
                             >
-                                {/* Alias */}
                                 <div className="px-8 py-5 flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
                                         <Star size={15} className="text-amber-400" />
                                     </div>
-                                    <span className="text-white font-semibold text-sm">{fav.alias}</span>
+                                    <span className="text-white font-semibold text-sm">{favorite.alias}</span>
                                 </div>
 
-                                {/* Account number */}
                                 <div className="px-8 py-5 flex items-center gap-2 text-zinc-400">
                                     <Hash size={13} className="text-zinc-600 shrink-0" />
-                                    <span className="font-mono text-sm">{fav.numeroCuentaDestino}</span>
+                                    <span className="font-mono text-sm">{favorite.numeroCuenta}</span>
                                 </div>
 
-                                {/* Delete action */}
+                                <div className="px-8 py-5 flex items-center gap-2 text-zinc-400">
+                                    <CreditCard size={13} className="text-zinc-600 shrink-0" />
+                                    <span className="text-xs font-bold uppercase tracking-wide bg-zinc-800 text-zinc-300 rounded-xl px-3 py-1">
+                                        {getTipoCuentaLabel(favorite.tipoCuenta)}
+                                    </span>
+                                </div>
+
                                 <div className="px-8 py-5">
                                     <button
-                                        onClick={() => setConfirmId(fav._id)}
+                                        onClick={() => setConfirmId(favorite._id)}
                                         className="flex items-center gap-1.5 text-zinc-500 hover:text-red-400 transition-colors text-xs font-bold group"
                                         title="Eliminar favorito"
                                     >
