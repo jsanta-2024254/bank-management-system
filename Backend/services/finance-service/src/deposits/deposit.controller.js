@@ -51,6 +51,35 @@ const obtenerCuentaActiva = async ({ numeroCuenta, tipoCuenta, session }) => {
   return account;
 };
 
+const obtenerDepositoConCuenta = async ({ depositId, session }) => {
+  const deposit = await Deposit.findById(depositId).session(session);
+
+  if (!deposit) {
+    throw crearErrorHttp(404, 'Deposito no encontrado');
+  }
+
+  const account = await Account.findById(deposit.cuenta).session(session);
+
+  if (!account || !account.estado) {
+    throw crearErrorHttp(404, 'Cuenta no encontrada o inactiva');
+  }
+
+  return { deposit, account };
+};
+
+const validarDepositoReversible = (deposit) => {
+  if (deposit.revertido) {
+    throw crearErrorHttp(400, 'Este deposito ya fue revertido');
+  }
+
+  if (new Date() > deposit.reversibleHasta) {
+    throw crearErrorHttp(
+      400,
+      'El tiempo para revertir este deposito ha expirado (maximo 1 minuto)'
+    );
+  }
+};
+
 const crearDepositoConHistorial = async ({ account, montoNum, descripcion, adminId, session }) => {
   const saldoAnterior = Number(account.saldo || 0);
   account.saldo = saldoAnterior + montoNum;
@@ -96,6 +125,50 @@ const crearDepositoConHistorial = async ({ account, montoNum, descripcion, admin
     deposit,
     reversibleHasta,
   };
+};
+
+const revertirDepositoConHistorial = async ({ deposit, account, adminId, session }) => {
+  const saldoAnterior = Number(account.saldo || 0);
+  const montoActual = Number(deposit.montoActual || 0);
+
+  if (saldoAnterior < montoActual) {
+    throw crearErrorHttp(400, 'Saldo insuficiente para revertir el deposito');
+  }
+
+  account.saldo = saldoAnterior - montoActual;
+  await account.save({ session });
+
+  deposit.revertido = true;
+  await deposit.save({ session });
+
+  await Transaction.create(
+    [
+      {
+        tipo: 'reversion',
+        monto: montoActual,
+        descripcion: `Reversion de deposito #${deposit._id}`,
+        cuentaOrigen: account._id,
+        cuentaDestino: null,
+        saldoAnteriorOrigen: saldoAnterior,
+        saldoPosteriorOrigen: account.saldo,
+        ejecutadaPor: adminId,
+      },
+    ],
+    { session }
+  );
+
+  return deposit;
+};
+
+const responderError = (res, error, mensajeGenerico) => {
+  const statusCode = error.statusCode || 500;
+
+  return res.status(statusCode).json({
+    success: false,
+    message: statusCode === 500 ? mensajeGenerico : error.message,
+    ...(error.error ? { error: error.error } : {}),
+    ...(statusCode === 500 ? { error: error.message } : {}),
+  });
 };
 
 // POST /api/v1/admin/deposits
@@ -144,14 +217,7 @@ export const createDeposit = async (req, res) => {
       await session.abortTransaction();
     }
 
-    const statusCode = error.statusCode || 500;
-
-    return res.status(statusCode).json({
-      success: false,
-      message: statusCode === 500 ? 'Error al realizar el deposito' : error.message,
-      ...(error.error ? { error: error.error } : {}),
-      ...(statusCode === 500 ? { error: error.message } : {}),
-    });
+    return responderError(res, error, 'Error al realizar el deposito');
   } finally {
     await session.endSession();
   }
@@ -264,75 +330,47 @@ export const updateDeposit = async (req, res) => {
 
 // POST /api/v1/admin/deposits/:id/revert
 export const revertDeposit = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
     const adminId = getAuthUserId(req);
     if (!adminId) {
-      return res.status(401).json({
-        success: false,
-        message: 'No se pudo identificar al administrador desde el token',
-      });
+      throw crearErrorHttp(
+        401,
+        'No se pudo identificar al administrador desde el token'
+      );
     }
 
-    const deposit = await Deposit.findById(req.params.id).populate('cuenta');
-    if (!deposit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Deposito no encontrado',
-      });
-    }
+    session.startTransaction();
 
-    if (deposit.revertido) {
-      return res.status(400).json({
-        success: false,
-        message: 'Este deposito ya fue revertido',
-      });
-    }
-
-    if (new Date() > deposit.reversibleHasta) {
-      return res.status(400).json({
-        success: false,
-        message:
-          'El tiempo para revertir este deposito ha expirado (maximo 1 minuto)',
-      });
-    }
-
-    const account = deposit.cuenta;
-    const saldoAnterior = Number(account.saldo || 0);
-
-    if (saldoAnterior < deposit.montoActual) {
-      return res.status(400).json({
-        success: false,
-        message: 'Saldo insuficiente para revertir el deposito',
-      });
-    }
-
-    account.saldo = saldoAnterior - deposit.montoActual;
-    await account.save();
-
-    deposit.revertido = true;
-    await deposit.save();
-
-    await Transaction.create({
-      tipo: 'reversion',
-      monto: deposit.montoActual,
-      descripcion: `Reversion de deposito #${deposit._id}`,
-      cuentaOrigen: account._id,
-      cuentaDestino: null,
-      saldoAnteriorOrigen: saldoAnterior,
-      saldoPosteriorOrigen: account.saldo,
-      ejecutadaPor: adminId,
+    const { deposit, account } = await obtenerDepositoConCuenta({
+      depositId: req.params.id,
+      session,
     });
+
+    validarDepositoReversible(deposit);
+
+    const depositRevertido = await revertirDepositoConHistorial({
+      deposit,
+      account,
+      adminId,
+      session,
+    });
+
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
       message: 'Deposito revertido exitosamente',
-      data: deposit,
+      data: depositRevertido,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Error al revertir el deposito',
-      error: error.message,
-    });
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
+    return responderError(res, error, 'Error al revertir el deposito');
+  } finally {
+    await session.endSession();
   }
 };
