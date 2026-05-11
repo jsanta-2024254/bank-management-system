@@ -21,7 +21,8 @@ const getUserList = (response) => {
 }
 
 const getUserItem = (response) => {
-    return response?.data?.user || response?.data?.data || response?.data
+    const data = response?.data?.data || response?.data
+    return data?.user || data
 }
 
 const useUserStore = create((set) => ({
@@ -88,7 +89,7 @@ const useUserStore = create((set) => ({
 
             set((state) => ({
                 users: state.users.map((u) =>
-                    u.Id === id || u.id === id || u._id === id ? user : u
+                    u.Id === id || u.id === id || u._id === id ? (user || u) : u
                 ),
                 loading: false,
                 error: null,
