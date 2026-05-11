@@ -67,6 +67,26 @@ const obtenerDepositoConCuenta = async ({ depositId, session }) => {
   return { deposit, account };
 };
 
+const obtenerTransaccionDeDeposito = async ({ deposit, session }) => {
+  if (!deposit.transaccion) {
+    throw crearErrorHttp(
+      409,
+      'El deposito no tiene una transaccion asociada para actualizar el historial'
+    );
+  }
+
+  const transaction = await Transaction.findById(deposit.transaccion).session(session);
+
+  if (!transaction || transaction.tipo !== 'deposito') {
+    throw crearErrorHttp(
+      409,
+      'La transaccion asociada al deposito no existe o no es valida'
+    );
+  }
+
+  return transaction;
+};
+
 const validarDepositoReversible = (deposit) => {
   if (deposit.revertido) {
     throw crearErrorHttp(400, 'Este deposito ya fue revertido');
@@ -76,6 +96,19 @@ const validarDepositoReversible = (deposit) => {
     throw crearErrorHttp(
       400,
       'El tiempo para revertir este deposito ha expirado (maximo 1 minuto)'
+    );
+  }
+};
+
+const validarDepositoEditable = (deposit) => {
+  if (deposit.revertido) {
+    throw crearErrorHttp(400, 'No se puede modificar un deposito revertido');
+  }
+
+  if (new Date() > deposit.reversibleHasta) {
+    throw crearErrorHttp(
+      400,
+      'El tiempo para modificar este deposito ha expirado (maximo 1 minuto)'
     );
   }
 };
@@ -127,6 +160,35 @@ const crearDepositoConHistorial = async ({ account, montoNum, descripcion, admin
   };
 };
 
+const actualizarDepositoConHistorial = async ({ deposit, account, transaction, montoNum, session }) => {
+  const montoAnterior = Number(deposit.montoActual || 0);
+  const saldoActual = Number(account.saldo || 0);
+  const diferencia = montoNum - montoAnterior;
+  const saldoPosterior = saldoActual + diferencia;
+
+  if (saldoPosterior < 0) {
+    throw crearErrorHttp(400, 'El nuevo monto generaria saldo negativo en la cuenta');
+  }
+
+  account.saldo = saldoPosterior;
+  await account.save({ session });
+
+  deposit.montoActual = montoNum;
+  await deposit.save({ session });
+
+  const saldoBaseTransaccion = Number.isFinite(Number(transaction.saldoAnteriorDestino))
+    ? Number(transaction.saldoAnteriorDestino)
+    : saldoActual - montoAnterior;
+
+  transaction.monto = montoNum;
+  transaction.saldoAnteriorDestino = saldoBaseTransaccion;
+  transaction.saldoPosteriorDestino = saldoBaseTransaccion + montoNum;
+  transaction.descripcion = deposit.descripcion;
+  await transaction.save({ session });
+
+  return deposit;
+};
+
 const revertirDepositoConHistorial = async ({ deposit, account, adminId, session }) => {
   const saldoAnterior = Number(account.saldo || 0);
   const montoActual = Number(deposit.montoActual || 0);
@@ -162,13 +224,18 @@ const revertirDepositoConHistorial = async ({ deposit, account, adminId, session
 
 const responderError = (res, error, mensajeGenerico) => {
   const statusCode = error.statusCode || 500;
-
-  return res.status(statusCode).json({
+  const response = {
     success: false,
     message: statusCode === 500 ? mensajeGenerico : error.message,
-    ...(error.error ? { error: error.error } : {}),
-    ...(statusCode === 500 ? { error: error.message } : {}),
-  });
+  };
+
+  if (statusCode === 500) {
+    response.error = error.message;
+  } else if (error.error) {
+    response.error = error.error;
+  }
+
+  return res.status(statusCode).json(response);
 };
 
 // POST /api/v1/admin/deposits
@@ -262,69 +329,49 @@ export const getDeposits = async (req, res) => {
 
 // PUT /api/v1/admin/deposits/:id
 export const updateDeposit = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
     const { monto } = req.body;
-    const montoNum = Number(monto);
+    const montoNum = obtenerMontoNumerico(monto);
 
-    if (!Number.isFinite(montoNum) || montoNum < 0.01) {
-      return res.status(400).json({
-        success: false,
-        message: 'Monto inválido',
-        error: 'El monto debe ser numérico y mayor que 0',
-      });
-    }
+    session.startTransaction();
 
-    const deposit = await Deposit.findById(req.params.id).populate('cuenta');
-    if (!deposit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Deposito no encontrado',
-      });
-    }
+    const { deposit, account } = await obtenerDepositoConCuenta({
+      depositId: req.params.id,
+      session,
+    });
 
-    if (deposit.revertido) {
-      return res.status(400).json({
-        success: false,
-        message: 'No se puede modificar un deposito revertido',
-      });
-    }
+    validarDepositoEditable(deposit);
 
-    if (new Date() > deposit.reversibleHasta) {
-      return res.status(400).json({
-        success: false,
-        message:
-          'El tiempo para modificar este deposito ha expirado (maximo 1 minuto)',
-      });
-    }
+    const transaction = await obtenerTransaccionDeDeposito({
+      deposit,
+      session,
+    });
 
-    // Ajustar saldo: restar monto anterior y sumar monto nuevo
-    const diferencia = montoNum - deposit.montoActual;
-    const account = deposit.cuenta;
+    const depositoActualizado = await actualizarDepositoConHistorial({
+      deposit,
+      account,
+      transaction,
+      montoNum,
+      session,
+    });
 
-    if (Number(account.saldo) + diferencia < 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'El nuevo monto generaria saldo negativo en la cuenta',
-      });
-    }
-
-    account.saldo = Number(account.saldo) + diferencia;
-    await account.save();
-
-    deposit.montoActual = montoNum;
-    await deposit.save();
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
       message: 'Deposito actualizado exitosamente',
-      data: deposit,
+      data: depositoActualizado,
     });
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: 'Error al actualizar el deposito',
-      error: error.message,
-    });
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
+    return responderError(res, error, 'Error al actualizar el deposito');
+  } finally {
+    await session.endSession();
   }
 };
 
