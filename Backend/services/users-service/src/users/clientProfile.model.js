@@ -74,6 +74,16 @@ export const ClientProfile = sequelize.define(
     }
 );
 
+const referenciaUsuario = { name: 'UserId', field: 'user_id' };
+
 // Associations
-User.hasOne(ClientProfile, { foreignKey: 'user_id', as: 'ClientProfile' });
-ClientProfile.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
+User.hasOne(ClientProfile, {
+    foreignKey: referenciaUsuario,
+    sourceKey: 'Id',
+    as: 'ClientProfile',
+});
+ClientProfile.belongsTo(User, {
+    foreignKey: referenciaUsuario,
+    targetKey: 'Id',
+    as: 'User',
+});

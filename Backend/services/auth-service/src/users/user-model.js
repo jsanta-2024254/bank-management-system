@@ -266,19 +266,50 @@ export const UserTwoFactor = sequelize.define(
   }
 );
 
-// ── Relaciones existentes ──────────────────────────────────
-User.hasOne(UserProfile, { foreignKey: 'user_id', as: 'UserProfile' });
-UserProfile.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
+const referenciaUsuario = { name: 'UserId', field: 'user_id' };
 
-User.hasOne(UserEmail, { foreignKey: 'user_id', as: 'UserEmail' });
-UserEmail.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
+// ── Relaciones existentes ──────────────────────────────────
+User.hasOne(UserProfile, {
+  foreignKey: referenciaUsuario,
+  sourceKey: 'Id',
+  as: 'UserProfile',
+});
+UserProfile.belongsTo(User, {
+  foreignKey: referenciaUsuario,
+  targetKey: 'Id',
+  as: 'User',
+});
+
+User.hasOne(UserEmail, {
+  foreignKey: referenciaUsuario,
+  sourceKey: 'Id',
+  as: 'UserEmail',
+});
+UserEmail.belongsTo(User, {
+  foreignKey: referenciaUsuario,
+  targetKey: 'Id',
+  as: 'User',
+});
 
 User.hasOne(UserPasswordReset, {
-  foreignKey: 'user_id',
+  foreignKey: referenciaUsuario,
+  sourceKey: 'Id',
   as: 'UserPasswordReset',
 });
-UserPasswordReset.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
+UserPasswordReset.belongsTo(User, {
+  foreignKey: referenciaUsuario,
+  targetKey: 'Id',
+  as: 'User',
+});
 
 // ── NUEVO: Relación UserTwoFactor ──────────────────────────
-User.hasOne(UserTwoFactor, { foreignKey: 'user_id', as: 'UserTwoFactor' });
-UserTwoFactor.belongsTo(User, { foreignKey: 'user_id', as: 'User' });
+User.hasOne(UserTwoFactor, {
+  foreignKey: referenciaUsuario,
+  sourceKey: 'Id',
+  as: 'UserTwoFactor',
+});
+UserTwoFactor.belongsTo(User, {
+  foreignKey: referenciaUsuario,
+  targetKey: 'Id',
+  as: 'User',
+});
