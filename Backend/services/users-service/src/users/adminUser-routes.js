@@ -18,7 +18,11 @@ const createUserValidations = [
     body('celular').matches(/^\d{8}$/).withMessage('El celular debe tener exactamente 8 dígitos'),
     body('nombreTrabajo').notEmpty().withMessage('El nombre de trabajo es requerido'),
     body('ingresosMensuales').isFloat({ min: 100 }).withMessage('Los ingresos deben ser al menos Q100'),
-    body('tipoCuenta').optional().isIn(['monetaria', 'ahorro']).withMessage('Tipo de cuenta inválido')
+    body('tipoCuenta').optional().isIn(['monetaria', 'ahorro']).withMessage('Tipo de cuenta inválido'),
+    body('saldoInicial')
+        .optional()
+        .isFloat({ min: 0 })
+        .withMessage('El saldo inicial debe ser un número mayor o igual a 0'),
 ];
 
 const updateUserValidations = [
@@ -93,7 +97,12 @@ const updateUserValidations = [
  *               tipoCuenta:
  *                 type: string
  *                 enum: [monetaria, ahorro]
- *                 description: Tipo de cuenta a crear (opcional)
+ *                 description: Tipo de cuenta a crear. Si no se envía, se crea monetaria.
+ *               saldoInicial:
+ *                 type: number
+ *                 minimum: 0
+ *                 example: 250.00
+ *                 description: Saldo inicial de la cuenta creada por el administrador. Si no se envía, inicia en 0.
  *     responses:
  *       201:
  *         description: Cliente creado exitosamente
