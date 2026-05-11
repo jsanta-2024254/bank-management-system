@@ -9,9 +9,24 @@ import {
 } from 'lucide-react'
 import useTransactionStore from '../store/transactionStore'
 import useAccountStore from '../../accounts/store/accountStore'
+import useAuthStore from '../../auth/store/authStore'
 import TransactionForm from './TransactionForm'
 
+const getUserRole = (user) => {
+    return (
+        user?.role ||
+        user?.Role ||
+        user?.roles?.[0] ||
+        user?.Roles?.[0] ||
+        'USER_ROLE'
+    )
+}
+
 const TransactionList = () => {
+    const user = useAuthStore((state) => state.user)
+    const role = getUserRole(user)
+    const esCliente = role === 'USER_ROLE'
+
     const {
         transactions,
         loading,
@@ -79,7 +94,7 @@ const TransactionList = () => {
             animate={{ opacity: 1, y: 0 }}
             className="pb-10"
         >
-            {showForm && <TransactionForm onClose={handleCloseForm} />}
+            {showForm && esCliente && <TransactionForm onClose={handleCloseForm} />}
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                 <div>
@@ -89,13 +104,15 @@ const TransactionList = () => {
                     </p>
                 </div>
 
-                <button
-                    onClick={() => setShowForm(true)}
-                    className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-95"
-                >
-                    <ArrowLeftRight size={18} />
-                    Nueva Transferencia
-                </button>
+                {esCliente && (
+                    <button
+                        onClick={() => setShowForm(true)}
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-95"
+                    >
+                        <ArrowLeftRight size={18} />
+                        Nueva Transferencia
+                    </button>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
