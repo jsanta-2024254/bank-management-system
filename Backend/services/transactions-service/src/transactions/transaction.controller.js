@@ -172,7 +172,6 @@ export const getAccountHistory = async (req, res) => {
             });
         }
 
-        // El cliente solo puede ver su propia cuenta
         if (req.user.role === 'USER_ROLE' && account.usuario.toString() !== req.user.id) {
             return res.status(403).json({
                 success: false,
@@ -183,7 +182,10 @@ export const getAccountHistory = async (req, res) => {
         const filter = {
             $or: [{ cuentaOrigen: accountId }, { cuentaDestino: accountId }]
         };
-        if (tipo) filter.tipo = tipo;
+
+        if (tipo) {
+            filter.tipo = tipo;
+        }
 
         const transactions = await Transaction.find(filter)
             .populate('cuentaOrigen', 'numeroCuenta tipoCuenta')
@@ -218,8 +220,7 @@ export const getTransactionById = async (req, res) => {
     try {
         const transaction = await Transaction.findById(req.params.id)
             .populate('cuentaOrigen', 'numeroCuenta tipoCuenta usuario')
-            .populate('cuentaDestino', 'numeroCuenta tipoCuenta usuario')
-            .populate('ejecutadaPor', 'nombre username');
+            .populate('cuentaDestino', 'numeroCuenta tipoCuenta usuario');
 
         if (!transaction) {
             return res.status(404).json({
