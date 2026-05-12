@@ -1,6 +1,6 @@
 import api from './api'
 
-export const getAccounts = () => api.get('/accounts')
+export const getAccounts = () => api.get('/accounts/my-accounts')
 export const getMyAccounts = (userId) => api.get(`/accounts?userId=${userId}`)
 export const getAccountById = (id) => api.get(`/accounts/${id}/balance`)
 
