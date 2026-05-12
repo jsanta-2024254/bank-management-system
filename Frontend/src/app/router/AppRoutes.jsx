@@ -4,7 +4,7 @@ import AuthPage from '../../features/auth/pages/AuthPage'
 import DashboardPage from '../layouts/DashboardPage'
 import Dashboard from '../../features/dashboard/components/Dashboard'
 import UserList from '../../features/users/components/UserList'
-import AccountList from '../../features/accounts/components/AccountList'
+import AccountsPage from '../../features/accounts/pages/AccountsPage'
 import TransactionList from '../../features/transactions/components/TransactionList'
 import DepositList from '../../features/deposits/components/DepositList'
 import ProfilePage from '../../features/profile/pages/ProfilePage'
@@ -67,7 +67,7 @@ const AppRoutes = () => {
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="profile" element={<ProfilePage />} />
-                    <Route path="accounts" element={<AccountList />} />
+                    <Route path="accounts" element={<AccountsPage />} />
                     <Route path="transactions" element={<TransactionList />} />
 
                     <Route
