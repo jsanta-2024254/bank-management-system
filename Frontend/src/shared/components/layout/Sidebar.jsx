@@ -21,7 +21,7 @@ const navItems = [
     { label: 'Transacciones', path: '/transactions', icon: ArrowLeftRight, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
     { label: 'Favoritos', path: '/favorites', icon: Star, roles: ['USER_ROLE'] },
     { label: 'Depósitos', path: '/deposits', icon: TrendingUp, roles: ['ADMIN_ROLE'] },
-    { label: 'Productos', path: '/products', icon: Package, roles: ['ADMIN_ROLE'] },
+    { label: 'Productos', path: '/products', icon: Package, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
     { label: 'Usuarios', path: '/users', icon: Users, roles: ['ADMIN_ROLE'] },
     { label: 'Mi Perfil', path: '/profile', icon: User, roles: ['ADMIN_ROLE', 'USER_ROLE'] },
 ]
@@ -75,6 +75,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                         location.pathname === item.path ||
                         location.pathname.startsWith(`${item.path}/`)
 
+                    const displayLabel = item.path === '/products' && role !== 'ADMIN_ROLE' 
+                        ? 'Catálogo' 
+                        : item.label
+
                     return (
                         <NavLink
                             key={item.path}
@@ -90,7 +94,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                             }
                         >
                             <Icon size={18} />
-                            {item.label}
+                            {displayLabel}
                         </NavLink>
                     )
                 })}

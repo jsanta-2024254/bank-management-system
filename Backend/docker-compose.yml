@@ -2,13 +2,13 @@ name: bank-management-microservices
 
 x-common-env: &common-env
   NODE_ENV: ${NODE_ENV:-development}
-  DB_HOST: postgres_db
+  DB_HOST: bank_postgres
   DB_PORT: 5432
   DB_NAME: ${DB_NAME}
   DB_USERNAME: ${DB_USERNAME}
   DB_PASSWORD: ${DB_PASSWORD}
   DB_SQL_LOGGING: ${DB_SQL_LOGGING:-false}
-  MONGO_URI: mongodb://mongo_db:27017/${DB_NAME}?replicaSet=rs0
+  MONGO_URI: mongodb://bank_mongo:27017/${DB_NAME}?replicaSet=rs0
   JWT_SECRET: ${JWT_SECRET}
   JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
   JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}

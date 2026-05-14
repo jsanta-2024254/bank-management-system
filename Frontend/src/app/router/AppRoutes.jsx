@@ -3,12 +3,14 @@ import useAuthStore from '../../features/auth/store/authStore'
 import AuthPage from '../../features/auth/pages/AuthPage'
 import DashboardPage from '../layouts/DashboardPage'
 import Dashboard from '../../features/dashboard/components/Dashboard'
+import UserDashboard from '../../features/dashboard/components/UserDashboard'
 import UserList from '../../features/users/components/UserList'
 import AccountList from '../../features/accounts/components/AccountList'
 import TransactionList from '../../features/transactions/components/TransactionList'
 import DepositList from '../../features/deposits/components/DepositList'
 import ProfilePage from '../../features/profile/pages/ProfilePage'
 import ProductList from '../../features/products/components/ProductList'
+import ProductCatalogPage from '../../features/products/pages/ProductCatalogPage'
 import FavoriteList from '../../features/favorites/components/FavoriteList'
 
 
@@ -50,6 +52,26 @@ const ClientRoute = ({ children }) => {
     return children
 }
 
+const DashboardSelector = () => {
+    const { user } = useAuthStore()
+    const role = getUserRole(user)
+    return role === 'ADMIN_ROLE' ? <Dashboard /> : <UserDashboard />
+}
+
+const ProductSelector = () => {
+    const { user } = useAuthStore()
+    const role = getUserRole(user)
+    return role === 'ADMIN_ROLE' ? (
+        <AdminRoute>
+            <ProductList />
+        </AdminRoute>
+    ) : (
+        <ClientRoute>
+            <ProductCatalogPage />
+        </ClientRoute>
+    )
+}
+
 const AppRoutes = () => {
     return (
         <BrowserRouter>
@@ -65,7 +87,7 @@ const AppRoutes = () => {
                     }
                 >
                     <Route index element={<Navigate to="/dashboard" replace />} />
-                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="dashboard" element={<DashboardSelector />} />
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="accounts" element={<AccountList />} />
                     <Route path="transactions" element={<TransactionList />} />
@@ -88,14 +110,8 @@ const AppRoutes = () => {
                         }
                     />
 
-                    <Route
-                        path="products"
-                        element={
-                            <AdminRoute>
-                                <ProductList />
-                            </AdminRoute>
-                        }
-                    />
+                    <Route path="products" element={<ProductSelector />} />
+                    
                     <Route
                     path="favorites"
                     element={
