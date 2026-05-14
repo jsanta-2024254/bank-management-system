@@ -10,6 +10,7 @@ import TransactionList from '../../features/transactions/components/TransactionL
 import DepositList from '../../features/deposits/components/DepositList'
 import ProfilePage from '../../features/profile/pages/ProfilePage'
 import ProductList from '../../features/products/components/ProductList'
+import ProductCatalogPage from '../../features/products/pages/ProductCatalogPage'
 import FavoriteList from '../../features/favorites/components/FavoriteList'
 
 
@@ -57,6 +58,20 @@ const DashboardSelector = () => {
     return role === 'ADMIN_ROLE' ? <Dashboard /> : <UserDashboard />
 }
 
+const ProductSelector = () => {
+    const { user } = useAuthStore()
+    const role = getUserRole(user)
+    return role === 'ADMIN_ROLE' ? (
+        <AdminRoute>
+            <ProductList />
+        </AdminRoute>
+    ) : (
+        <ClientRoute>
+            <ProductCatalogPage />
+        </ClientRoute>
+    )
+}
+
 const AppRoutes = () => {
     return (
         <BrowserRouter>
@@ -95,14 +110,8 @@ const AppRoutes = () => {
                         }
                     />
 
-                    <Route
-                        path="products"
-                        element={
-                            <AdminRoute>
-                                <ProductList />
-                            </AdminRoute>
-                        }
-                    />
+                    <Route path="products" element={<ProductSelector />} />
+                    
                     <Route
                     path="favorites"
                     element={
