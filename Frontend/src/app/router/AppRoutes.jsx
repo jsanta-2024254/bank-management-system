@@ -3,6 +3,7 @@ import useAuthStore from '../../features/auth/store/authStore'
 import AuthPage from '../../features/auth/pages/AuthPage'
 import DashboardPage from '../layouts/DashboardPage'
 import Dashboard from '../../features/dashboard/components/Dashboard'
+import UserDashboard from '../../features/dashboard/components/UserDashboard'
 import UserList from '../../features/users/components/UserList'
 import AccountList from '../../features/accounts/components/AccountList'
 import TransactionList from '../../features/transactions/components/TransactionList'
@@ -50,6 +51,12 @@ const ClientRoute = ({ children }) => {
     return children
 }
 
+const DashboardSelector = () => {
+    const { user } = useAuthStore()
+    const role = getUserRole(user)
+    return role === 'ADMIN_ROLE' ? <Dashboard /> : <UserDashboard />
+}
+
 const AppRoutes = () => {
     return (
         <BrowserRouter>
@@ -65,7 +72,7 @@ const AppRoutes = () => {
                     }
                 >
                     <Route index element={<Navigate to="/dashboard" replace />} />
-                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="dashboard" element={<DashboardSelector />} />
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="accounts" element={<AccountList />} />
                     <Route path="transactions" element={<TransactionList />} />
