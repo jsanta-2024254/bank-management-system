@@ -6,13 +6,12 @@ import Dashboard from '../../features/dashboard/components/Dashboard'
 import UserDashboard from '../../features/dashboard/components/UserDashboard'
 import UserList from '../../features/users/components/UserList'
 import AccountList from '../../features/accounts/components/AccountList'
-import TransactionList from '../../features/transactions/components/TransactionList'
+import TransactionsPage from '../../features/transactions/pages/TransactionsPage'
 import DepositList from '../../features/deposits/components/DepositList'
 import ProfilePage from '../../features/profile/pages/ProfilePage'
 import ProductList from '../../features/products/components/ProductList'
 import ProductCatalogPage from '../../features/products/pages/ProductCatalogPage'
 import FavoriteList from '../../features/favorites/components/FavoriteList'
-
 
 const getUserRole = (user) => {
     return (
@@ -90,7 +89,7 @@ const AppRoutes = () => {
                     <Route path="dashboard" element={<DashboardSelector />} />
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="accounts" element={<AccountList />} />
-                    <Route path="transactions" element={<TransactionList />} />
+                    <Route path="transactions" element={<TransactionsPage />} />
 
                     <Route
                         path="users"
