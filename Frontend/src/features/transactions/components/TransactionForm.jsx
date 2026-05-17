@@ -1,15 +1,20 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { ArrowLeftRight, CreditCard, DollarSign, AlignLeft } from 'lucide-react'
+import { ArrowLeftRight, CreditCard, DollarSign, AlignLeft, Star } from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import useTransactionStore from '../store/transactionStore'
+import useFavoriteStore from '../../favorites/store/favoriteStore'
 
 const TransactionForm = ({ onClose }) => {
     const { createTransaction, loading } = useTransactionStore()
+    const { favorites, fetchFavorites } = useFavoriteStore()
 
     const {
         register,
         handleSubmit,
+        setValue,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm({
         defaultValues: {
@@ -17,20 +22,31 @@ const TransactionForm = ({ onClose }) => {
             tipoCuentaOrigen: 'monetaria',
             monto: 0,
             descripcion: '',
+            numeroCuentaDestino: '',
+            favoriteId: '',
         },
     })
+
+    useEffect(() => { fetchFavorites() }, [fetchFavorites])
+
+    const selectedFavoriteId = watch('favoriteId')
+
+    useEffect(() => {
+        if (!selectedFavoriteId) return
+        const fav = favorites.find((f) => (f._id || f.id) === selectedFavoriteId)
+        if (fav) {
+            setValue('numeroCuentaDestino', fav.numeroCuenta || fav.numeroCuentaDestino || '')
+            if (fav.tipoCuenta) setValue('tipoCuentaDestino', fav.tipoCuenta)
+        }
+    }, [selectedFavoriteId, favorites, setValue])
 
     const isLoading = loading || isSubmitting
 
     const onSubmit = async (data) => {
         const toastId = toast.loading('Procesando transferencia...')
-
         try {
-            await createTransaction({
-                ...data,
-                monto: parseFloat(data.monto),
-            })
-
+            const { favoriteId, ...payload } = data
+            await createTransaction({ ...payload, monto: parseFloat(data.monto) })
             toast.success('Transferencia realizada con éxito', { id: toastId })
             onClose()
         } catch (error) {
@@ -82,14 +98,38 @@ const TransactionForm = ({ onClose }) => {
                             />
                         </div>
                         {errors.monto && (
-                            <p className="text-red-400 text-[10px] mt-1 ml-1">
-                                {errors.monto.message}
-                            </p>
+                            <p className="text-red-400 text-[10px] mt-1 ml-1">{errors.monto.message}</p>
                         )}
                     </div>
                 </div>
 
-                <div className="bg-white/5 h-px w-full my-2" />
+                <div className="bg-white/5 h-px w-full" />
+
+                {/* Sección favoritos */}
+                {favorites.length > 0 && (
+                    <div>
+                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1">
+                            <Star size={10} className="text-yellow-400" />
+                            Enviar a favorito
+                        </label>
+                        <select
+                            {...register('favoriteId')}
+                            className={`${inputClass} appearance-none`}
+                            disabled={isLoading}
+                        >
+                            <option value="">— Seleccionar favorito —</option>
+                            {favorites.map((fav) => (
+                                <option key={fav._id || fav.id} value={fav._id || fav.id}>
+                                    {fav.alias || fav.nombre || fav.name || fav.numeroCuenta}
+                                    {fav.numeroCuenta ? ` · ${fav.numeroCuenta}` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-zinc-600 text-[10px] mt-1 ml-1">
+                            Al seleccionar un favorito se autocompleta la cuenta destino.
+                        </p>
+                    </div>
+                )}
 
                 <div>
                     <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
@@ -98,18 +138,14 @@ const TransactionForm = ({ onClose }) => {
                     <div className="relative">
                         <CreditCard size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
                         <input
-                            {...register('numeroCuentaDestino', {
-                                required: 'El número de cuenta es requerido',
-                            })}
+                            {...register('numeroCuentaDestino', { required: 'El número de cuenta es requerido' })}
                             placeholder="Ingrese el número de cuenta"
                             className={`${inputClass} pl-10 font-mono`}
                             disabled={isLoading}
                         />
                     </div>
                     {errors.numeroCuentaDestino && (
-                        <p className="text-red-400 text-[10px] mt-1 ml-1">
-                            {errors.numeroCuentaDestino.message}
-                        </p>
+                        <p className="text-red-400 text-[10px] mt-1 ml-1">{errors.numeroCuentaDestino.message}</p>
                     )}
                 </div>
 
@@ -152,7 +188,6 @@ const TransactionForm = ({ onClose }) => {
                     >
                         Cancelar
                     </button>
-
                     <button
                         type="submit"
                         disabled={isLoading}

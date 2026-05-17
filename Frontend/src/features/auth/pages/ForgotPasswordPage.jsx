@@ -1,8 +1,7 @@
-import { Link } from 'react-router-dom'
 import { Landmark } from 'lucide-react'
-import LoginForm from '../components/LoginForm'
+import ForgotPasswordForm from '../components/ForgotPasswordForm'
 
-const AuthPage = () => {
+const ForgotPasswordPage = () => {
     return (
         <div
             className="min-h-screen flex items-center justify-center bg-zinc-950 p-4"
@@ -42,33 +41,15 @@ const AuthPage = () => {
 
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-bold text-white mb-1">
-                        Bienvenido
+                        Recuperar contraseña
                     </h1>
 
                     <p className="text-zinc-500 text-sm">
-                        Ingresa tus credenciales para continuar
+                        Te enviaremos un enlace a tu correo
                     </p>
                 </div>
 
-                <LoginForm />
-
-                <div className="text-center mt-5">
-                    <Link
-                        to="/forgot-password"
-                        className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
-                    >
-                        ¿Olvidaste tu contraseña?
-                    </Link>
-                </div>
-
-                <div className="text-center mt-4">
-                    <Link
-                        to="/register"
-                        className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
-                    >
-                        ¿No tienes cuenta? Regístrate
-                    </Link>
-                </div>
+                <ForgotPasswordForm />
 
                 <p className="text-center text-zinc-600 text-xs mt-8">
                     © 2025 BankManager. Todos los derechos reservados.
@@ -78,4 +59,4 @@ const AuthPage = () => {
     )
 }
 
-export default AuthPage
+export default ForgotPasswordPage

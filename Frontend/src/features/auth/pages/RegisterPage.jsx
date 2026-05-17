@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Landmark } from 'lucide-react'
-import LoginForm from '../components/LoginForm'
+import RegisterForm from '../components/RegisterForm'
 
-const AuthPage = () => {
+const RegisterPage = () => {
     return (
         <div
             className="min-h-screen flex items-center justify-center bg-zinc-950 p-4"
@@ -27,14 +27,13 @@ const AuthPage = () => {
                 }}
             />
 
-            <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl p-10 relative overflow-hidden">
+            <div className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl p-10 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-700 via-blue-400 to-blue-700" />
 
                 <div className="flex items-center justify-center gap-3 mb-10">
                     <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
                         <Landmark className="text-white" size={24} />
                     </div>
-
                     <span className="text-white font-black text-2xl tracking-tighter">
                         BankManager
                     </span>
@@ -42,31 +41,21 @@ const AuthPage = () => {
 
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-bold text-white mb-1">
-                        Bienvenido
+                        Crear cuenta
                     </h1>
-
                     <p className="text-zinc-500 text-sm">
-                        Ingresa tus credenciales para continuar
+                        Completa tus datos para registrarte
                     </p>
                 </div>
 
-                <LoginForm />
+                <RegisterForm />
 
-                <div className="text-center mt-5">
+                <div className="text-center mt-8">
                     <Link
-                        to="/forgot-password"
+                        to="/login"
                         className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
                     >
-                        ¿Olvidaste tu contraseña?
-                    </Link>
-                </div>
-
-                <div className="text-center mt-4">
-                    <Link
-                        to="/register"
-                        className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
-                    >
-                        ¿No tienes cuenta? Regístrate
+                        ¿Ya tienes cuenta? Inicia sesión
                     </Link>
                 </div>
 
@@ -78,4 +67,4 @@ const AuthPage = () => {
     )
 }
 
-export default AuthPage
+export default RegisterPage

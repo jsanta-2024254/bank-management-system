@@ -1,16 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import useAuthStore from '../../features/auth/store/authStore'
 import AuthPage from '../../features/auth/pages/AuthPage'
+import RegisterPage from '../../features/auth/pages/RegisterPage'
+import ForgotPasswordPage from '../../features/auth/pages/ForgotPasswordPage'
+import ResetPasswordPage from '../../features/auth/pages/ResetPasswordPage'
 import DashboardPage from '../layouts/DashboardPage'
 import Dashboard from '../../features/dashboard/components/Dashboard'
+import UserDashboard from '../../features/dashboard/components/UserDashboard'
 import UserList from '../../features/users/components/UserList'
 import AccountList from '../../features/accounts/components/AccountList'
-import TransactionList from '../../features/transactions/components/TransactionList'
+import TransactionsPage from '../../features/transactions/pages/TransactionsPage'
 import DepositList from '../../features/deposits/components/DepositList'
 import ProfilePage from '../../features/profile/pages/ProfilePage'
 import ProductList from '../../features/products/components/ProductList'
+import ProductCatalogPage from '../../features/products/pages/ProductCatalogPage'
 import FavoriteList from '../../features/favorites/components/FavoriteList'
-
 
 const getUserRole = (user) => {
     return (
@@ -45,9 +49,40 @@ const AdminRoute = ({ children }) => {
 
 const ClientRoute = ({ children }) => {
     const { isAuthenticated, user } = useAuthStore()
-    if (!isAuthenticated) return <Navigate to="/login" />
-    if (user?.role !== 'USER_ROLE') return <Navigate to="/dashboard" />
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />
+    }
+
+    const role = getUserRole(user)
+
+    if (role !== 'USER_ROLE') {
+        return <Navigate to="/dashboard" replace />
+    }
+
     return children
+}
+
+const DashboardSelector = () => {
+    const { user } = useAuthStore()
+    const role = getUserRole(user)
+
+    return role === 'ADMIN_ROLE' ? <Dashboard /> : <UserDashboard />
+}
+
+const ProductSelector = () => {
+    const { user } = useAuthStore()
+    const role = getUserRole(user)
+
+    return role === 'ADMIN_ROLE' ? (
+        <AdminRoute>
+            <ProductList />
+        </AdminRoute>
+    ) : (
+        <ClientRoute>
+            <ProductCatalogPage />
+        </ClientRoute>
+    )
 }
 
 const AppRoutes = () => {
@@ -55,6 +90,12 @@ const AppRoutes = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<AuthPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                 <Route
                     path="/"
@@ -64,11 +105,18 @@ const AppRoutes = () => {
                         </ProtectedRoute>
                     }
                 >
-                    <Route index element={<Navigate to="/dashboard" replace />} />
-                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route
+                        index
+                        element={<Navigate to="/dashboard" replace />}
+                    />
+
+                    <Route path="dashboard" element={<DashboardSelector />} />
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="accounts" element={<AccountList />} />
-                    <Route path="transactions" element={<TransactionList />} />
+                    <Route
+                        path="transactions"
+                        element={<TransactionsPage />}
+                    />
 
                     <Route
                         path="users"
@@ -88,22 +136,16 @@ const AppRoutes = () => {
                         }
                     />
 
+                    <Route path="products" element={<ProductSelector />} />
+
                     <Route
-                        path="products"
+                        path="favorites"
                         element={
-                            <AdminRoute>
-                                <ProductList />
-                            </AdminRoute>
+                            <ClientRoute>
+                                <FavoriteList />
+                            </ClientRoute>
                         }
                     />
-                    <Route
-                    path="favorites"
-                    element={
-                        <ClientRoute>
-                            <FavoriteList />
-                        </ClientRoute>
-                    }
-                />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/login" replace />} />
