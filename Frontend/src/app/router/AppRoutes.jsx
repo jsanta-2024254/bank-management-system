@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import useAuthStore from '../../features/auth/store/authStore'
 import AuthPage from '../../features/auth/pages/AuthPage'
+import RegisterPage from '../../features/auth/pages/RegisterPage'
 import DashboardPage from '../layouts/DashboardPage'
 import Dashboard from '../../features/dashboard/components/Dashboard'
 import UserDashboard from '../../features/dashboard/components/UserDashboard'
@@ -76,6 +77,7 @@ const AppRoutes = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<AuthPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
                 <Route
                     path="/"
@@ -110,15 +112,15 @@ const AppRoutes = () => {
                     />
 
                     <Route path="products" element={<ProductSelector />} />
-                    
+
                     <Route
-                    path="favorites"
-                    element={
-                        <ClientRoute>
-                            <FavoriteList />
-                        </ClientRoute>
-                    }
-                />
+                        path="favorites"
+                        element={
+                            <ClientRoute>
+                                <FavoriteList />
+                            </ClientRoute>
+                        }
+                    />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/login" replace />} />
