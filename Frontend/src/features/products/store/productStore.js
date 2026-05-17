@@ -4,6 +4,10 @@ import {
     getProducts,
     createProduct as createProductRequest,
     updateProduct as updateProductRequest,
+    quoteProduct as quoteProductRequest,
+    acquireProduct as acquireProductRequest,
+    getMyProductAcquisitions as getMyProductAcquisitionsRequest,
+    payCreditInstallment as payCreditInstallmentRequest,
     deleteProduct as deleteProductRequest,
 } from '../../../shared/api/products'
 
@@ -28,6 +32,8 @@ const useProductStore = create((set) => ({
     products: [],
     loading: false,
     error: null,
+    acquisitions: [],
+    lastQuote: null,
 
     fetchProducts: async () => {
         set({ loading: true, error: null })
@@ -106,6 +112,103 @@ const useProductStore = create((set) => ({
             throw error
         }
     },
+    
+    quoteProduct: async (id, data) => {
+    set({ loading: true, error: null })
+
+    try {
+        const response = await quoteProductRequest(id, data)
+
+        set({
+            lastQuote: response.data?.data || null,
+            loading: false,
+            error: null,
+        })
+
+        return response.data?.data
+    } catch (error) {
+        const message = getErrorMessage(error, 'Error al cotizar el producto')
+
+        set({
+            error: message,
+            loading: false,
+        })
+
+        throw error
+    }
+},
+
+acquireProduct: async (id, data) => {
+    set({ loading: true, error: null })
+
+    try {
+        const response = await acquireProductRequest(id, data)
+
+        set({
+            loading: false,
+            error: null,
+        })
+
+        return response.data
+    } catch (error) {
+        const message = getErrorMessage(error, 'Error al adquirir el producto')
+
+        set({
+            error: message,
+            loading: false,
+        })
+
+        throw error
+    }
+},
+
+fetchMyProductAcquisitions: async () => {
+    set({ loading: true, error: null })
+
+    try {
+        const response = await getMyProductAcquisitionsRequest()
+
+        set({
+            acquisitions: response.data?.data || [],
+            loading: false,
+            error: null,
+        })
+    } catch (error) {
+        const message = getErrorMessage(error, 'Error al cargar tus productos adquiridos')
+
+        set({
+            error: message,
+            loading: false,
+            acquisitions: [],
+        })
+
+        toast.error(message)
+    }
+},
+
+payCreditInstallment: async (acquisitionId, paymentId, data) => {
+    set({ loading: true, error: null })
+
+    try {
+        const response = await payCreditInstallmentRequest(acquisitionId, paymentId, data)
+
+        set({
+            loading: false,
+            error: null,
+        })
+
+        return response.data
+    } catch (error) {
+        const message = getErrorMessage(error, 'Error al pagar la cuota')
+
+        set({
+            error: message,
+            loading: false,
+        })
+
+        throw error
+    }
+},
 
     deleteProduct: async (id) => {
         set({ loading: true, error: null })

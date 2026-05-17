@@ -9,6 +9,9 @@ import { corsOptions } from './configs/cors-configuration.js';
 import { helmetConfiguration } from './configs/helmet-configuration.js';
 
 import './src/products/product.model.js';
+import './src/products/productAcquisition.model.js';
+import './src/accounts/account.model.js';
+import './src/transactions/transaction.model.js';
 
 import productRoutes from './src/products/product.routes.js';
 
