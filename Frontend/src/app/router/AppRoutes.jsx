@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import useAuthStore from '../../features/auth/store/authStore'
 import AuthPage from '../../features/auth/pages/AuthPage'
 import RegisterPage from '../../features/auth/pages/RegisterPage'
+import ForgotPasswordPage from '../../features/auth/pages/ForgotPasswordPage'
+import ResetPasswordPage from '../../features/auth/pages/ResetPasswordPage'
 import DashboardPage from '../layouts/DashboardPage'
 import Dashboard from '../../features/dashboard/components/Dashboard'
 import UserDashboard from '../../features/dashboard/components/UserDashboard'
@@ -47,20 +49,31 @@ const AdminRoute = ({ children }) => {
 
 const ClientRoute = ({ children }) => {
     const { isAuthenticated, user } = useAuthStore()
-    if (!isAuthenticated) return <Navigate to="/login" />
-    if (user?.role !== 'USER_ROLE') return <Navigate to="/dashboard" />
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />
+    }
+
+    const role = getUserRole(user)
+
+    if (role !== 'USER_ROLE') {
+        return <Navigate to="/dashboard" replace />
+    }
+
     return children
 }
 
 const DashboardSelector = () => {
     const { user } = useAuthStore()
     const role = getUserRole(user)
+
     return role === 'ADMIN_ROLE' ? <Dashboard /> : <UserDashboard />
 }
 
 const ProductSelector = () => {
     const { user } = useAuthStore()
     const role = getUserRole(user)
+
     return role === 'ADMIN_ROLE' ? (
         <AdminRoute>
             <ProductList />
@@ -78,6 +91,11 @@ const AppRoutes = () => {
             <Routes>
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                 <Route
                     path="/"
@@ -87,11 +105,18 @@ const AppRoutes = () => {
                         </ProtectedRoute>
                     }
                 >
-                    <Route index element={<Navigate to="/dashboard" replace />} />
+                    <Route
+                        index
+                        element={<Navigate to="/dashboard" replace />}
+                    />
+
                     <Route path="dashboard" element={<DashboardSelector />} />
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="accounts" element={<AccountList />} />
-                    <Route path="transactions" element={<TransactionsPage />} />
+                    <Route
+                        path="transactions"
+                        element={<TransactionsPage />}
+                    />
 
                     <Route
                         path="users"
