@@ -2,15 +2,29 @@
 import { Router } from 'express';
 import {
     createDeposit,
+    createOwnDeposit,
     getDeposits,
     updateDeposit,
     revertDeposit
 } from './deposit.controller.js';
-import { verifyToken, isAdmin } from '../../middlewares/auth.middleware.js';
+import { verifyToken, isAdmin, isCliente } from '../../middlewares/auth.middleware.js';
 import { body, param, query } from 'express-validator';
 import { handleValidationErrors } from '../../middlewares/validators.middleware.js';
 
 const router = Router();
+
+router.post(
+    '/self',
+    verifyToken,
+    isCliente,
+    [
+        body('cuentaId').isMongoId().withMessage('La cuenta es requerida'),
+        body('monto').isFloat({ min: 0.01 }).withMessage('El monto debe ser mayor que 0'),
+        body('descripcion').optional().trim()
+    ],
+    handleValidationErrors,
+    createOwnDeposit
+);
 
 /**
  * @swagger

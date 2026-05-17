@@ -50,6 +50,7 @@ app.get(`${BASE_PATH}/health`, (req, res) => {
   });
 });
 
+app.use(`${BASE_PATH}/deposits`, depositRoutes);
 app.use(`${BASE_PATH}/admin/deposits`, depositRoutes);
 app.use(`${BASE_PATH}/favorites`, favoriteRoutes);
 app.use(`${BASE_PATH}/currency`, currencyRoutes);
