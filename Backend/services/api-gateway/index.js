@@ -142,10 +142,10 @@ app.use(
 );
 
 app.use(
-  `${BASE_PATH}/deposits/self`,
+  `${BASE_PATH}/deposit-requests`,
   crearProxy({
     nombreServicio: 'finance-service',
-    target: `${servicios.finance}${BASE_PATH}/deposits/self`,
+    target: `${servicios.finance}${BASE_PATH}/deposit-requests`,
   })
 );
 

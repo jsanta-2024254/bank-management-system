@@ -49,7 +49,7 @@ const Navbar = ({ onMenuClick }) => {
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         className="flex items-center gap-4 group cursor-pointer"
                     >
-                        <div className="flex flex-col items-end hidden md:flex">
+                        <div className="flex flex-col items-end md:flex">
                             <span className="text-white text-sm font-bold group-hover:text-blue-400 transition-colors">
                                 {user?.username || 'Admin'}
                             </span>
@@ -58,7 +58,7 @@ const Navbar = ({ onMenuClick }) => {
                                 <ChevronDown size={10} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                             </span>                        </div>
 
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 p-0.5 shadow-lg shadow-blue-500/10 group-hover:shadow-blue-500/20 transition-all group-hover:scale-105">
+                        <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-blue-500 to-blue-700 p-0.5 shadow-lg shadow-blue-500/10 group-hover:shadow-blue-500/20 transition-all group-hover:scale-105">
                             <div className="w-full h-full rounded-[14px] bg-zinc-900 flex items-center justify-center">
                                 <UserIcon size={20} className="text-blue-400" />
                             </div>

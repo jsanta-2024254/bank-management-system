@@ -51,19 +51,6 @@ const obtenerCuentaActiva = async ({ numeroCuenta, tipoCuenta, session }) => {
   return account;
 };
 
-const obtenerCuentaPropiaActiva = async ({ cuentaId, usuario, session }) => {
-  const account = await Account.findOne({
-    _id: cuentaId,
-    usuario,
-    estado: true,
-  }).session(session);
-
-  if (!account) {
-    throw crearErrorHttp(404, 'Cuenta no encontrada o no pertenece al usuario autenticado');
-  }
-
-  return account;
-};
 
 const obtenerDepositoConCuenta = async ({ depositId, session }) => {
   const deposit = await Deposit.findById(depositId).session(session);
@@ -304,56 +291,6 @@ export const createDeposit = async (req, res) => {
   }
 };
 
-
-// POST /api/v1/deposits/self
-export const createOwnDeposit = async (req, res) => {
-  const session = await mongoose.startSession();
-
-  try {
-    const usuarioId = getAuthUserId(req);
-
-    if (!usuarioId) {
-      throw crearErrorHttp(401, 'No se pudo identificar al usuario desde el token');
-    }
-
-    const { cuentaId, monto, descripcion } = req.body;
-    const montoNum = obtenerMontoNumerico(monto);
-
-    session.startTransaction();
-
-    const account = await obtenerCuentaPropiaActiva({
-      cuentaId,
-      usuario: usuarioId,
-      session,
-    });
-
-    const { deposit, reversibleHasta } = await crearDepositoConHistorial({
-      account,
-      montoNum,
-      descripcion: descripcion || 'Depósito realizado por el usuario',
-      adminId: usuarioId,
-      session,
-    });
-
-    await session.commitTransaction();
-
-    return res.status(201).json({
-      success: true,
-      message: 'Depósito realizado exitosamente',
-      data: deposit,
-      reversibleHasta,
-      nuevoSaldo: account.saldo,
-    });
-  } catch (error) {
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-
-    return responderError(res, error, 'Error al realizar el depósito');
-  } finally {
-    await session.endSession();
-  }
-};
 
 // GET /api/v1/admin/deposits
 export const getDeposits = async (req, res) => {

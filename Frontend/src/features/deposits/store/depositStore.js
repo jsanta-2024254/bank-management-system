@@ -4,6 +4,11 @@ import {
     getDeposits,
     createDeposit as createDepositRequest,
     revertDeposit as revertDepositRequest,
+    createDepositRequest as createDepositRequestApi,
+    getMyDepositRequests,
+    getDepositRequests as getDepositRequestsApi,
+    approveDepositRequest as approveDepositRequestApi,
+    rejectDepositRequest as rejectDepositRequestApi,
 } from '../../../shared/api/deposits'
 
 const getErrorMessage = (error, fallback) => {
@@ -15,12 +20,12 @@ const getErrorMessage = (error, fallback) => {
     )
 }
 
-const getDepositList = (response) => {
-    const deposits = response?.data?.data || response?.data?.deposits || response?.data || []
-    return Array.isArray(deposits) ? deposits : []
+const getList = (response) => {
+    const data = response?.data?.data || response?.data?.deposits || response?.data || []
+    return Array.isArray(data) ? data : []
 }
 
-const getDepositPagination = (response, page, limit) => {
+const getPagination = (response, page, limit) => {
     const pagination = response?.data?.pagination || {}
 
     return {
@@ -33,6 +38,8 @@ const getDepositPagination = (response, page, limit) => {
 
 const useDepositStore = create((set, get) => ({
     deposits: [],
+    depositRequests: [],
+    myDepositRequests: [],
     loading: false,
     error: null,
     pagination: {
@@ -49,8 +56,8 @@ const useDepositStore = create((set, get) => ({
             const response = await getDeposits({ page, limit })
 
             set({
-                deposits: getDepositList(response),
-                pagination: getDepositPagination(response, page, limit),
+                deposits: getList(response),
+                pagination: getPagination(response, page, limit),
                 loading: false,
                 error: null,
             })
@@ -107,6 +114,144 @@ const useDepositStore = create((set, get) => ({
             return response.data
         } catch (error) {
             const message = getErrorMessage(error, 'Error al revertir el depósito')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
+            throw error
+        }
+    },
+
+    fetchMyDepositRequests: async () => {
+        set({ loading: true, error: null })
+
+        try {
+            const response = await getMyDepositRequests()
+
+            set({
+                myDepositRequests: getList(response),
+                loading: false,
+                error: null,
+            })
+        } catch (error) {
+            const message = getErrorMessage(
+                error,
+                'Error al cargar tus solicitudes de depósito'
+            )
+
+            set({
+                error: message,
+                loading: false,
+                myDepositRequests: [],
+            })
+
+            toast.error(message)
+        }
+    },
+
+    fetchDepositRequests: async (params = {}) => {
+        set({ loading: true, error: null })
+
+        try {
+            const response = await getDepositRequestsApi(params)
+
+            set({
+                depositRequests: getList(response),
+                loading: false,
+                error: null,
+            })
+        } catch (error) {
+            const message = getErrorMessage(
+                error,
+                'Error al cargar las solicitudes de depósito'
+            )
+
+            set({
+                error: message,
+                loading: false,
+                depositRequests: [],
+            })
+
+            toast.error(message)
+        }
+    },
+
+    createDepositRequest: async (data) => {
+        set({ loading: true, error: null })
+
+        try {
+            const response = await createDepositRequestApi(data)
+            await get().fetchMyDepositRequests()
+
+            set({
+                loading: false,
+                error: null,
+            })
+
+            return response.data
+        } catch (error) {
+            const message = getErrorMessage(
+                error,
+                'Error al enviar la solicitud de depósito'
+            )
+
+            set({
+                error: message,
+                loading: false,
+            })
+
+            throw error
+        }
+    },
+
+    approveDepositRequest: async (id) => {
+        set({ loading: true, error: null })
+
+        try {
+            const response = await approveDepositRequestApi(id)
+            await get().fetchDepositRequests({ estado: 'pendiente' })
+
+            set({
+                loading: false,
+                error: null,
+            })
+
+            return response.data
+        } catch (error) {
+            const message = getErrorMessage(
+                error,
+                'Error al aprobar la solicitud'
+            )
+
+            set({
+                error: message,
+                loading: false,
+            })
+
+            throw error
+        }
+    },
+
+    rejectDepositRequest: async (id, data) => {
+        set({ loading: true, error: null })
+
+        try {
+            const response = await rejectDepositRequestApi(id, data)
+            await get().fetchDepositRequests({ estado: 'pendiente' })
+
+            set({
+                loading: false,
+                error: null,
+            })
+
+            return response.data
+        } catch (error) {
+            const message = getErrorMessage(
+                error,
+                'Error al rechazar la solicitud'
+            )
 
             set({
                 error: message,
