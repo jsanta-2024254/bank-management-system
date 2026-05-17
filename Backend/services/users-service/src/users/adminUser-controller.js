@@ -71,15 +71,32 @@ const obtenerUltimosMovimientosPorCuentas = async (accounts, limit = 5) => {
 };
 
 const getAccountsWithTransactions = async (userId) => {
-  const accounts = await getAccountsByUser(userId, { estado: true });
-  const cuentas = accounts.map(formatearCuenta);
-  const lastTransactions = await obtenerUltimosMovimientosPorCuentas(accounts, 5);
+  try {
+    const accounts = await getAccountsByUser(userId, { estado: true });
+    const cuentas = accounts.map(formatearCuenta);
+    const lastTransactions = await obtenerUltimosMovimientosPorCuentas(
+      accounts,
+      5
+    );
 
-  return {
-    cuenta: cuentas[0] || null,
-    cuentas,
-    ultimosMovimientos: lastTransactions,
-  };
+    return {
+      cuenta: cuentas[0] || null,
+      cuentas,
+      ultimosMovimientos: lastTransactions,
+    };
+  } catch (error) {
+    console.warn(
+      `UsersService | No se pudo obtener informacion financiera del usuario ${userId}: ${error.message}`
+    );
+
+    return {
+      cuenta: null,
+      cuentas: [],
+      ultimosMovimientos: [],
+      advertenciaFinanciera:
+        'No se pudo consultar la información financiera del usuario',
+    };
+  }
 };
 
 const obtenerMontoInicial = (saldoInicial) => {
