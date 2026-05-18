@@ -25,61 +25,200 @@ const Navbar = ({ onMenuClick }) => {
         navigate('/login')
     }
 
+    const iniciales = (user?.username || user?.email || 'U')
+        .slice(0, 2)
+        .toUpperCase()
+
     return (
-        <header className="bg-zinc-950/50 backdrop-blur-md border-b border-zinc-800 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-40">
+        <header
+            className="px-4 lg:px-8 py-3 flex items-center justify-between sticky top-0 z-40"
+            style={{
+                backgroundColor: 'rgba(14, 10, 5, 0.85)',
+                backdropFilter: 'blur(12px)',
+                borderBottom: '1px solid rgba(184, 137, 42, 0.15)',
+            }}
+        >
+            {/* ── Izquierda: botón menú + título ── */}
             <div className="flex items-center gap-4">
-                <button onClick={onMenuClick} className="p-2 text-zinc-400 hover:text-white lg:hidden transition-colors">
-                    <Menu size={24} />
+                <button
+                    onClick={onMenuClick}
+                    className="p-2 rounded-lg lg:hidden transition-colors"
+                    style={{ color: 'var(--texto-tenue)' }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
+                >
+                    <Menu size={22} />
                 </button>
-                <div className="hidden sm:block">
-                    <p className="text-white font-bold">Panel de Control</p>
+
+                <div className="hidden sm:flex flex-col">
+                    <span
+                        className="text-sm font-bold tracking-widest uppercase"
+                        style={{
+                            color: 'var(--texto-tenue)',
+                            fontFamily: 'var(--font-body)',
+                            letterSpacing: '0.15em',
+                        }}
+                    >
+                        Panel de Control
+                    </span>
+                    <div
+                        className="h-px w-full mt-0.5"
+                        style={{
+                            background: 'linear-gradient(90deg, var(--oro-oscuro), transparent)',
+                        }}
+                    />
                 </div>
             </div>
 
-            <div className="flex items-center gap-3 lg:gap-6">
-                <button className="p-2 text-zinc-500 hover:text-blue-400 transition-colors relative">
-                    <Bell size={20} />
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-zinc-950" />
+            {/* ── Derecha: campana + perfil ── */}
+            <div className="flex items-center gap-4">
+
+                {/* Campana */}
+                <button
+                    className="relative p-2 rounded-lg transition-colors"
+                    style={{ color: 'var(--texto-tenue)' }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
+                >
+                    <Bell size={18} />
+                    <span
+                        className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: 'var(--oro-medio)' }}
+                    />
                 </button>
 
-                <div className="h-8 w-px bg-zinc-800 hidden xs:block" />
+                {/* Separador */}
+                <div
+                    className="hidden sm:block h-6 w-px"
+                    style={{ backgroundColor: 'rgba(184,137,42,0.15)' }}
+                />
 
+                {/* Avatar + dropdown */}
                 <div className="relative" ref={dropdownRef}>
-                    <div
+                    <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center gap-4 group cursor-pointer"
+                        className="flex items-center gap-3 group"
                     >
-                        <div className="flex flex-col items-end md:flex">
-                            <span className="text-white text-sm font-bold group-hover:text-blue-400 transition-colors">
-                                {user?.username || 'Admin'}
-                            </span>
-                            <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-tighter flex items-center gap-1">
-                                {user?.role || 'Usuario'}
-                                <ChevronDown size={10} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                            </span>                        </div>
-
-                        <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-blue-500 to-blue-700 p-0.5 shadow-lg shadow-blue-500/10 group-hover:shadow-blue-500/20 transition-all group-hover:scale-105">
-                            <div className="w-full h-full rounded-[14px] bg-zinc-900 flex items-center justify-center">
-                                <UserIcon size={20} className="text-blue-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {isDropdownOpen && (
-                        <div className="absolute right-0 mt-3 w-56 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                            <div className="px-4 py-3 border-b border-zinc-800 mb-2">
-                                <p className="text-white text-sm font-bold truncate">{user?.email || user?.username}</p>
-                                <p className="text-zinc-500 text-[10px] uppercase tracking-widest mt-0.5">Sesión activa</p>
-                            </div>
-                            <button
-                                onClick={handleLogout}
-                                className="w-[calc(100%-1rem)] flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors mx-2 rounded-2xl group"
+                        {/* Texto usuario */}
+                        <div className="hidden md:flex flex-col items-end">
+                            <span
+                                className="text-sm font-semibold transition-colors"
+                                style={{
+                                    color: 'var(--texto-blanco)',
+                                    fontFamily: 'var(--font-body)',
+                                }}
                             >
-                                <div className="p-2 bg-red-500/10 rounded-xl group-hover:bg-red-500 group-hover:text-white transition-colors">
-                                    <LogOut size={16} />
+                                {user?.username || 'Usuario'}
+                            </span>
+                            <span
+                                className="text-[10px] uppercase tracking-widest flex items-center gap-1"
+                                style={{ color: 'var(--texto-tenue)' }}
+                            >
+                                {user?.roles?.[0] === 'ADMIN_ROLE' ? 'Admin' : 'Cliente'}
+                                <ChevronDown
+                                    size={9}
+                                    style={{
+                                        transition: 'transform 0.2s',
+                                        transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                    }}
+                                />
+                            </span>
+                        </div>
+
+                        {/* Avatar con iniciales */}
+                        <div
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all"
+                            style={{
+                                background: 'linear-gradient(135deg, #b8892a 0%, #8a6318 100%)',
+                                color: '#0e0a05',
+                                boxShadow: isDropdownOpen
+                                    ? '0 0 0 2px var(--oro-claro), 0 4px 16px rgba(184,137,42,0.30)'
+                                    : '0 2px 8px rgba(184,137,42,0.20)',
+                                fontFamily: 'var(--font-display)',
+                                fontSize: '11px',
+                                letterSpacing: '0.05em',
+                            }}
+                        >
+                            {iniciales}
+                        </div>
+                    </button>
+
+                    {/* Dropdown */}
+                    {isDropdownOpen && (
+                        <div
+                            className="absolute right-0 mt-3 w-60 py-2 rounded-2xl shadow-2xl"
+                            style={{
+                                backgroundColor: '#160f06',
+                                border: '1px solid rgba(184,137,42,0.22)',
+                                boxShadow: '0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(184,137,42,0.10)',
+                                animation: 'fadeSlideUp 0.15s ease forwards',
+                            }}
+                        >
+                            {/* Info usuario */}
+                            <div
+                                className="px-4 py-3 mb-1"
+                                style={{ borderBottom: '1px solid rgba(184,137,42,0.12)' }}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                        style={{
+                                            background: 'linear-gradient(135deg, #b8892a 0%, #8a6318 100%)',
+                                            color: '#0e0a05',
+                                            fontFamily: 'var(--font-display)',
+                                        }}
+                                    >
+                                        {iniciales}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p
+                                            className="text-sm font-semibold truncate"
+                                            style={{ color: 'var(--texto-blanco)' }}
+                                        >
+                                            {user?.username || 'Usuario'}
+                                        </p>
+                                        <p
+                                            className="text-[10px] truncate"
+                                            style={{ color: 'var(--texto-tenue)' }}
+                                        >
+                                            {user?.email || ''}
+                                        </p>
+                                    </div>
                                 </div>
-                                <span className="text-sm font-bold">Cerrar sesión</span>
-                            </button>
+
+                                <div
+                                    className="mt-2 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest"
+                                    style={{
+                                        backgroundColor: 'rgba(184,137,42,0.12)',
+                                        color: 'var(--oro-medio)',
+                                        border: '1px solid rgba(184,137,42,0.20)',
+                                    }}
+                                >
+                                    Sesión activa
+                                </div>
+                            </div>
+
+                            {/* Botón cerrar sesión */}
+                            <div className="px-2">
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all"
+                                    style={{ color: 'var(--texto-tenue)' }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.backgroundColor = 'rgba(200,60,60,0.08)'
+                                        e.currentTarget.style.color = '#c87a7a'
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.backgroundColor = ''
+                                        e.currentTarget.style.color = 'var(--texto-tenue)'
+                                    }}
+                                >
+                                    <LogOut size={15} style={{ flexShrink: 0 }} />
+                                    <span style={{ fontFamily: 'var(--font-body)', fontWeight: 600 }}>
+                                        Cerrar sesión
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
