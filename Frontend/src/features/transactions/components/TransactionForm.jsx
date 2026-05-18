@@ -58,16 +58,43 @@ const TransactionForm = ({ onClose }) => {
     }
 
     const inputClass =
-        'w-full bg-zinc-900 border border-zinc-800 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all placeholder:text-zinc-600 text-sm'
+        'w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18 disabled:cursor-not-allowed disabled:opacity-60'
+
+    const labelClass =
+        'mb-3 ml-1 block text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75'
+
+    const errorClass = 'mt-2 ml-1 text-xs font-semibold text-red-700'
+
+    const iconClass =
+        'absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70'
 
     return (
         <Modal title="Nueva Transferencia" onClose={onClose}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-5">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b] shadow-[0_12px_24px_rgba(154,107,22,0.12)]">
+                            <ArrowLeftRight size={20} />
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-black text-[#3f2c12]">
+                                Transferencia bancaria segura
+                            </p>
+
+                            <p className="mt-1 text-sm leading-6 text-[#7a6849]">
+                                Complete los datos de origen, destino y monto. El límite máximo por transferencia es de Q2,000.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                        <label className={labelClass}>
                             Mi Cuenta Origen
                         </label>
+
                         <select
                             {...register('tipoCuentaOrigen', { required: 'Requerido' })}
                             className={`${inputClass} appearance-none`}
@@ -79,11 +106,13 @@ const TransactionForm = ({ onClose }) => {
                     </div>
 
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                        <label className={labelClass}>
                             Monto GTQ
                         </label>
+
                         <div className="relative">
-                            <DollarSign size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                            <DollarSign size={15} className={iconClass} />
+
                             <input
                                 {...register('monto', {
                                     required: 'El monto es requerido',
@@ -97,21 +126,22 @@ const TransactionForm = ({ onClose }) => {
                                 disabled={isLoading}
                             />
                         </div>
+
                         {errors.monto && (
-                            <p className="text-red-400 text-[10px] mt-1 ml-1">{errors.monto.message}</p>
+                            <p className={errorClass}>{errors.monto.message}</p>
                         )}
                     </div>
                 </div>
 
-                <div className="bg-white/5 h-px w-full" />
+                <div className="premium-gold-line h-px w-full" />
 
-                {/* Sección favoritos */}
                 {favorites.length > 0 && (
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1 flex items-center gap-1">
-                            <Star size={10} className="text-yellow-400" />
+                        <label className={`${labelClass} flex items-center gap-1`}>
+                            <Star size={11} className="text-[#b98219]" />
                             Enviar a favorito
                         </label>
+
                         <select
                             {...register('favoriteId')}
                             className={`${inputClass} appearance-none`}
@@ -125,18 +155,21 @@ const TransactionForm = ({ onClose }) => {
                                 </option>
                             ))}
                         </select>
-                        <p className="text-zinc-600 text-[10px] mt-1 ml-1">
+
+                        <p className="mt-2 ml-1 text-xs font-semibold text-[#8a6a3a]">
                             Al seleccionar un favorito se autocompleta la cuenta destino.
                         </p>
                     </div>
                 )}
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                    <label className={labelClass}>
                         Número de Cuenta Destino
                     </label>
+
                     <div className="relative">
-                        <CreditCard size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                        <CreditCard size={15} className={iconClass} />
+
                         <input
                             {...register('numeroCuentaDestino', { required: 'El número de cuenta es requerido' })}
                             placeholder="Ingrese el número de cuenta"
@@ -144,15 +177,17 @@ const TransactionForm = ({ onClose }) => {
                             disabled={isLoading}
                         />
                     </div>
+
                     {errors.numeroCuentaDestino && (
-                        <p className="text-red-400 text-[10px] mt-1 ml-1">{errors.numeroCuentaDestino.message}</p>
+                        <p className={errorClass}>{errors.numeroCuentaDestino.message}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                    <label className={labelClass}>
                         Tipo de Cuenta Destino
                     </label>
+
                     <select
                         {...register('tipoCuentaDestino', { required: 'Requerido' })}
                         className={`${inputClass} appearance-none`}
@@ -164,16 +199,18 @@ const TransactionForm = ({ onClose }) => {
                 </div>
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                    <label className={labelClass}>
                         Descripción Opcional
                     </label>
+
                     <div className="relative">
-                        <AlignLeft size={14} className="absolute left-4 top-4 text-zinc-500" />
+                        <AlignLeft size={15} className="absolute left-4 top-4 text-[#9a6b16]/70" />
+
                         <textarea
                             {...register('descripcion')}
                             placeholder="Motivo de la transferencia..."
                             rows={3}
-                            className={`${inputClass} pl-10 resize-none`}
+                            className={`${inputClass} resize-none pl-10`}
                             disabled={isLoading}
                         />
                     </div>
@@ -184,14 +221,15 @@ const TransactionForm = ({ onClose }) => {
                         type="button"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-4 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 rounded-2xl border border-[#d7bc73]/55 bg-white/45 py-4 text-sm font-black text-[#6f5a33] transition-all hover:bg-white/85 hover:text-[#3f2c12] disabled:cursor-not-allowed disabled:opacity-55"
                     >
                         Cancelar
                     </button>
+
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-sm transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/50 bg-gradient-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
                     >
                         {isLoading ? (
                             'Procesando...'
