@@ -118,7 +118,7 @@ const ProductDetailModal = ({ product, onClose }) => {
             if (esCredito) {
                 await requestCreditOpportunity(product._id || product.id, {
                     cuentaId: data.cuentaId,
-                    monto: Number(data.monto),
+                    montoSolicitado: Number(data.monto),
                     plazoMeses: Number(data.plazoMeses),
                     comentarioCliente: data.comentarioCliente,
                 })

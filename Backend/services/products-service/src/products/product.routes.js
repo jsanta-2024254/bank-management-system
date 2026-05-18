@@ -283,10 +283,32 @@ router.post(
     isCliente,
     [
         param('id').isMongoId().withMessage('ID invalido'),
-        body('cuentaId').isMongoId().withMessage('La cuenta destino es requerida'),
-        body('montoSolicitado').isFloat({ min: 0.01 }).withMessage('El monto solicitado debe ser mayor que 0'),
-        body('plazoMeses').isInt({ min: 1 }).withMessage('El plazo debe ser mayor o igual a 1'),
-        body('comentarioCliente').optional().isString().trim(),
+
+        body('cuentaId')
+            .isMongoId()
+            .withMessage('La cuenta destino es requerida'),
+
+        body()
+            .custom((value, { req }) => {
+                const monto = req.body.montoSolicitado ?? req.body.monto;
+                const montoNumerico = Number(monto);
+
+                if (!Number.isFinite(montoNumerico) || montoNumerico <= 0) {
+                    throw new Error('El monto solicitado debe ser mayor que 0');
+                }
+
+                req.body.montoSolicitado = montoNumerico;
+                return true;
+            }),
+
+        body('plazoMeses')
+            .isInt({ min: 1 })
+            .withMessage('El plazo debe ser mayor o igual a 1'),
+
+        body('comentarioCliente')
+            .optional()
+            .isString()
+            .trim(),
     ],
     handleValidationErrors,
     requestCreditFromOpportunity
