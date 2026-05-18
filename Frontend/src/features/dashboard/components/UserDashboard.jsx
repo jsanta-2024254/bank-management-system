@@ -266,7 +266,7 @@ const UserDashboard = () => {
     return (
         <div className="pb-10">
             <div className="mb-8">
-                <div className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
+                <div className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
                     <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[#d9b45e]/18 blur-3xl" />
                     <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
@@ -277,7 +277,7 @@ const UserDashboard = () => {
                             className="flex items-center gap-4"
                         >
                             <div className="relative">
-                                <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
                                     <span className="text-2xl font-black uppercase text-[#4a2f0c]">
                                         {user?.nombre?.charAt(0) || user?.username?.charAt(0) || 'U'}
                                     </span>
@@ -307,7 +307,7 @@ const UserDashboard = () => {
                             whileHover={{ scale: 1.015 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setShowTransferModal(true)}
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/55 bg-gradient-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-6 py-3.5 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] md:self-center"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/55 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-6 py-3.5 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] md:self-center"
                         >
                             <Plus size={19} />
                             Nueva Transferencia
@@ -362,7 +362,7 @@ const UserDashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:p-8"
+                    className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:p-8"
                 >
                     <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[#d9b45e]/16 blur-3xl" />
                     <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
@@ -473,7 +473,7 @@ const UserDashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="relative flex flex-col overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl lg:col-span-2"
+                    className="relative flex flex-col overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl lg:col-span-2"
                 >
                     <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 

@@ -94,7 +94,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
     return (
         <div className="rounded-2xl border border-[#d7bc73]/50 bg-[#fffaf0]/95 px-4 py-3 shadow-[0_18px_45px_rgba(92,64,19,0.18)] backdrop-blur-xl">
-            <p className="mb-1 text-xs font-black uppercase tracking-[0.22em] text-[#8a611b]/70 capitalize">
+            <p className="mb-1 text-xs font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                 {label}
             </p>
 
@@ -182,13 +182,13 @@ const Dashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-8"
             >
-                <div className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
+                <div className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
                     <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[#d9b45e]/18 blur-3xl" />
                     <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
                     <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
                                 <Landmark size={29} className="text-[#5b3a0d]" />
                             </div>
 
@@ -273,7 +273,7 @@ const Dashboard = () => {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl lg:col-span-2"
+                    className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl lg:col-span-2"
                 >
                     <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[#d9b45e]/16 blur-3xl" />
                     <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
@@ -356,7 +356,7 @@ const Dashboard = () => {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl lg:col-span-3"
+                    className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl lg:col-span-3"
                 >
                     <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
@@ -475,7 +475,7 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl"
+                className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl"
             >
                 <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
