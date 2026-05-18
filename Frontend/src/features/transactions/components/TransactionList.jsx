@@ -109,12 +109,12 @@ const TransactionList = () => {
         >
             {showForm && esCliente && <TransactionForm onClose={handleCloseForm} />}
 
-            <div className="mb-8 overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
+            <div className="mb-8 overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
                 <div className="premium-gold-line mb-6 h-px w-full" />
 
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
                             <ArrowLeftRight size={28} className="text-[#5b3a0d]" />
                         </div>
 
@@ -136,7 +136,7 @@ const TransactionList = () => {
                     {esCliente && (
                         <button
                             onClick={() => setShowForm(true)}
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/55 bg-gradient-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-6 py-3.5 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] active:scale-95 sm:w-auto"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/55 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-6 py-3.5 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] active:scale-95 sm:w-auto"
                         >
                             <ArrowLeftRight size={18} />
                             Nueva Transferencia
@@ -145,7 +145,7 @@ const TransactionList = () => {
                 </div>
             </div>
 
-            <div className="mb-5 rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-5 shadow-[0_18px_48px_rgba(92,64,19,0.08)] backdrop-blur-xl">
+            <div className="mb-5 rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-5 shadow-[0_18px_48px_rgba(92,64,19,0.08)] backdrop-blur-xl">
                 <label className="mb-3 ml-1 block text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75">
                     Cuenta a consultar
                 </label>
@@ -198,7 +198,7 @@ const TransactionList = () => {
                             type="date"
                             value={dateFrom}
                             onChange={(e) => setDateFrom(e.target.value)}
-                            className="w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 py-3.5 pl-10 pr-4 text-sm font-semibold text-[#3b2a14] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all [color-scheme:light] focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18"
+                            className="w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 py-3.5 pl-10 pr-4 text-sm font-semibold text-[#3b2a14] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all scheme-light focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18"
                         />
                     </div>
                 </div>
@@ -218,7 +218,7 @@ const TransactionList = () => {
                             type="date"
                             value={dateTo}
                             onChange={(e) => setDateTo(e.target.value)}
-                            className="w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 py-3.5 pl-10 pr-4 text-sm font-semibold text-[#3b2a14] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all [color-scheme:light] focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18"
+                            className="w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 py-3.5 pl-10 pr-4 text-sm font-semibold text-[#3b2a14] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all scheme-light focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18"
                         />
                     </div>
                 </div>
@@ -250,7 +250,7 @@ const TransactionList = () => {
                         key={key}
                         onClick={() => setTypeFilter(key)}
                         className={`rounded-xl px-5 py-2 text-sm font-black transition-all ${typeFilter === key
-                                ? 'border border-[#c89b3c]/55 bg-gradient-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] text-white shadow-[0_14px_28px_rgba(154,107,22,0.22)]'
+                                ? 'border border-[#c89b3c]/55 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] text-white shadow-[0_14px_28px_rgba(154,107,22,0.22)]'
                                 : 'border border-[#d7bc73]/45 bg-white/45 text-[#6f5a33] hover:bg-white/85 hover:text-[#3f2c12]'
                             }`}
                     >
@@ -269,7 +269,7 @@ const TransactionList = () => {
                 </div>
             )}
 
-            <div className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl">
+            <div className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl">
                 <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
                 <div className="custom-scrollbar overflow-x-auto">

@@ -1,7 +1,13 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { ArrowLeftRight, CreditCard, DollarSign, AlignLeft, Star } from 'lucide-react'
+import {
+    ArrowLeftRight,
+    CreditCard,
+    DollarSign,
+    AlignLeft,
+    Star,
+} from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import useTransactionStore from '../store/transactionStore'
 import useFavoriteStore from '../../favorites/store/favoriteStore'
@@ -14,7 +20,7 @@ const TransactionForm = ({ onClose }) => {
         register,
         handleSubmit,
         setValue,
-        watch,
+        control,
         formState: { errors, isSubmitting },
     } = useForm({
         defaultValues: {
@@ -27,16 +33,31 @@ const TransactionForm = ({ onClose }) => {
         },
     })
 
-    useEffect(() => { fetchFavorites() }, [fetchFavorites])
+    const selectedFavoriteId = useWatch({
+        control,
+        name: 'favoriteId',
+    })
 
-    const selectedFavoriteId = watch('favoriteId')
+    useEffect(() => {
+        fetchFavorites()
+    }, [fetchFavorites])
 
     useEffect(() => {
         if (!selectedFavoriteId) return
-        const fav = favorites.find((f) => (f._id || f.id) === selectedFavoriteId)
+
+        const fav = favorites.find(
+            (f) => (f._id || f.id) === selectedFavoriteId
+        )
+
         if (fav) {
-            setValue('numeroCuentaDestino', fav.numeroCuenta || fav.numeroCuentaDestino || '')
-            if (fav.tipoCuenta) setValue('tipoCuentaDestino', fav.tipoCuenta)
+            setValue(
+                'numeroCuentaDestino',
+                fav.numeroCuenta || fav.numeroCuentaDestino || ''
+            )
+
+            if (fav.tipoCuenta) {
+                setValue('tipoCuentaDestino', fav.tipoCuenta)
+            }
         }
     }, [selectedFavoriteId, favorites, setValue])
 
@@ -44,14 +65,22 @@ const TransactionForm = ({ onClose }) => {
 
     const onSubmit = async (data) => {
         const toastId = toast.loading('Procesando transferencia...')
+
         try {
-            const { favoriteId, ...payload } = data
-            await createTransaction({ ...payload, monto: parseFloat(data.monto) })
+            const payload = { ...data }
+            delete payload.favoriteId
+
+            await createTransaction({
+                ...payload,
+                monto: parseFloat(data.monto),
+            })
+
             toast.success('Transferencia realizada con éxito', { id: toastId })
             onClose()
         } catch (error) {
             toast.error(
-                error?.response?.data?.message || 'Error al realizar la transferencia',
+                error?.response?.data?.message ||
+                    'Error al realizar la transferencia',
                 { id: toastId }
             )
         }
@@ -83,7 +112,8 @@ const TransactionForm = ({ onClose }) => {
                             </p>
 
                             <p className="mt-1 text-sm leading-6 text-[#7a6849]">
-                                Complete los datos de origen, destino y monto. El límite máximo por transferencia es de Q2,000.
+                                Complete los datos de origen, destino y monto. El
+                                límite máximo por transferencia es de Q2,000.
                             </p>
                         </div>
                     </div>
@@ -91,12 +121,12 @@ const TransactionForm = ({ onClose }) => {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                        <label className={labelClass}>
-                            Mi Cuenta Origen
-                        </label>
+                        <label className={labelClass}>Mi Cuenta Origen</label>
 
                         <select
-                            {...register('tipoCuentaOrigen', { required: 'Requerido' })}
+                            {...register('tipoCuentaOrigen', {
+                                required: 'Requerido',
+                            })}
                             className={`${inputClass} appearance-none`}
                             disabled={isLoading}
                         >
@@ -106,9 +136,7 @@ const TransactionForm = ({ onClose }) => {
                     </div>
 
                     <div>
-                        <label className={labelClass}>
-                            Monto GTQ
-                        </label>
+                        <label className={labelClass}>Monto GTQ</label>
 
                         <div className="relative">
                             <DollarSign size={15} className={iconClass} />
@@ -116,8 +144,15 @@ const TransactionForm = ({ onClose }) => {
                             <input
                                 {...register('monto', {
                                     required: 'El monto es requerido',
-                                    min: { value: 0.01, message: 'Mínimo Q0.01' },
-                                    max: { value: 2000, message: 'Máximo Q2,000 por transferencia' },
+                                    min: {
+                                        value: 0.01,
+                                        message: 'Mínimo Q0.01',
+                                    },
+                                    max: {
+                                        value: 2000,
+                                        message:
+                                            'Máximo Q2,000 por transferencia',
+                                    },
                                 })}
                                 type="number"
                                 step="0.01"
@@ -128,7 +163,9 @@ const TransactionForm = ({ onClose }) => {
                         </div>
 
                         {errors.monto && (
-                            <p className={errorClass}>{errors.monto.message}</p>
+                            <p className={errorClass}>
+                                {errors.monto.message}
+                            </p>
                         )}
                     </div>
                 </div>
@@ -137,7 +174,9 @@ const TransactionForm = ({ onClose }) => {
 
                 {favorites.length > 0 && (
                     <div>
-                        <label className={`${labelClass} flex items-center gap-1`}>
+                        <label
+                            className={`${labelClass} flex items-center gap-1`}
+                        >
                             <Star size={11} className="text-[#b98219]" />
                             Enviar a favorito
                         </label>
@@ -148,16 +187,26 @@ const TransactionForm = ({ onClose }) => {
                             disabled={isLoading}
                         >
                             <option value="">— Seleccionar favorito —</option>
+
                             {favorites.map((fav) => (
-                                <option key={fav._id || fav.id} value={fav._id || fav.id}>
-                                    {fav.alias || fav.nombre || fav.name || fav.numeroCuenta}
-                                    {fav.numeroCuenta ? ` · ${fav.numeroCuenta}` : ''}
+                                <option
+                                    key={fav._id || fav.id}
+                                    value={fav._id || fav.id}
+                                >
+                                    {fav.alias ||
+                                        fav.nombre ||
+                                        fav.name ||
+                                        fav.numeroCuenta}
+                                    {fav.numeroCuenta
+                                        ? ` · ${fav.numeroCuenta}`
+                                        : ''}
                                 </option>
                             ))}
                         </select>
 
                         <p className="mt-2 ml-1 text-xs font-semibold text-[#8a6a3a]">
-                            Al seleccionar un favorito se autocompleta la cuenta destino.
+                            Al seleccionar un favorito se autocompleta la cuenta
+                            destino.
                         </p>
                     </div>
                 )}
@@ -171,7 +220,10 @@ const TransactionForm = ({ onClose }) => {
                         <CreditCard size={15} className={iconClass} />
 
                         <input
-                            {...register('numeroCuentaDestino', { required: 'El número de cuenta es requerido' })}
+                            {...register('numeroCuentaDestino', {
+                                required:
+                                    'El número de cuenta es requerido',
+                            })}
                             placeholder="Ingrese el número de cuenta"
                             className={`${inputClass} pl-10 font-mono`}
                             disabled={isLoading}
@@ -179,7 +231,9 @@ const TransactionForm = ({ onClose }) => {
                     </div>
 
                     {errors.numeroCuentaDestino && (
-                        <p className={errorClass}>{errors.numeroCuentaDestino.message}</p>
+                        <p className={errorClass}>
+                            {errors.numeroCuentaDestino.message}
+                        </p>
                     )}
                 </div>
 
@@ -189,7 +243,9 @@ const TransactionForm = ({ onClose }) => {
                     </label>
 
                     <select
-                        {...register('tipoCuentaDestino', { required: 'Requerido' })}
+                        {...register('tipoCuentaDestino', {
+                            required: 'Requerido',
+                        })}
                         className={`${inputClass} appearance-none`}
                         disabled={isLoading}
                     >
@@ -204,7 +260,10 @@ const TransactionForm = ({ onClose }) => {
                     </label>
 
                     <div className="relative">
-                        <AlignLeft size={15} className="absolute left-4 top-4 text-[#9a6b16]/70" />
+                        <AlignLeft
+                            size={15}
+                            className="absolute left-4 top-4 text-[#9a6b16]/70"
+                        />
 
                         <textarea
                             {...register('descripcion')}
@@ -229,7 +288,7 @@ const TransactionForm = ({ onClose }) => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/50 bg-gradient-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/50 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
                     >
                         {isLoading ? (
                             'Procesando...'
