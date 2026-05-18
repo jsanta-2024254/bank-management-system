@@ -62,31 +62,38 @@ const StatCard = ({ icon: Icon, label, value, color, path, delay, loading }) => 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay }}
-        className="bg-zinc-900/60 border border-white/5 rounded-3xl p-6 hover:border-white/10 transition-all shadow-xl shadow-black/20"
+        className="group relative overflow-hidden rounded-[1.75rem] border border-[#d7bc73]/45 bg-[#fffaf0]/70 p-6 shadow-[0_20px_55px_rgba(92,64,19,0.1)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#b98219]/55 hover:bg-white/78 hover:shadow-[0_26px_70px_rgba(92,64,19,0.16)]"
     >
-        <div className="flex items-start justify-between mb-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color}`}>
-                <Icon size={22} className="text-white" />
+        <div className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-[#d9b45e]/16 blur-2xl transition-all duration-300 group-hover:bg-[#d9b45e]/25" />
+        <div className="premium-gold-line absolute left-6 right-6 top-0 h-px" />
+
+        <div className="relative mb-5 flex items-start justify-between">
+            <div
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d7bc73]/45 shadow-[0_14px_28px_rgba(154,107,22,0.18)] ${color}`}
+            >
+                <Icon size={22} className="text-[#4a2f0c]" />
             </div>
 
             {path && (
                 <NavLink
                     to={path}
-                    className="text-xs text-zinc-500 hover:text-blue-400 transition-colors font-semibold bg-white/5 px-3 py-1 rounded-full"
+                    className="rounded-full border border-[#d7bc73]/40 bg-white/52 px-3 py-1 text-xs font-black text-[#8a611b] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12]"
                 >
                     Ver →
                 </NavLink>
             )}
         </div>
 
-        <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest mb-1">
+        <p className="relative mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/72">
             {label}
         </p>
 
         {loading ? (
-            <div className="h-10 w-24 bg-zinc-800 rounded-xl animate-pulse mt-1" />
+            <div className="relative mt-2 h-10 w-24 animate-pulse rounded-xl bg-[#ead9ad]/65" />
         ) : (
-            <p className="text-white text-3xl font-black">{value}</p>
+            <p className="relative text-3xl font-black tracking-tight text-[#3f2c12]">
+                {value}
+            </p>
         )}
     </motion.div>
 )
@@ -250,7 +257,7 @@ const UserDashboard = () => {
         } catch (error) {
             toast.error(
                 error?.response?.data?.message ||
-                    'No se pudo cancelar la suscripción',
+                'No se pudo cancelar la suscripción',
                 { id: toastId }
             )
         }
@@ -258,51 +265,63 @@ const UserDashboard = () => {
 
     return (
         <div className="pb-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-4"
-                >
-                    <div className="relative">
-                        <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/20">
-                            <span className="text-white text-2xl font-black uppercase">
-                                {user?.nombre?.charAt(0) || user?.username?.charAt(0) || 'U'}
-                            </span>
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-zinc-950 rounded-full" />
+            <div className="mb-8">
+                <div className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
+                    <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[#d9b45e]/18 blur-3xl" />
+                    <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
+
+                    <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="flex items-center gap-4"
+                        >
+                            <div className="relative">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
+                                    <span className="text-2xl font-black uppercase text-[#4a2f0c]">
+                                        {user?.nombre?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                                    </span>
+                                </div>
+
+                                <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-4 border-[#fff8ea] bg-emerald-600 shadow-[0_6px_16px_rgba(5,150,105,0.25)]" />
+                            </div>
+
+                            <div>
+                                <p className="mb-1 text-[10px] font-black uppercase tracking-[0.28em] text-[#9a6b16]/75">
+                                    Banca personal
+                                </p>
+
+                                <h1 className="text-3xl font-black tracking-tight text-[#3f2c12] md:text-4xl">
+                                    Bienvenido, {user?.nombre || user?.username || 'Usuario'}
+                                </h1>
+
+                                <p className="mt-1 text-sm font-semibold text-[#7a6849]">
+                                    Qué gusto verte de nuevo.
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.92 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.015 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setShowTransferModal(true)}
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/55 bg-gradient-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-6 py-3.5 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] md:self-center"
+                        >
+                            <Plus size={19} />
+                            Nueva Transferencia
+                        </motion.button>
                     </div>
-
-                    <div>
-                        <h1 className="text-3xl font-black text-white">
-                            Bienvenido, {user?.nombre || user?.username || 'Usuario'}
-                        </h1>
-
-                        <p className="text-zinc-500 text-sm mt-0.5">
-                            Qué gusto verte de nuevo.
-                        </p>
-                    </div>
-                </motion.div>
-
-                <motion.button
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowTransferModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all"
-                >
-                    <Plus size={20} />
-                    Nueva Transferencia
-                </motion.button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+            <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
                 <StatCard
                     icon={CreditCard}
                     label="Cuentas Activas"
                     value={activeAccounts}
-                    color="bg-blue-600"
+                    color="bg-gradient-to-br from-[#fff1bd] via-[#d9b45e] to-[#b98219]"
                     delay={0}
                     path="/accounts"
                     loading={loadingAccounts}
@@ -312,7 +331,7 @@ const UserDashboard = () => {
                     icon={TrendingUp}
                     label="Saldo Consolidado"
                     value={fmt(totalBalance)}
-                    color="bg-emerald-600"
+                    color="bg-gradient-to-br from-[#f7e7b1] via-[#c89b3c] to-[#8a611b]"
                     delay={0.1}
                     loading={loadingAccounts}
                 />
@@ -321,7 +340,7 @@ const UserDashboard = () => {
                     icon={Star}
                     label="Favoritos Guardados"
                     value={favorites.length}
-                    color="bg-amber-500"
+                    color="bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16]"
                     delay={0.2}
                     path="/favorites"
                     loading={loadingFavorites}
@@ -331,37 +350,52 @@ const UserDashboard = () => {
                     icon={ReceiptText}
                     label="Suscripciones Activas"
                     value={activeSubscriptions.length}
-                    color="bg-indigo-600"
+                    color="bg-gradient-to-br from-[#f5df9b] via-[#c89b3c] to-[#7a4f0d]"
                     delay={0.3}
                     path="/products"
                     loading={loadingProducts}
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8"
+                    className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:p-8"
                 >
-                    <h2 className="text-white font-bold text-xl mb-6 flex items-center gap-2">
-                        <PackageCheck size={20} className="text-blue-400" />
-                        Mis Productos
-                    </h2>
+                    <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[#d9b45e]/16 blur-3xl" />
+                    <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
-                    <div className="space-y-6">
-                        <div>
-                            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-2">
-                                Tipos de Cuenta
-                            </p>
-                            <p className="text-white font-semibold">{accountTypes}</p>
+                    <div className="relative mb-6 flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b] shadow-[0_12px_24px_rgba(154,107,22,0.12)]">
+                            <PackageCheck size={20} />
                         </div>
 
-                        <div className="bg-white/5 h-px w-full" />
+                        <div>
+                            <p className="mb-0.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                                Resumen personal
+                            </p>
+
+                            <h2 className="text-xl font-black text-[#3f2c12]">
+                                Mis Productos
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div className="relative space-y-6">
+                        <div>
+                            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                                Tipos de Cuenta
+                            </p>
+
+                            <p className="font-bold text-[#3f2c12]">{accountTypes}</p>
+                        </div>
+
+                        <div className="h-px w-full bg-[#d7bc73]/35" />
 
                         <div>
-                            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-3">
+                            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
                                 Suscripciones Activas
                             </p>
 
@@ -370,13 +404,13 @@ const UserDashboard = () => {
                                     {[1, 2].map((item) => (
                                         <div
                                             key={item}
-                                            className="h-20 bg-zinc-800/60 rounded-2xl animate-pulse"
+                                            className="h-24 animate-pulse rounded-2xl bg-[#ead9ad]/60"
                                         />
                                     ))}
                                 </div>
                             ) : activeSubscriptions.length === 0 ? (
-                                <div className="bg-white/3 border border-white/5 rounded-2xl p-4">
-                                    <p className="text-zinc-500 text-sm">
+                                <div className="rounded-2xl border border-dashed border-[#d7bc73]/45 bg-white/35 p-4">
+                                    <p className="text-sm font-semibold text-[#8a6a3a]">
                                         No tiene suscripciones activas.
                                     </p>
                                 </div>
@@ -385,25 +419,25 @@ const UserDashboard = () => {
                                     {activeSubscriptions.map((subscription) => (
                                         <div
                                             key={subscription._id || subscription.id}
-                                            className="bg-zinc-950/60 border border-zinc-800 rounded-2xl p-4"
+                                            className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4 shadow-[0_12px_28px_rgba(92,64,19,0.08)]"
                                         >
                                             <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <p className="text-white font-bold text-sm">
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-black text-[#3f2c12]">
                                                         {getProductName(subscription)}
                                                     </p>
 
-                                                    <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1">
+                                                    <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-[#8a6a3a]">
                                                         <CalendarDays size={13} />
                                                         Próximo cobro:{' '}
                                                         {dateFmt(getNextChargeDate(subscription))}
                                                     </p>
 
-                                                    <p className="text-blue-400 text-sm font-black mt-2">
+                                                    <p className="mt-2 text-sm font-black text-[#8a611b]">
                                                         {fmt(
                                                             subscription.monto ||
-                                                                subscription.totalEstimado ||
-                                                                subscription.montoCobradoInicial
+                                                            subscription.totalEstimado ||
+                                                            subscription.montoCobradoInicial
                                                         )}
                                                     </p>
                                                 </div>
@@ -414,7 +448,7 @@ const UserDashboard = () => {
                                                         handleCancelSubscription(subscription)
                                                     }
                                                     disabled={loadingProducts}
-                                                    className="shrink-0 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl px-3 py-2 text-xs font-bold flex items-center gap-1 transition-all disabled:opacity-60"
+                                                    className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-red-200 bg-red-50/80 px-3 py-2 text-xs font-black text-red-700 transition-all hover:bg-red-100 disabled:opacity-60"
                                                 >
                                                     <XCircle size={14} />
                                                     Cancelar
@@ -429,7 +463,7 @@ const UserDashboard = () => {
 
                     <NavLink
                         to="/products"
-                        className="mt-8 flex items-center justify-center w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl text-sm font-bold transition-all"
+                        className="relative mt-8 flex w-full items-center justify-center rounded-2xl border border-[#d7bc73]/50 bg-white/55 py-4 text-sm font-black text-[#6f4d13] shadow-[0_12px_26px_rgba(92,64,19,0.08)] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12]"
                     >
                         Ver Catálogo
                     </NavLink>
@@ -439,12 +473,20 @@ const UserDashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="lg:col-span-2 bg-zinc-900/50 border border-white/5 rounded-3xl overflow-hidden flex flex-col"
+                    className="relative flex flex-col overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl lg:col-span-2"
                 >
-                    <div className="flex items-center justify-between px-8 py-6 border-b border-white/5">
-                        <h2 className="text-white font-bold text-xl">
-                            Actividad Reciente
-                        </h2>
+                    <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
+
+                    <div className="flex items-center justify-between border-b border-[#d7bc73]/35 px-6 py-5 md:px-8">
+                        <div>
+                            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                                Movimientos recientes
+                            </p>
+
+                            <h2 className="text-xl font-black text-[#3f2c12]">
+                                Actividad Reciente
+                            </h2>
+                        </div>
 
                         <button
                             type="button"
@@ -452,7 +494,7 @@ const UserDashboard = () => {
                                 if (currentAccountId) fetchTransactions(currentAccountId)
                                 fetchMyProductAcquisitions()
                             }}
-                            className="text-sm text-blue-400 hover:text-blue-300 font-bold transition-colors"
+                            className="rounded-full border border-[#d7bc73]/40 bg-white/52 px-4 py-2 text-sm font-black text-[#8a611b] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12]"
                         >
                             Actualizar
                         </button>
@@ -460,22 +502,22 @@ const UserDashboard = () => {
 
                     <div className="flex-1">
                         {loadingTx || loadingProducts ? (
-                            <div className="p-8 space-y-4">
+                            <div className="space-y-4 p-8">
                                 {[1, 2, 3].map((i) => (
                                     <div
                                         key={i}
-                                        className="h-12 bg-zinc-800/50 rounded-2xl animate-pulse"
+                                        className="h-14 animate-pulse rounded-2xl bg-[#ead9ad]/60"
                                     />
                                 ))}
                             </div>
                         ) : recentActivity.length === 0 ? (
                             <div className="p-12 text-center">
-                                <p className="text-zinc-500 text-sm">
+                                <p className="text-sm font-semibold text-[#8a6a3a]">
                                     No se encontraron movimientos recientes.
                                 </p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-white/5">
+                            <div className="divide-y divide-[#d7bc73]/28">
                                 {recentActivity.map((item, idx) => {
                                     const esSalida = item.esSalida
                                     const tipo = String(item.tipo || '').toLowerCase()
@@ -486,62 +528,54 @@ const UserDashboard = () => {
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: 0.5 + idx * 0.05 }}
                                             key={item._id || item.id}
-                                            className="flex items-center justify-between px-8 py-5 hover:bg-white/2 transition-colors"
+                                            className="flex items-center justify-between gap-5 px-6 py-5 transition-colors hover:bg-white/32 md:px-8"
                                         >
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex min-w-0 items-center gap-4">
                                                 <div
-                                                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                                                        esSalida
-                                                            ? 'bg-red-500/10'
-                                                            : 'bg-emerald-500/10'
-                                                    }`}
+                                                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${esSalida
+                                                            ? 'border-red-200 bg-red-50 text-red-700'
+                                                            : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                        }`}
                                                 >
                                                     {esSalida ? (
-                                                        <ArrowUpRight
-                                                            size={18}
-                                                            className="text-red-400"
-                                                        />
+                                                        <ArrowUpRight size={18} />
                                                     ) : (
-                                                        <ArrowDownLeft
-                                                            size={18}
-                                                            className="text-emerald-400"
-                                                        />
+                                                        <ArrowDownLeft size={18} />
                                                     )}
                                                 </div>
 
-                                                <div>
-                                                    <p className="text-white font-bold text-sm capitalize">
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-black capitalize text-[#3f2c12]">
                                                         {tipo === 'suscripcion'
                                                             ? 'Cobro de suscripción'
                                                             : tipo === 'compra'
-                                                              ? 'Cobro de producto'
-                                                              : tipo}
+                                                                ? 'Cobro de producto'
+                                                                : tipo}
                                                     </p>
 
-                                                    <p className="text-zinc-500 text-xs">
+                                                    <p className="mt-0.5 truncate text-xs font-semibold text-[#8a6a3a]">
                                                         {item.descripcion ||
                                                             dateFmt(item.createdAt || item.fecha)}
                                                     </p>
 
-                                                    <p className="text-zinc-600 text-[10px] mt-0.5">
+                                                    <p className="mt-0.5 text-[10px] font-semibold text-[#a89365]">
                                                         {dateFmt(item.createdAt || item.fecha)}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="text-right">
+                                            <div className="shrink-0 text-right">
                                                 <p
-                                                    className={`font-black text-sm ${
-                                                        esSalida
-                                                            ? 'text-red-400'
-                                                            : 'text-emerald-400'
-                                                    }`}
+                                                    className={`text-sm font-black ${esSalida
+                                                            ? 'text-red-700'
+                                                            : 'text-emerald-700'
+                                                        }`}
                                                 >
                                                     {esSalida ? '-' : '+'}
                                                     {fmt(item.monto)}
                                                 </p>
 
-                                                <p className="text-[10px] text-zinc-500 font-mono">
+                                                <p className="mt-1 font-mono text-[10px] font-semibold text-[#9a8a6c]">
                                                     {item.numeroCuentaDestino ||
                                                         item.numeroCuentaOrigen ||
                                                         item.origenDashboard ||
