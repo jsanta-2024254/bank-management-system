@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Edit3, Trash2, Plus, CreditCard, Search } from 'lucide-react'
+import { Banknote, Edit3, Trash2, Plus, CreditCard, Search } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import useAccountStore from '../store/accountStore'
 import useAuthStore from '../../auth/store/authStore'
 import AccountForm from './AccountForm'
+import DepositForm from '../../deposits/components/DepositForm'
 import ConfirmDialog from '../../../shared/components/ui/ConfirmDialog'
 
 const getUserRole = (user) => {
@@ -26,6 +27,7 @@ const AccountList = () => {
     const [showForm, setShowForm] = useState(false)
     const [editingAccount, setEditingAccount] = useState(null)
     const [confirmId, setConfirmId] = useState(null)
+    const [depositAccount, setDepositAccount] = useState(null)
     const [search, setSearch] = useState('')
 
     useEffect(() => {
@@ -73,6 +75,16 @@ const AccountList = () => {
                     onClose={() => {
                         setShowForm(false)
                         setEditingAccount(null)
+                        fetchAccounts()
+                    }}
+                />
+            )}
+
+            {depositAccount && (
+                <DepositForm
+                    cuentaPreseleccionada={depositAccount}
+                    onClose={() => {
+                        setDepositAccount(null)
                         fetchAccounts()
                     }}
                 />
@@ -249,6 +261,14 @@ const AccountList = () => {
 
                                                     <td className="px-8 py-5">
                                                         <div className="flex items-center gap-2 justify-end">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setDepositAccount(account)}
+                                                                className="p-2 text-zinc-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-xl transition-all"
+                                                                title="Depositar a esta cuenta"
+                                                            >
+                                                                <Banknote size={16} />
+                                                            </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
