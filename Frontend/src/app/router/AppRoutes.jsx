@@ -14,6 +14,7 @@ import DepositList from "../../features/deposits/components/DepositList";
 import ProfilePage from "../../features/profile/pages/ProfilePage";
 import ProductList from "../../features/products/components/ProductList";
 import ProductCatalogPage from "../../features/products/pages/ProductCatalogPage";
+import CreditRequestList from "../../features/products/components/CreditRequestList";
 import FavoriteList from "../../features/favorites/components/FavoriteList";
 import DepositRequestForm from '../../features/deposits/components/DepositRequestForm'
 import DepositRequestList from '../../features/deposits/components/DepositRequestList'
@@ -146,6 +147,15 @@ const AppRoutes = () => {
 
           <Route path="products" element={<ProductSelector />} />
           <Route path="deposit-requests" element={<DepositRequestSelector />} />
+
+          <Route
+            path="credit-requests"
+            element={
+              <AdminRoute>
+                <CreditRequestList />
+              </AdminRoute>
+            }
+          />
 
           <Route
             path="favorites"

@@ -13,6 +13,7 @@ import {
   Landmark,
   User,
   Star,
+  BadgeDollarSign,
 } from "lucide-react";
 import useAuthStore from "../../../features/auth/store/authStore";
 
@@ -48,6 +49,12 @@ const navItems = [
     roles: ["USER_ROLE"],
   },
   { label: "Favoritos", path: "/favorites", icon: Star, roles: ["USER_ROLE"] },
+  {
+    label: "Solicitudes de Crédito",
+    path: "/credit-requests",
+    icon: BadgeDollarSign,
+    roles: ["ADMIN_ROLE"],
+  },
   {
     label: "Depósitos",
     path: "/deposits",
