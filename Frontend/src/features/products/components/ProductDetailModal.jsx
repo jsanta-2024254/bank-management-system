@@ -13,11 +13,25 @@ import {
 import useAccountStore from '../../accounts/store/accountStore'
 import useProductStore from '../store/productStore'
 
+const normalizarTexto = (valor) =>
+    String(valor || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+
 const ProductDetailModal = ({ product, onClose }) => {
     const { accounts, fetchAccounts } = useAccountStore()
     const { acquireProduct, requestCreditOpportunity, loading } = useProductStore()
 
-    const esCredito = String(product?.tipo || '').toLowerCase() === 'credito'
+    const tipoProducto = normalizarTexto(product?.tipo || product?.type)
+    const esCredito = tipoProducto === 'credito'
+    const montoMinimoCredito = Number(product?.montoMinimo || 0)
+    const montoMaximoCredito = Number(product?.montoMaximo || 0)
+    const plazoMinimoCredito = Number(product?.plazoMesesMinimo || 1)
+    const plazoMaximoCredito = Number(product?.plazoMesesMaximo || 60)
+    const tasaCredito = Number(product?.tasaInteres || 0)
+    const moraCredito = Number(product?.moraPorcentaje || 0)
+
     const cuotasDisponibles = Array.from(
         {
             length: Math.max(
@@ -37,8 +51,8 @@ const ProductDetailModal = ({ product, onClose }) => {
     } = useForm({
         defaultValues: {
             cuentaId: '',
-            monto: esCredito ? product?.montoMinimo || '' : '',
-            plazoMeses: esCredito ? product?.plazoMesesMinimo || 1 : '',
+            monto: esCredito ? montoMinimoCredito || '' : '',
+            plazoMeses: esCredito ? plazoMinimoCredito : '',
             numeroCuotas: product?.cuotasMinimas || 1,
             comentarioCliente: '',
         },
@@ -47,7 +61,7 @@ const ProductDetailModal = ({ product, onClose }) => {
     const valoresFormulario = useWatch({ control })
     const numeroCuotas = Number(valoresFormulario?.numeroCuotas || product?.cuotasMinimas || 1)
     const montoCredito = Number(valoresFormulario?.monto || 0)
-    const plazoMeses = Number(valoresFormulario?.plazoMeses || product?.plazoMesesMinimo || 1)
+    const plazoMeses = Number(valoresFormulario?.plazoMeses || plazoMinimoCredito)
 
     useEffect(() => {
         fetchAccounts()
@@ -55,7 +69,7 @@ const ProductDetailModal = ({ product, onClose }) => {
 
     if (!product) return null
 
-    const tipo = String(product.tipo || '').toLowerCase()
+    const tipo = normalizarTexto(product.tipo || product.type)
     const esSuscripcion = tipo === 'suscripcion'
     const permitePagoCuotas = product.permitePagoCuotas && !esSuscripcion
 
@@ -65,9 +79,7 @@ const ProductDetailModal = ({ product, onClose }) => {
     const totalProducto = esCredito ? 0 : precioBase - descuentoAplicado
     const cuotaInicial = numeroCuotas > 1 ? totalProducto / numeroCuotas : totalProducto
 
-    const tasa = Number(product.tasaInteres || 0)
-    const mora = Number(product.moraPorcentaje || 0)
-    const interesTotal = esCredito ? montoCredito * (tasa / 100) * (plazoMeses / 12) : 0
+    const interesTotal = esCredito ? montoCredito * (tasaCredito / 100) * (plazoMeses / 12) : 0
     const totalCredito = esCredito ? montoCredito + interesTotal : 0
     const cuotaMensualCredito = esCredito && plazoMeses > 0 ? totalCredito / plazoMeses : 0
 
@@ -91,6 +103,11 @@ const ProductDetailModal = ({ product, onClose }) => {
             month: '2-digit',
             year: 'numeric',
         }).format(fecha)
+
+    const formatearPlazo = (minimo, maximo) => {
+        if (minimo && maximo && minimo !== maximo) return `${minimo} a ${maximo} meses`
+        return `${minimo || maximo} meses`
+    }
 
     const cronogramaProducto =
         !esCredito && numeroCuotas > 1
@@ -120,7 +137,7 @@ const ProductDetailModal = ({ product, onClose }) => {
                     cuentaId: data.cuentaId,
                     montoSolicitado: Number(data.monto),
                     plazoMeses: Number(data.plazoMeses),
-                    comentarioCliente: data.comentarioCliente,
+                    comentarioCliente: data.comentarioCliente?.trim() || '',
                 })
 
                 toast.success('Solicitud enviada para aprobación administrativa', {
@@ -146,8 +163,8 @@ const ProductDetailModal = ({ product, onClose }) => {
 
             reset({
                 cuentaId: '',
-                monto: esCredito ? product?.montoMinimo || '' : '',
-                plazoMeses: esCredito ? product?.plazoMesesMinimo || 1 : '',
+                monto: esCredito ? montoMinimoCredito || '' : '',
+                plazoMeses: esCredito ? plazoMinimoCredito : '',
                 numeroCuotas: product?.cuotasMinimas || 1,
                 comentarioCliente: '',
             })
@@ -188,6 +205,44 @@ const ProductDetailModal = ({ product, onClose }) => {
 
                     <p className="text-white leading-relaxed">{product.descripcion}</p>
                 </div>
+
+                {esCredito && (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="bg-zinc-950/70 border border-zinc-800 rounded-2xl p-4">
+                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                                    Crédito mínimo
+                                </p>
+                                <p className="text-white font-black text-xl mt-1">
+                                    {fmt(montoMinimoCredito)}
+                                </p>
+                            </div>
+
+                            <div className="bg-zinc-950/70 border border-zinc-800 rounded-2xl p-4">
+                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                                    Crédito máximo
+                                </p>
+                                <p className="text-white font-black text-xl mt-1">
+                                    {fmt(montoMaximoCredito)}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
+                            <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest mb-2">
+                                Condiciones visibles antes de solicitar
+                            </p>
+                            <p className="text-zinc-200 text-sm">
+                                Puede solicitar desde <strong>{fmt(montoMinimoCredito)}</strong> hasta{' '}
+                                <strong>{fmt(montoMaximoCredito)}</strong>.
+                            </p>
+                            <p className="text-zinc-400 text-xs mt-1">
+                                Plazo permitido: {formatearPlazo(plazoMinimoCredito, plazoMaximoCredito)} · Tasa anual:{' '}
+                                {tasaCredito}% · Mora: {moraCredito}% sobre cuota vencida.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <form
                     onSubmit={handleSubmit(onSubmit)}
@@ -254,20 +309,26 @@ const ProductDetailModal = ({ product, onClose }) => {
                                     {...register('monto', {
                                         required: 'El monto es requerido',
                                         min: {
-                                            value: product.montoMinimo || 0.01,
-                                            message: `El monto mínimo es ${fmt(product.montoMinimo)}`,
+                                            value: montoMinimoCredito || 0.01,
+                                            message: `El monto mínimo es ${fmt(montoMinimoCredito)}`,
                                         },
                                         max: {
-                                            value: product.montoMaximo || 999999999,
-                                            message: `El monto máximo es ${fmt(product.montoMaximo)}`,
+                                            value: montoMaximoCredito || 999999999,
+                                            message: `El monto máximo es ${fmt(montoMaximoCredito)}`,
                                         },
                                     })}
                                     type="number"
+                                    min={montoMinimoCredito || 0.01}
+                                    max={montoMaximoCredito || undefined}
                                     step="0.01"
                                     className={inputClass}
                                     placeholder="0.00"
                                     disabled={isLoading}
                                 />
+
+                                <p className="text-zinc-500 text-xs mt-1.5 ml-1">
+                                    Rango permitido: {fmt(montoMinimoCredito)} a {fmt(montoMaximoCredito)}.
+                                </p>
 
                                 {errors.monto && (
                                     <p className="text-red-400 text-xs mt-1">
@@ -285,19 +346,25 @@ const ProductDetailModal = ({ product, onClose }) => {
                                     {...register('plazoMeses', {
                                         required: 'El plazo es requerido',
                                         min: {
-                                            value: product.plazoMesesMinimo || 1,
-                                            message: `El plazo mínimo es ${product.plazoMesesMinimo || 1}`,
+                                            value: plazoMinimoCredito,
+                                            message: `El plazo mínimo es ${plazoMinimoCredito}`,
                                         },
                                         max: {
-                                            value: product.plazoMesesMaximo || 60,
-                                            message: `El plazo máximo es ${product.plazoMesesMaximo || 60}`,
+                                            value: plazoMaximoCredito,
+                                            message: `El plazo máximo es ${plazoMaximoCredito}`,
                                         },
                                     })}
                                     type="number"
+                                    min={plazoMinimoCredito}
+                                    max={plazoMaximoCredito}
                                     step="1"
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
+                                <p className="text-zinc-500 text-xs mt-1.5 ml-1">
+                                    Plazo permitido: {formatearPlazo(plazoMinimoCredito, plazoMaximoCredito)}.
+                                </p>
 
                                 {errors.plazoMeses && (
                                     <p className="text-red-400 text-xs mt-1">
@@ -414,12 +481,23 @@ const ProductDetailModal = ({ product, onClose }) => {
                                 </p>
 
                                 <p className="text-zinc-300 text-sm">
-                                    Tasa anual: <strong>{tasa}%</strong>
+                                    Rango disponible:{' '}
+                                    <strong>
+                                        {fmt(montoMinimoCredito)} a {fmt(montoMaximoCredito)}
+                                    </strong>
+                                </p>
+
+                                <p className="text-zinc-300 text-sm">
+                                    Plazo seleccionado: <strong>{plazoMeses} meses</strong>
+                                </p>
+
+                                <p className="text-zinc-300 text-sm">
+                                    Tasa anual: <strong>{tasaCredito}%</strong>
                                 </p>
 
                                 <p className="text-zinc-300 text-sm">
                                     Mora por incumplimiento:{' '}
-                                    <strong>{mora}% sobre la cuota vencida</strong>
+                                    <strong>{moraCredito}% sobre la cuota vencida</strong>
                                 </p>
 
                                 <p className="text-zinc-300 text-sm">
@@ -502,6 +580,13 @@ const ProductDetailModal = ({ product, onClose }) => {
                             ? 'El desembolso se realiza únicamente si la solicitud es aprobada.'
                             : 'La operación queda registrada en el historial financiero.'}
                     </div>
+
+                    {esCredito && (
+                        <div className="flex items-center gap-3 text-zinc-300 text-sm">
+                            <CheckCircle2 size={16} className="text-blue-500" />
+                            El monto solicitado debe estar dentro del mínimo y máximo configurado por el administrador.
+                        </div>
+                    )}
 
                     {!esCredito && descuento > 0 && (
                         <div className="flex items-center gap-3 text-zinc-300 text-sm">
