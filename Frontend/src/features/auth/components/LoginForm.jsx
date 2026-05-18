@@ -28,57 +28,104 @@ const LoginForm = () => {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+            {/* ── Campo: Usuario o correo ── */}
             <div>
-                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-3 block opacity-70">
+                <label
+                    className="block text-[10px] font-bold uppercase mb-2"
+                    style={{
+                        color: 'var(--texto-tenue)',
+                        letterSpacing: '0.20em',
+                        fontFamily: 'var(--font-body)',
+                    }}
+                >
                     Usuario o correo
                 </label>
-                <div className="relative group">
-                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
+                <div className="relative">
+                    <Mail
+                        size={15}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                        style={{ color: 'var(--texto-tenue)' }}
+                    />
                     <input
                         {...register('email', { required: 'Este campo es requerido' })}
                         type="text"
                         placeholder="usuario o correo@ejemplo.com"
-                        className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-2xl pl-12 pr-5 py-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                        className="input-premium w-full rounded-xl pl-11 pr-4 py-3.5 text-sm"
+                        style={{ fontFamily: 'var(--font-body)' }}
                     />
                 </div>
-                {errors.email && <p className="text-red-400 text-xs mt-2 ml-1">{errors.email.message}</p>}
+                {errors.email && (
+                    <p className="text-xs mt-1.5 ml-1" style={{ color: 'var(--rojo-texto)' }}>
+                        {errors.email.message}
+                    </p>
+                )}
             </div>
 
+            {/* ── Campo: Contraseña ── */}
             <div>
-                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-3 block opacity-70">
+                <label
+                    className="block text-[10px] font-bold uppercase mb-2"
+                    style={{
+                        color: 'var(--texto-tenue)',
+                        letterSpacing: '0.20em',
+                        fontFamily: 'var(--font-body)',
+                    }}
+                >
                     Contraseña
                 </label>
-                <div className="relative group">
-                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
+                <div className="relative">
+                    <Lock
+                        size={15}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                        style={{ color: 'var(--texto-tenue)' }}
+                    />
                     <input
                         {...register('password', { required: 'La contraseña es requerida' })}
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-2xl pl-12 pr-12 py-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                        className="input-premium w-full rounded-xl pl-11 pr-12 py-3.5 text-sm"
+                        style={{ fontFamily: 'var(--font-body)' }}
                     />
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors p-1"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-1 transition-colors"
+                        style={{ color: 'var(--texto-tenue)' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
                     >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                 </div>
-                {errors.password && <p className="text-red-400 text-xs mt-2 ml-1">{errors.password.message}</p>}
+                {errors.password && (
+                    <p className="text-xs mt-1.5 ml-1" style={{ color: 'var(--rojo-texto)' }}>
+                        {errors.password.message}
+                    </p>
+                )}
             </div>
 
+            {/* ── Botón submit ── */}
             <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 mt-2"
+                className="btn-oro w-full rounded-xl py-3.5 text-sm mt-2"
             >
                 {isSubmitting ? (
-                    <div className="flex items-center justify-center gap-3">
-                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    <div className="flex items-center justify-center gap-2.5">
+                        <div
+                            className="w-4 h-4 border-2 rounded-full animate-spin"
+                            style={{
+                                borderColor: 'rgba(14,10,5,0.3)',
+                                borderTopColor: '#0e0a05',
+                            }}
+                        />
                         <span>Iniciando sesión...</span>
                     </div>
-                ) : 'Iniciar sesión'}
+                ) : (
+                    'Iniciar sesión'
+                )}
             </button>
         </form>
     )

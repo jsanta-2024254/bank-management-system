@@ -1,78 +1,148 @@
 import { Link } from 'react-router-dom'
-import { Landmark } from 'lucide-react'
+import { Vault } from 'lucide-react'
 import LoginForm from '../components/LoginForm'
 
 const AuthPage = () => {
     return (
         <div
-            className="min-h-screen flex items-center justify-center bg-zinc-950 p-4"
-            style={{
-                background:
-                    'radial-gradient(ellipse at top, #1e293b 0%, #09090b 70%)',
-            }}
+            className="min-h-screen flex items-center justify-center p-4 fondo-auth"
         >
+            {/* Resplandor superior derecho */}
             <div
-                className="fixed -top-37.5 -right-37.5 w-96 h-96 rounded-full pointer-events-none"
+                className="fixed pointer-events-none"
                 style={{
-                    background:
-                        'radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)',
+                    top: '-120px',
+                    right: '-120px',
+                    width: '480px',
+                    height: '480px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(184,137,42,0.09) 0%, transparent 65%)',
                 }}
             />
 
+            {/* Resplandor inferior izquierdo */}
             <div
-                className="fixed -bottom-37.5 -left-37.5 w-96 h-96 rounded-full pointer-events-none"
+                className="fixed pointer-events-none"
                 style={{
-                    background:
-                        'radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)',
+                    bottom: '-120px',
+                    left: '-120px',
+                    width: '400px',
+                    height: '400px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(139,99,24,0.07) 0%, transparent 65%)',
                 }}
             />
 
-            <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl p-10 relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-700 via-blue-400 to-blue-700" />
+            {/* Card principal */}
+            <div
+                className="w-full max-w-md relative overflow-hidden"
+                style={{
+                    backgroundColor: '#160f06',
+                    border: '1px solid rgba(184,137,42,0.22)',
+                    borderRadius: '20px',
+                    boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(184,137,42,0.08)',
+                    padding: '2.5rem',
+                }}
+            >
+                {/* Línea dorada superior */}
+                <div
+                    className="absolute top-0 left-0 right-0"
+                    style={{
+                        height: '1px',
+                        background: 'linear-gradient(90deg, transparent 0%, var(--oro-oscuro) 30%, var(--oro-claro) 50%, var(--oro-oscuro) 70%, transparent 100%)',
+                    }}
+                />
 
-                <div className="flex items-center justify-center gap-3 mb-10">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
-                        <Landmark className="text-white" size={24} />
+                {/* Resplandor interno sutil */}
+                <div
+                    className="absolute top-0 left-0 right-0 pointer-events-none"
+                    style={{
+                        height: '120px',
+                        background: 'radial-gradient(ellipse at 50% 0%, rgba(184,137,42,0.06) 0%, transparent 70%)',
+                    }}
+                />
+
+                {/* Logo */}
+                <div className="flex flex-col items-center gap-3 mb-8">
+                    <div
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                        style={{
+                            background: 'linear-gradient(135deg, #b8892a 0%, #6b4a10 100%)',
+                            boxShadow: '0 8px 32px rgba(184,137,42,0.35), 0 0 0 1px rgba(184,137,42,0.30)',
+                        }}
+                    >
+                        <Vault size={30} style={{ color: '#0e0a05' }} />
                     </div>
 
-                    <span className="text-white font-black text-2xl tracking-tighter">
+                    <span
+                        className="text-2xl tracking-wider"
+                        style={{
+                            fontFamily: 'var(--font-display)',
+                            color: 'var(--oro-claro)',
+                            fontWeight: 700,
+                        }}
+                    >
                         BankManager
                     </span>
                 </div>
 
-                <div className="mb-6 text-center">
-                    <h1 className="text-2xl font-bold text-white mb-1">
+                {/* Título */}
+                <div className="text-center mb-8">
+                    <h1
+                        className="text-xl font-bold mb-1.5"
+                        style={{ color: 'var(--texto-blanco)', fontFamily: 'var(--font-body)' }}
+                    >
                         Bienvenido
                     </h1>
-
-                    <p className="text-zinc-500 text-sm">
+                    <p
+                        className="text-sm"
+                        style={{ color: 'var(--texto-tenue)' }}
+                    >
                         Ingresa tus credenciales para continuar
                     </p>
                 </div>
 
+                {/* Formulario */}
                 <LoginForm />
 
-                <div className="text-center mt-5">
-                    <Link
-                        to="/forgot-password"
-                        className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
-                    >
-                        ¿Olvidaste tu contraseña?
-                    </Link>
+                {/* Links */}
+                <div className="text-center mt-5 space-y-3">
+                    <div>
+                        <Link
+                            to="/forgot-password"
+                            className="text-sm transition-colors"
+                            style={{ color: 'var(--texto-tenue)' }}
+                            onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
+                            onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
+                        >
+                            ¿Olvidaste tu contraseña?
+                        </Link>
+                    </div>
+                    <div>
+                        <Link
+                            to="/register"
+                            className="text-sm transition-colors"
+                            style={{ color: 'var(--texto-tenue)' }}
+                            onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
+                            onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
+                        >
+                            ¿No tienes cuenta?{' '}
+                            <span style={{ color: 'var(--oro-medio)', fontWeight: 600 }}>
+                                Regístrate
+                            </span>
+                        </Link>
+                    </div>
                 </div>
 
-                <div className="text-center mt-4">
-                    <Link
-                        to="/register"
-                        className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
+                {/* Footer */}
+                <div className="mt-8" style={{ borderTop: '1px solid rgba(184,137,42,0.08)', paddingTop: '1.25rem' }}>
+                    <p
+                        className="text-center text-xs"
+                        style={{ color: 'var(--texto-muted)' }}
                     >
-                        ¿No tienes cuenta? Regístrate
-                    </Link>
+                        © 2025 BankManager. Todos los derechos reservados.
+                    </p>
                 </div>
-
-                <p className="text-center text-zinc-600 text-xs mt-8">
-                    © 2025 BankManager. Todos los derechos reservados.
-                </p>
             </div>
         </div>
     )
