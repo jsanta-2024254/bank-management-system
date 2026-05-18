@@ -17,6 +17,7 @@ import {
     approveCreditRequest,
     rejectCreditRequest,
     payCreditInstallment,
+    cancelSubscription,
 } from './product.controller.js';
 import { verifyToken, isAdmin, isCliente } from '../../middlewares/auth.middleware.js';
 import { body, param, query } from 'express-validator';
@@ -325,6 +326,24 @@ router.post(
     ],
     handleValidationErrors,
     payProductInstallment
+);
+
+router.post(
+    '/subscriptions/:acquisitionId/cancel',
+    verifyToken,
+    isCliente,
+    [
+        param('acquisitionId')
+            .isMongoId()
+            .withMessage('ID de suscripción invalido'),
+
+        body('motivoCancelacion')
+            .optional()
+            .isString()
+            .trim(),
+    ],
+    handleValidationErrors,
+    cancelSubscription
 );
 
 router.get(

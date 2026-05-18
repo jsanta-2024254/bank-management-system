@@ -16,6 +16,7 @@ import {
     rejectCreditRequest as rejectCreditRequestRequest,
     payCreditInstallment as payCreditInstallmentRequest,
     deleteProduct as deleteProductRequest,
+    cancelSubscription as cancelSubscriptionRequest,
 } from '../../../shared/api/products'
 
 const getErrorMessage = (error, fallback) => {
@@ -390,6 +391,36 @@ const useProductStore = create((set) => ({
             return response.data
         } catch (error) {
             const message = getErrorMessage(error, 'Error al pagar la cuota del crédito')
+
+            set({
+                error: message,
+                loading: false,
+            })
+
+            throw error
+        }
+    },
+
+    cancelSubscription: async (acquisitionId, data = {}) => {
+    set({ loading: true, error: null })
+
+    try {
+        const response = await cancelSubscriptionRequest(acquisitionId, data)
+        const updated = response.data?.data
+
+        set((state) => ({
+            acquisitions: state.acquisitions.map((item) =>
+                item._id === acquisitionId || item.id === acquisitionId
+                    ? updated
+                    : item
+            ),
+            loading: false,
+            error: null,
+        }))
+
+        return response.data
+        } catch (error) {
+            const message = getErrorMessage(error, 'Error al cancelar la suscripción')
 
             set({
                 error: message,

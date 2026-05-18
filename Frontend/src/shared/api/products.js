@@ -37,3 +37,6 @@ export const rejectCreditRequest = (id, data) =>
 
 export const payCreditInstallment = (creditRequestId, paymentId, data) =>
     api.post(`/products/credits/requests/${creditRequestId}/payments/${paymentId}/pay`, data)
+
+export const cancelSubscription = (acquisitionId, data = {}) =>
+    api.post(`/products/subscriptions/${acquisitionId}/cancel`, data)

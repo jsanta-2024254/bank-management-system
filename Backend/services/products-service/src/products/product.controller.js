@@ -1217,3 +1217,42 @@ export const payCreditInstallment = async (req, res) => {
         await session.endSession();
     }
 };
+
+export const cancelSubscription = async (req, res) => {
+    try {
+        const usuarioId = obtenerUsuarioAutenticado(req);
+        const { acquisitionId } = req.params;
+        const { motivoCancelacion } = req.body;
+
+        if (!usuarioId) {
+            throw crearErrorHttp(401, 'No se pudo identificar al usuario autenticado');
+        }
+
+        const subscription = await ProductAcquisition.findOne({
+            _id: acquisitionId,
+            usuario: usuarioId,
+            tipoOperacion: 'suscripcion',
+            estado: 'activa',
+        }).populate('producto', 'nombre tipo descripcion');
+
+        if (!subscription) {
+            throw crearErrorHttp(404, 'Suscripción activa no encontrada');
+        }
+
+        subscription.estado = 'cancelada';
+        subscription.fechaCancelacion = new Date();
+        subscription.motivoCancelacion =
+            motivoCancelacion || 'Cancelada por el cliente desde la app';
+        subscription.fechaProximoCobro = null;
+
+        await subscription.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Suscripción cancelada correctamente',
+            data: subscription,
+        });
+    } catch (error) {
+        return responderError(res, error, 'Error al cancelar la suscripción');
+    }
+};
