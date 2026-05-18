@@ -4,7 +4,6 @@ import {
     CreditCard,
     Users,
     ArrowLeftRight,
-    Landmark,
     Shield,
     TrendingUp,
     ArrowUpRight,
@@ -26,7 +25,7 @@ import useAccountStore from '../../accounts/store/accountStore'
 import useUserStore from '../../users/store/userStore'
 import useTransactionStore from '../../transactions/store/transactionStore'
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const fmt = (n) =>
     new Intl.NumberFormat('es-GT', {
@@ -44,49 +43,133 @@ const dateFmt = (d) =>
         minute: '2-digit',
     })
 
-// ─── Stat Card ──────────────────────────────────────────────────────────────
+// ─── Stat Card ───────────────────────────────────────────────────────────────
 
-const StatCard = ({ icon: Icon, label, value, color, path, delay, loading }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay }}
-        className="bg-zinc-900/60 border border-white/5 rounded-3xl p-6 hover:border-white/10 transition-all"
-    >
-        <div className="flex items-start justify-between mb-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color}`}>
-                <Icon size={22} className="text-white" />
-            </div>
-            {path && (
-                <NavLink
-                    to={path}
-                    className="text-xs text-zinc-500 hover:text-blue-400 transition-colors font-semibold"
+const coloresCard = [
+    { fondo: 'rgba(184,137,42,0.12)', borde: 'rgba(184,137,42,0.30)', icono: '#b8892a' },
+    { fondo: 'rgba(45,122,79,0.12)',  borde: 'rgba(45,122,79,0.30)',  icono: '#5cb87a' },
+    { fondo: 'rgba(74,56,32,0.20)',   borde: 'rgba(184,137,42,0.15)', icono: '#7a6040' },
+    { fondo: 'rgba(100,70,130,0.12)', borde: 'rgba(130,90,180,0.25)', icono: '#a07ac8' },
+]
+
+const StatCard = ({ icon: Icon, label, value, colorIdx = 0, path, delay, loading }) => {
+    const c = coloresCard[colorIdx] || coloresCard[0]
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay }}
+            style={{
+                backgroundColor: '#1a1208',
+                border: `1px solid var(--borde-card)`,
+                borderRadius: '14px',
+                padding: '1.25rem 1.5rem',
+                transition: 'border-color 0.2s, box-shadow 0.2s',
+            }}
+            onMouseEnter={e => {
+                e.currentTarget.style.borderColor = 'rgba(184,137,42,0.40)'
+                e.currentTarget.style.boxShadow = '0 4px 24px rgba(184,137,42,0.08)'
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'var(--borde-card)'
+                e.currentTarget.style.boxShadow = 'none'
+            }}
+        >
+            <div className="flex items-start justify-between mb-3">
+                <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: c.fondo, border: `1px solid ${c.borde}` }}
                 >
-                    Ver →
-                </NavLink>
+                    <Icon size={18} style={{ color: c.icono }} />
+                </div>
+                {path && (
+                    <NavLink
+                        to={path}
+                        className="text-[10px] font-bold uppercase tracking-widest transition-colors"
+                        style={{ color: 'var(--texto-tenue)' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
+                    >
+                        Ver →
+                    </NavLink>
+                )}
+            </div>
+            <p
+                className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                style={{ color: 'var(--texto-tenue)' }}
+            >
+                {label}
+            </p>
+            {loading ? (
+                <div
+                    className="h-8 w-20 rounded-lg animate-pulse mt-1"
+                    style={{ backgroundColor: 'rgba(184,137,42,0.08)' }}
+                />
+            ) : (
+                <p
+                    className="text-3xl font-black"
+                    style={{ color: 'var(--texto-blanco)', fontFamily: 'var(--font-body)' }}
+                >
+                    {value}
+                </p>
             )}
-        </div>
-        <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">{label}</p>
-        {loading ? (
-            <div className="h-10 w-24 bg-zinc-800 rounded-xl animate-pulse mt-1" />
-        ) : (
-            <p className="text-white text-4xl font-black">{value}</p>
-        )}
-    </motion.div>
-)
+        </motion.div>
+    )
+}
 
-// ─── Custom Tooltip for Chart ────────────────────────────────────────────────
+// ─── Custom Tooltip ──────────────────────────────────────────────────────────
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null
     return (
-        <div className="bg-zinc-900 border border-white/10 rounded-2xl px-4 py-3 shadow-xl">
-            <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1 capitalize">
+        <div
+            className="px-4 py-3 rounded-xl shadow-xl"
+            style={{
+                backgroundColor: '#160f06',
+                border: '1px solid rgba(184,137,42,0.25)',
+            }}
+        >
+            <p
+                className="text-[10px] font-bold uppercase tracking-widest mb-1 capitalize"
+                style={{ color: 'var(--texto-tenue)' }}
+            >
                 {label}
             </p>
-            <p className="text-white font-black text-lg">{fmt(payload[0].value)}</p>
+            <p className="font-black text-lg" style={{ color: 'var(--oro-claro)' }}>
+                {fmt(payload[0].value)}
+            </p>
         </div>
     )
+}
+
+// ─── Estilos compartidos de panel ────────────────────────────────────────────
+
+const estiloPanel = {
+    backgroundColor: '#1a1208',
+    border: '1px solid var(--borde-card)',
+    borderRadius: '14px',
+    overflow: 'hidden',
+}
+
+const estiloCabecera = {
+    borderBottom: '1px solid rgba(184,137,42,0.10)',
+    padding: '1.25rem 1.75rem',
+}
+
+const estiloTh = {
+    color: 'var(--texto-tenue)',
+    fontSize: '10px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.12em',
+    padding: '0.75rem 1.75rem',
+    backgroundColor: 'rgba(184,137,42,0.04)',
+}
+
+const estiloTd = {
+    padding: '0.875rem 1.75rem',
+    borderBottom: '1px solid rgba(184,137,42,0.06)',
+    fontSize: '13px',
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
@@ -104,20 +187,17 @@ const Dashboard = () => {
         currentAccountId,
     } = useTransactionStore()
 
-    // Fetch accounts and users on mount
     useEffect(() => {
         fetchAccounts()
         if (role === 'ADMIN_ROLE') fetchUsers()
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Once accounts are loaded, set the first account to trigger transaction fetch
     useEffect(() => {
         if (accounts.length > 0 && !currentAccountId) {
             setCurrentAccountId(accounts[0]._id)
         }
     }, [accounts, currentAccountId, setCurrentAccountId])
 
-    // ── Derived stats ──────────────────────────────────────────────────────
     const activeAccounts = useMemo(() => accounts.filter((a) => a.estado).length, [accounts])
 
     const totalBalance = useMemo(
@@ -125,7 +205,6 @@ const Dashboard = () => {
         [accounts]
     )
 
-    // Transactions this month
     const now = new Date()
     const txThisMonth = useMemo(
         () =>
@@ -136,7 +215,6 @@ const Dashboard = () => {
         [transactions] // eslint-disable-line react-hooks/exhaustive-deps
     )
 
-    // Last 5 transactions
     const recentTransactions = useMemo(
         () =>
             [...transactions]
@@ -145,7 +223,6 @@ const Dashboard = () => {
         [transactions]
     )
 
-    // Chart data: saldo por tipo de cuenta
     const chartData = useMemo(() => {
         const groups = {}
         accounts.forEach((a) => {
@@ -155,43 +232,60 @@ const Dashboard = () => {
         return Object.entries(groups).map(([name, saldo]) => ({ name, saldo }))
     }, [accounts])
 
-    const CHART_COLORS = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#dc2626']
+    const CHART_COLORS = ['#b8892a', '#5cb87a', '#a07ac8', '#c87a7a']
 
-    // ── Render ─────────────────────────────────────────────────────────────
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <div className="pb-10">
-            {/* Header */}
+
+            {/* ── Encabezado ── */}
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-10"
+                className="mb-8"
             >
                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-xl shadow-blue-600/30">
-                        <Landmark size={26} className="text-white" />
+                    <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{
+                            background: 'linear-gradient(135deg, #b8892a 0%, #6b4a10 100%)',
+                            boxShadow: '0 4px 20px rgba(184,137,42,0.30)',
+                        }}
+                    >
+                        <Shield size={20} style={{ color: '#0e0a05' }} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-white">
-                            Bienvenido, {user?.username || 'Usuario'}
+                        <h1
+                            className="text-2xl font-bold"
+                            style={{ color: 'var(--texto-blanco)', fontFamily: 'var(--font-body)' }}
+                        >
+                            Bienvenido,{' '}
+                            <span style={{ color: 'var(--oro-claro)' }}>
+                                {user?.username || 'Usuario'}
+                            </span>
                         </h1>
-                        <p className="text-zinc-500 text-sm mt-0.5 flex items-center gap-1.5">
-                            <Shield size={13} /> {role}
+                        <p
+                            className="text-xs mt-0.5 uppercase tracking-widest"
+                            style={{ color: 'var(--texto-tenue)' }}
+                        >
+                            {role === 'ADMIN_ROLE' ? 'Administrador' : 'Cliente'}
                         </p>
                     </div>
                 </div>
+                <div className="linea-oro mt-6" />
             </motion.div>
 
-            {/* Summary Cards */}
+            {/* ── Tarjetas de resumen ── */}
             <div
                 className={`grid grid-cols-1 sm:grid-cols-2 ${
                     role === 'ADMIN_ROLE' ? 'lg:grid-cols-4' : 'lg:grid-cols-3'
-                } gap-5 mb-10`}
+                } gap-4 mb-8`}
             >
                 <StatCard
                     icon={CreditCard}
                     label="Cuentas activas"
                     value={activeAccounts}
-                    color="bg-blue-600"
+                    colorIdx={0}
                     delay={0}
                     path="/accounts"
                     loading={loadingAccounts}
@@ -200,7 +294,7 @@ const Dashboard = () => {
                     icon={TrendingUp}
                     label="Saldo total"
                     value={fmt(totalBalance)}
-                    color="bg-emerald-600"
+                    colorIdx={1}
                     delay={0.05}
                     loading={loadingAccounts}
                 />
@@ -208,7 +302,7 @@ const Dashboard = () => {
                     icon={ArrowLeftRight}
                     label="Transacciones del mes"
                     value={txThisMonth}
-                    color="bg-zinc-700"
+                    colorIdx={2}
                     delay={0.1}
                     path="/transactions"
                     loading={loadingTx}
@@ -218,69 +312,74 @@ const Dashboard = () => {
                         icon={Users}
                         label="Usuarios"
                         value={users.length}
-                        color="bg-violet-600"
+                        colorIdx={3}
                         delay={0.15}
                         path="/users"
                     />
                 )}
             </div>
 
-            {/* Chart + Recent Transactions side by side on large screens */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-                {/* Bar Chart: saldo por tipo de cuenta */}
+            {/* ── Gráfico + Transacciones recientes ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-5">
+
+                {/* Gráfico de barras */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="lg:col-span-2 bg-zinc-900/50 border border-white/5 rounded-3xl p-6"
+                    className="lg:col-span-2"
+                    style={{ ...estiloPanel, padding: '1.5rem' }}
                 >
-                    <h2 className="text-white font-bold text-xl mb-1">Saldo por tipo de cuenta</h2>
-                    <p className="text-zinc-500 text-xs mb-6">Ahorro vs. Monetaria</p>
+                    <h2
+                        className="font-bold text-base mb-0.5"
+                        style={{ color: 'var(--texto-blanco)' }}
+                    >
+                        Saldo por tipo de cuenta
+                    </h2>
+                    <p className="text-xs mb-5" style={{ color: 'var(--texto-tenue)' }}>
+                        Ahorro vs. Monetaria
+                    </p>
 
                     {loadingAccounts ? (
                         <div className="h-52 flex items-center justify-center">
-                            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                            <div
+                                className="w-7 h-7 border-2 rounded-full animate-spin"
+                                style={{ borderColor: 'rgba(184,137,42,0.2)', borderTopColor: '#b8892a' }}
+                            />
                         </div>
                     ) : chartData.length === 0 ? (
-                        <div className="h-52 flex items-center justify-center text-zinc-600 text-sm">
+                        <div className="h-52 flex items-center justify-center text-sm" style={{ color: 'var(--texto-muted)' }}>
                             Sin datos de cuentas
                         </div>
                     ) : (
                         <ResponsiveContainer width="100%" height={210}>
-                            <BarChart data={chartData} barSize={40}>
+                            <BarChart data={chartData} barSize={36}>
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke="rgba(255,255,255,0.05)"
+                                    stroke="rgba(184,137,42,0.06)"
                                     vertical={false}
                                 />
                                 <XAxis
                                     dataKey="name"
-                                    tick={{ fill: '#71717a', fontSize: 11, fontWeight: 700 }}
+                                    tick={{ fill: '#7a6040', fontSize: 11, fontWeight: 700 }}
                                     axisLine={false}
                                     tickLine={false}
-                                    tickFormatter={(v) =>
-                                        v.charAt(0).toUpperCase() + v.slice(1)
-                                    }
+                                    tickFormatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)}
                                 />
                                 <YAxis
-                                    tick={{ fill: '#71717a', fontSize: 10 }}
+                                    tick={{ fill: '#7a6040', fontSize: 10 }}
                                     axisLine={false}
                                     tickLine={false}
-                                    tickFormatter={(v) =>
-                                        v >= 1000 ? `Q${(v / 1000).toFixed(0)}k` : `Q${v}`
-                                    }
+                                    tickFormatter={(v) => v >= 1000 ? `Q${(v / 1000).toFixed(0)}k` : `Q${v}`}
                                     width={50}
                                 />
                                 <Tooltip
                                     content={<CustomTooltip />}
-                                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                    cursor={{ fill: 'rgba(184,137,42,0.04)' }}
                                 />
-                                <Bar dataKey="saldo" radius={[8, 8, 0, 0]}>
+                                <Bar dataKey="saldo" radius={[6, 6, 0, 0]}>
                                     {chartData.map((_, i) => (
-                                        <Cell
-                                            key={i}
-                                            fill={CHART_COLORS[i % CHART_COLORS.length]}
-                                        />
+                                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -288,18 +387,24 @@ const Dashboard = () => {
                     )}
                 </motion.div>
 
-                {/* Recent Transactions Table */}
+                {/* Últimas transacciones */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="lg:col-span-3 bg-zinc-900/50 border border-white/5 rounded-3xl overflow-hidden"
+                    className="lg:col-span-3"
+                    style={estiloPanel}
                 >
-                    <div className="flex items-center justify-between px-8 py-6 border-b border-white/5">
-                        <h2 className="text-white font-bold text-xl">Últimas transacciones</h2>
+                    <div className="flex items-center justify-between" style={estiloCabecera}>
+                        <h2 className="font-bold text-base" style={{ color: 'var(--texto-blanco)' }}>
+                            Últimas transacciones
+                        </h2>
                         <NavLink
                             to="/transactions"
-                            className="text-sm text-blue-400 hover:text-blue-300 font-bold transition-colors"
+                            className="text-xs font-bold uppercase tracking-widest transition-colors"
+                            style={{ color: 'var(--texto-tenue)' }}
+                            onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
+                            onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
                         >
                             Ver todas →
                         </NavLink>
@@ -308,86 +413,76 @@ const Dashboard = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-white/[0.03]">
-                                    <th className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
-                                        Tipo
-                                    </th>
-                                    <th className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
-                                        Monto
-                                    </th>
-                                    <th className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
-                                        Cuenta destino
-                                    </th>
-                                    <th className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
-                                        Fecha
-                                    </th>
+                                <tr>
+                                    <th style={estiloTh}>Tipo</th>
+                                    <th style={estiloTh}>Monto</th>
+                                    <th style={estiloTh}>Cuenta destino</th>
+                                    <th style={estiloTh}>Fecha</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody>
                                 {loadingTx ? (
                                     Array.from({ length: 3 }).map((_, i) => (
                                         <tr key={i}>
-                                            <td colSpan={4} className="px-8 py-4">
-                                                <div className="h-4 bg-zinc-800 rounded-full animate-pulse w-full" />
+                                            <td colSpan={4} style={estiloTd}>
+                                                <div
+                                                    className="h-3 rounded-full animate-pulse w-full"
+                                                    style={{ backgroundColor: 'rgba(184,137,42,0.08)' }}
+                                                />
                                             </td>
                                         </tr>
                                     ))
                                 ) : recentTransactions.length === 0 ? (
                                     <tr>
-                                        <td
-                                            colSpan={4}
-                                            className="px-8 py-10 text-center text-zinc-500 text-sm"
-                                        >
-                                            {currentAccountId
-                                                ? 'No hay transacciones aún.'
-                                                : 'No hay cuentas disponibles.'}
+                                        <td colSpan={4} className="text-center py-10 text-sm" style={{ color: 'var(--texto-muted)' }}>
+                                            {currentAccountId ? 'No hay transacciones aún.' : 'No hay cuentas disponibles.'}
                                         </td>
                                     </tr>
                                 ) : (
                                     recentTransactions.map((t) => (
                                         <tr
                                             key={t._id}
-                                            className="hover:bg-white/[0.03] transition-colors"
+                                            style={{ transition: 'background 0.15s' }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(184,137,42,0.04)'}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
                                         >
-                                            <td className="px-8 py-4">
+                                            <td style={estiloTd}>
                                                 <div className="flex items-center gap-2">
                                                     <div
-                                                        className={`w-7 h-7 rounded-xl flex items-center justify-center ${
-                                                            t.tipo === 'transferencia'
-                                                                ? 'bg-blue-500/10'
-                                                                : 'bg-emerald-500/10'
-                                                        }`}
+                                                        className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                                                        style={{
+                                                            backgroundColor: t.tipo === 'transferencia'
+                                                                ? 'rgba(184,137,42,0.12)'
+                                                                : 'rgba(45,122,79,0.12)',
+                                                        }}
                                                     >
                                                         {t.tipo === 'transferencia' ? (
-                                                            <ArrowUpRight
-                                                                size={13}
-                                                                className="text-blue-400"
-                                                            />
+                                                            <ArrowUpRight size={11} style={{ color: '#b8892a' }} />
                                                         ) : (
-                                                            <ArrowDownLeft
-                                                                size={13}
-                                                                className="text-emerald-400"
-                                                            />
+                                                            <ArrowDownLeft size={11} style={{ color: '#5cb87a' }} />
                                                         )}
                                                     </div>
-                                                    <span className="text-white text-sm font-semibold capitalize">
+                                                    <span
+                                                        className="capitalize font-semibold"
+                                                        style={{ color: 'var(--texto-blanco)' }}
+                                                    >
                                                         {t.tipo}
                                                     </span>
                                                 </div>
                                             </td>
                                             <td
-                                                className={`px-8 py-4 font-bold text-sm ${
-                                                    t.tipo === 'transferencia'
-                                                        ? 'text-white'
-                                                        : 'text-emerald-400'
-                                                }`}
+                                                style={{
+                                                    ...estiloTd,
+                                                    color: t.tipo === 'transferencia' ? 'var(--texto-blanco)' : '#5cb87a',
+                                                    fontWeight: 700,
+                                                }}
                                             >
                                                 {fmt(t.monto)}
                                             </td>
-                                            <td className="px-8 py-4 text-zinc-400 font-mono text-xs">
+                                            <td style={{ ...estiloTd, color: 'var(--texto-tenue)', fontFamily: 'monospace', fontSize: '11px' }}>
                                                 {t.numeroCuentaDestino || '—'}
                                             </td>
-                                            <td className="px-8 py-4 text-zinc-500 text-xs">
+                                            <td style={{ ...estiloTd, color: 'var(--texto-muted)', fontSize: '11px' }}>
                                                 {dateFmt(t.createdAt || t.fecha)}
                                             </td>
                                         </tr>
@@ -399,90 +494,90 @@ const Dashboard = () => {
                 </motion.div>
             </div>
 
-            {/* Recent Accounts Table */}
+            {/* ── Cuentas recientes ── */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="bg-zinc-900/50 border border-white/5 rounded-3xl overflow-hidden"
+                style={estiloPanel}
             >
-                <div className="flex items-center justify-between px-8 py-6 border-b border-white/5">
-                    <h2 className="text-white font-bold text-xl">Cuentas Recientes</h2>
+                <div className="flex items-center justify-between" style={estiloCabecera}>
+                    <h2 className="font-bold text-base" style={{ color: 'var(--texto-blanco)' }}>
+                        Cuentas Recientes
+                    </h2>
                     <NavLink
                         to="/accounts"
-                        className="text-sm text-blue-400 hover:text-blue-300 font-bold transition-colors"
+                        className="text-xs font-bold uppercase tracking-widest transition-colors"
+                        style={{ color: 'var(--texto-tenue)' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
                     >
                         Ver todas →
                     </NavLink>
                 </div>
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-white/[0.03]">
-                                <th className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
-                                    Número
-                                </th>
-                                <th className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
-                                    Tipo
-                                </th>
-                                <th className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
-                                    Saldo
-                                </th>
-                                <th className="text-zinc-500 text-[10px] font-black uppercase tracking-widest px-8 py-4">
-                                    Estado
-                                </th>
+                            <tr>
+                                <th style={estiloTh}>Número</th>
+                                <th style={estiloTh}>Tipo</th>
+                                <th style={estiloTh}>Saldo</th>
+                                <th style={estiloTh}>Estado</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody>
                             {loadingAccounts
                                 ? Array.from({ length: 3 }).map((_, i) => (
-                                      <tr key={i}>
-                                          <td colSpan={4} className="px-8 py-4">
-                                              <div className="h-4 bg-zinc-800 rounded-full animate-pulse w-full" />
-                                          </td>
-                                      </tr>
-                                  ))
+                                    <tr key={i}>
+                                        <td colSpan={4} style={estiloTd}>
+                                            <div
+                                                className="h-3 rounded-full animate-pulse w-full"
+                                                style={{ backgroundColor: 'rgba(184,137,42,0.08)' }}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))
                                 : accounts.slice(0, 5).map((a) => (
-                                      <tr
-                                          key={a._id}
-                                          className="hover:bg-white/[0.03] transition-colors"
-                                      >
-                                          <td className="px-8 py-4 text-white font-mono text-sm">
-                                              {a.numeroCuenta}
-                                          </td>
-                                          <td className="px-8 py-4 text-zinc-400 text-sm capitalize">
-                                              {a.tipoCuenta}
-                                          </td>
-                                          <td className="px-8 py-4 text-white text-sm font-semibold">
-                                              {new Intl.NumberFormat('es-GT', {
-                                                  style: 'currency',
-                                                  currency: 'GTQ',
-                                              }).format(a.saldo || 0)}
-                                          </td>
-                                          <td className="px-8 py-4">
-                                              <span
-                                                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                                                      a.estado
-                                                          ? 'bg-green-500/10 text-green-400'
-                                                          : 'bg-zinc-700/40 text-zinc-500'
-                                                  }`}
-                                              >
-                                                  <span
-                                                      className={`w-1.5 h-1.5 rounded-full ${
-                                                          a.estado ? 'bg-green-400' : 'bg-zinc-500'
-                                                      }`}
-                                                  />
-                                                  {a.estado ? 'Activa' : 'Inactiva'}
-                                              </span>
-                                          </td>
-                                      </tr>
-                                  ))}
+                                    <tr
+                                        key={a._id}
+                                        style={{ transition: 'background 0.15s' }}
+                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(184,137,42,0.04)'}
+                                        onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
+                                    >
+                                        <td style={{ ...estiloTd, color: 'var(--texto-blanco)', fontFamily: 'monospace' }}>
+                                            {a.numeroCuenta}
+                                        </td>
+                                        <td style={{ ...estiloTd, color: 'var(--texto-claro)', textTransform: 'capitalize' }}>
+                                            {a.tipoCuenta}
+                                        </td>
+                                        <td style={{ ...estiloTd, color: 'var(--oro-claro)', fontWeight: 700 }}>
+                                            {new Intl.NumberFormat('es-GT', {
+                                                style: 'currency',
+                                                currency: 'GTQ',
+                                            }).format(a.saldo || 0)}
+                                        </td>
+                                        <td style={estiloTd}>
+                                            <span
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                                                style={
+                                                    a.estado
+                                                        ? { backgroundColor: 'rgba(45,122,79,0.15)', color: '#5cb87a', border: '1px solid rgba(45,122,79,0.25)' }
+                                                        : { backgroundColor: 'rgba(74,56,32,0.20)', color: 'var(--texto-tenue)', border: '1px solid rgba(74,56,32,0.25)' }
+                                                }
+                                            >
+                                                <span
+                                                    className="w-1.5 h-1.5 rounded-full"
+                                                    style={{ backgroundColor: a.estado ? '#5cb87a' : 'var(--texto-muted)' }}
+                                                />
+                                                {a.estado ? 'Activa' : 'Inactiva'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
                             {!loadingAccounts && accounts.length === 0 && (
                                 <tr>
-                                    <td
-                                        colSpan={4}
-                                        className="px-8 py-10 text-center text-zinc-500 text-sm"
-                                    >
+                                    <td colSpan={4} className="text-center py-10 text-sm" style={{ color: 'var(--texto-muted)' }}>
                                         No hay cuentas aún.
                                     </td>
                                 </tr>
