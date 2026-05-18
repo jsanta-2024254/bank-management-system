@@ -1,74 +1,70 @@
-import dotenv from 'dotenv';
+'use strict';
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-
-import { connectDB } from './configs/db-mongo.js';
-import { corsOptions } from './configs/cors-configuration.js';
-import { helmetConfiguration } from './configs/helmet-configuration.js';
-
-import './src/products/product.model.js';
-import './src/products/productAcquisition.model.js';
-import './src/accounts/account.model.js';
-import './src/transactions/transaction.model.js';
-
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import productRoutes from './src/products/product.routes.js';
-
-import {
-  errorHandler,
-  notFound,
-} from './middlewares/server-genericError-handler.js';
-import { requestLimit } from './middlewares/request-limit.js';
 
 dotenv.config();
 
 const app = express();
 
 const PORT = process.env.PORT || 3006;
-const SERVICE_NAME = process.env.SERVICE_NAME || 'products-service';
-const BASE_PATH = '/api/v1';
+const MONGO_URI =
+    process.env.MONGO_URI ||
+    `mongodb://${process.env.MONGO_HOST || 'localhost'}:${process.env.MONGO_PORT || 27017}/${process.env.DB_NAME || 'SistemaBancario'}`;
 
-app.set('trust proxy', 1);
-
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+app.use(helmet());
+app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-app.use(cors(corsOptions));
-app.use(helmet(helmetConfiguration));
-app.use(requestLimit);
-app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
-app.get(`${BASE_PATH}/health`, (req, res) => {
-  res.status(200).json({
-    success: true,
-    status: 'Healthy',
-    service: SERVICE_NAME,
-    timestamp: new Date().toISOString(),
-  });
+app.get('/api/v1/health', (_req, res) => {
+    res.status(200).json({
+        service: 'products-service',
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+    });
 });
 
-app.use(`${BASE_PATH}/products`, productRoutes);
-app.use(`${BASE_PATH}/admin/products`, productRoutes);
+app.use('/api/v1/products', productRoutes);
 
-app.use(notFound);
-app.use(errorHandler);
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Ruta no encontrada',
+        path: req.originalUrl,
+    });
+});
+
+app.use((err, _req, res, _next) => {
+    console.error('Products service error:', err);
+
+    res.status(err.statusCode || 500).json({
+        success: false,
+        message: err.message || 'Error interno del products-service',
+    });
+});
 
 const startServer = async () => {
-  try {
-    await connectDB();
+    try {
+        await mongoose.connect(MONGO_URI);
 
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`${SERVICE_NAME} running on port ${PORT}`);
-      console.log(`Health: http://localhost:${PORT}${BASE_PATH}/health`);
-      console.log(`Products: http://localhost:${PORT}${BASE_PATH}/products`);
-      console.log(
-        `Admin products: http://localhost:${PORT}${BASE_PATH}/admin/products`
-      );
-    });
-  } catch (error) {
-    console.error(`Error starting ${SERVICE_NAME}:`, error.message);
-    process.exit(1);
-  }
+        console.log('Products service connected to MongoDB');
+
+        app.listen(PORT, () => {
+            console.log(`Products service running on port ${PORT}`);
+            console.log(`Health: http://localhost:${PORT}/api/v1/health`);
+        });
+    } catch (error) {
+        console.error('Error starting products-service:', error);
+        process.exit(1);
+    }
 };
 
 startServer();

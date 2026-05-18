@@ -1,7 +1,7 @@
 'use strict';
 import mongoose from 'mongoose';
 
-const paymentScheduleSchema = mongoose.Schema(
+export const paymentScheduleSchema = mongoose.Schema(
     {
         numeroCuota: {
             type: Number,
@@ -17,7 +17,7 @@ const paymentScheduleSchema = mongoose.Schema(
         },
         interes: {
             type: Number,
-            required: true,
+            default: 0,
         },
         montoCuota: {
             type: Number,
@@ -71,7 +71,7 @@ const productAcquisitionSchema = mongoose.Schema(
             type: String,
             required: true,
             enum: {
-                values: ['compra', 'suscripcion', 'credito'],
+                values: ['compra', 'compra_cuotas', 'suscripcion', 'ahorro', 'inversion'],
                 message: 'Tipo de operacion invalido',
             },
         },
@@ -92,19 +92,20 @@ const productAcquisitionSchema = mongoose.Schema(
             required: true,
             min: [0.01, 'El monto debe ser mayor que 0'],
         },
-        tasaInteresAplicada: {
+        numeroCuotas: {
+            type: Number,
+            default: 1,
+            min: [1, 'La cantidad de cuotas debe ser mayor o igual a 1'],
+        },
+        montoCobradoInicial: {
             type: Number,
             default: 0,
         },
-        moraPorcentajeAplicada: {
+        totalPagado: {
             type: Number,
             default: 0,
         },
-        plazoMeses: {
-            type: Number,
-            default: null,
-        },
-        totalInteres: {
+        totalPendiente: {
             type: Number,
             default: 0,
         },
@@ -132,6 +133,11 @@ const productAcquisitionSchema = mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Transaction',
             default: null,
+        },
+        transacciones: {
+            type: [mongoose.Schema.Types.ObjectId],
+            ref: 'Transaction',
+            default: [],
         },
         estado: {
             type: String,
