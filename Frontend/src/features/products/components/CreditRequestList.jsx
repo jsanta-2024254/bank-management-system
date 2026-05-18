@@ -483,12 +483,12 @@ const CreditRequestList = () => {
                 </Modal>
             )}
 
-            <div className="mb-8 overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
+            <div className="mb-8 overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
                 <div className="premium-gold-line mb-6 h-px w-full" />
 
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
                             <Landmark size={28} className="text-[#5b3a0d]" />
                         </div>
 
@@ -577,7 +577,7 @@ const CreditRequestList = () => {
                             onClick={() => setFiltroEstado(estado.value)}
                             className={`rounded-2xl border px-4 py-3 text-xs font-black uppercase tracking-[0.18em] transition-all ${
                                 filtroEstado === estado.value
-                                    ? 'border-[#c89b3c]/55 bg-gradient-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] text-white shadow-[0_14px_28px_rgba(154,107,22,0.22)]'
+                                    ? 'border-[#c89b3c]/55 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] text-white shadow-[0_14px_28px_rgba(154,107,22,0.22)]'
                                     : 'border-[#d7bc73]/45 bg-white/45 text-[#6f5a33] hover:bg-white/85 hover:text-[#3f2c12]'
                             }`}
                         >
@@ -593,7 +593,7 @@ const CreditRequestList = () => {
                 </div>
             )}
 
-            <div className="relative overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl">
+            <div className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl">
                 <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
                 <div className="custom-scrollbar overflow-x-auto">
@@ -687,7 +687,7 @@ const CreditRequestList = () => {
                                                 className="transition-colors hover:bg-white/35"
                                             >
                                                 <td className="px-8 py-5 align-top">
-                                                    <div className="flex min-w-[260px] items-start gap-3">
+                                                    <div className="flex min-w-65 items-start gap-3">
                                                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b] shadow-[0_12px_24px_rgba(154,107,22,0.12)]">
                                                             <BadgeDollarSign size={17} />
                                                         </div>
@@ -714,7 +714,7 @@ const CreditRequestList = () => {
                                                 </td>
 
                                                 <td className="px-8 py-5 align-top">
-                                                    <div className="min-w-[220px] space-y-2">
+                                                    <div className="min-w-55 space-y-2">
                                                         <p className="flex items-center gap-2 text-xs font-semibold text-[#7a6849]">
                                                             <UserRound
                                                                 size={13}
@@ -755,7 +755,7 @@ const CreditRequestList = () => {
                                                 </td>
 
                                                 <td className="px-8 py-5 align-top">
-                                                    <div className="min-w-[190px] space-y-1 text-xs font-semibold text-[#8a6a3a]">
+                                                    <div className="min-w-47.5 space-y-1 text-xs font-semibold text-[#8a6a3a]">
                                                         <p>
                                                             Plazo:{' '}
                                                             <span className="font-black text-[#3f2c12]">
