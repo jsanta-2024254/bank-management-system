@@ -1,6 +1,208 @@
 @import "tailwindcss";
 
+:root {
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-body: 'Lato', system-ui, sans-serif;
+
+  --oro-claro:     #d4a843;
+  --oro-medio:     #b8892a;
+  --oro-oscuro:    #8a6318;
+  --oro-tenue:     rgba(184, 137, 42, 0.15);
+  --oro-borde:     rgba(184, 137, 42, 0.25);
+  --oro-sombra:    rgba(184, 137, 42, 0.20);
+
+  --fondo-base:    #0e0a05;
+  --fondo-card:    #1a1208;
+  --fondo-card2:   #201608;
+  --fondo-panel:   #160f06;
+  --fondo-input:   #120d04;
+  --fondo-hover:   rgba(184, 137, 42, 0.08);
+
+  /* Textos */
+  --texto-blanco:  #f5ead8;
+  --texto-claro:   #c4a882;
+  --texto-tenue:   #7a6040;
+  --texto-muted:   #4a3820;
+
+  /* Bordes */
+  --borde-card:    rgba(184, 137, 42, 0.20);
+  --borde-sutil:   rgba(184, 137, 42, 0.10);
+  --borde-strong:  rgba(184, 137, 42, 0.40);
+
+  /* Acentos de estado */
+  --verde-exito:   #2d7a4f;
+  --verde-texto:   #5cb87a;
+  --rojo-error:    #7a2d2d;
+  --rojo-texto:    #c87a7a;
+  --azul-info:     #2d4f7a;
+  --azul-texto:    #7aaac8;
+}
+
+/* ─── Reset y Base ────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--fondo-base);
+  color: var(--texto-blanco);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.fondo-vault {
+  background-color: var(--fondo-base);
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(184, 137, 42, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(139, 99, 24, 0.05) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b8892a' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ─── Fondo de autenticación ─────────────────────────────────────────────── */
+.fondo-auth {
+  background-color: var(--fondo-base);
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(184, 137, 42, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 80%, rgba(139, 99, 24, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(10, 7, 2, 0.95) 0%, transparent 100%),
+    url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b8892a' fill-opacity='0.02'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ─── Tipografía display (Cinzel) ─────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ─── Cards premium ──────────────────────────────────────────────────────── */
+.card-premium {
+  background-color: var(--fondo-card);
+  border: 1px solid var(--borde-card);
+  border-radius: 16px;
+}
+
+.card-premium:hover {
+  border-color: var(--borde-strong);
+  background-color: var(--fondo-card2);
+}
+
+/* ─── Botón dorado principal ──────────────────────────────────────────────── */
+.btn-oro {
+  background: linear-gradient(135deg, var(--oro-medio) 0%, var(--oro-oscuro) 100%);
+  color: #0e0a05;
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--oro-claro);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px var(--oro-sombra);
+}
+
+.btn-oro:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--oro-claro) 0%, var(--oro-medio) 100%);
+  box-shadow: 0 6px 28px rgba(184, 137, 42, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-oro:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Input ──────────────────────────────────────────────────────── */
+.input-premium {
+  background-color: var(--fondo-input);
+  border: 1px solid var(--borde-card);
+  color: var(--texto-blanco);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-premium::placeholder {
+  color: var(--texto-tenue);
+}
+
+.input-premium:focus {
+  outline: none;
+  border-color: var(--oro-medio);
+  box-shadow: 0 0 0 3px var(--oro-tenue);
+}
+
+/* ─── Scrollbar personalizado ────────────────────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--oro-oscuro);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--oro-medio);
+}
+
+/* ─── Scrollbar global ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--fondo-base); }
+::-webkit-scrollbar-thumb { background: var(--oro-oscuro); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--oro-medio); }
+
+/* ─── Línea dorada decorativa ────────────────────────────────────────────── */
+.linea-oro {
+  background: linear-gradient(90deg, transparent, var(--oro-medio), transparent);
+  height: 1px;
+}
+
+.linea-oro-top {
+  background: linear-gradient(90deg, transparent 0%, var(--oro-oscuro) 30%, var(--oro-claro) 50%, var(--oro-oscuro) 70%, transparent 100%);
+  height: 1px;
+}
+
+/* ─── Badge de estado ────────────────────────────────────────────────────── */
+.badge-activo {
+  background-color: rgba(45, 122, 79, 0.15);
+  color: var(--verde-texto);
+  border: 1px solid rgba(45, 122, 79, 0.30);
+}
+
+.badge-inactivo {
+  background-color: rgba(74, 56, 32, 0.20);
+  color: var(--texto-tenue);
+  border: 1px solid rgba(74, 56, 32, 0.30);
+}
+
+/* ─── Animación de entrada ───────────────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-entrada {
+  animation: fadeSlideUp 0.4s ease forwards;
+}
+
+/* ─── Glow dorado ────────────────────────────────────────────────────────── */
+.glow-oro {
+  box-shadow: 0 0 20px rgba(184, 137, 42, 0.20), 0 0 60px rgba(184, 137, 42, 0.08);
+}
+
+/* ─── Sidebar nav activo ─────────────────────────────────────────────────── */
+.nav-activo {
+  background: linear-gradient(90deg, rgba(184, 137, 42, 0.18) 0%, rgba(184, 137, 42, 0.06) 100%);
+  border-left: 2px solid var(--oro-medio);
+  color: var(--oro-claro);
+}
+
+.nav-inactivo {
+  color: var(--texto-tenue);
+  border-left: 2px solid transparent;
+}
+
+.nav-inactivo:hover {
+  background-color: var(--fondo-hover);
+  color: var(--texto-claro);
+  border-left-color: var(--borde-sutil);
+}
