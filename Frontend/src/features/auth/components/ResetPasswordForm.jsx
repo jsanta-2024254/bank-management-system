@@ -25,6 +25,20 @@ const ResetPasswordForm = () => {
         },
     })
 
+    const passwordInputClass =
+        'w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 py-4 pl-12 pr-12 text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18'
+
+    const labelClass =
+        'mb-3 block text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75'
+
+    const errorClass = 'mt-2 ml-1 text-xs font-semibold text-red-700'
+
+    const iconClass =
+        'absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70 transition-colors group-focus-within:text-[#7a4f0d]'
+
+    const eyeButtonClass =
+        'absolute right-4 top-1/2 -translate-y-1/2 rounded-xl p-1 text-[#9a6b16]/70 transition-colors hover:bg-[#efe0bd]/70 hover:text-[#3f2c12]'
+
     const onSubmit = async (data) => {
         if (!token) {
             toast.error('El enlace no contiene un token válido')
@@ -53,15 +67,10 @@ const ResetPasswordForm = () => {
             className="space-y-6 animate-in slide-in-from-bottom-4 duration-300"
         >
             <div>
-                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-3 block opacity-70">
-                    Nueva contraseña
-                </label>
+                <label className={labelClass}>Nueva contraseña</label>
 
-                <div className="relative group">
-                    <Lock
-                        size={18}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-400 transition-colors"
-                    />
+                <div className="group relative">
+                    <Lock size={18} className={iconClass} />
 
                     <input
                         {...register('newPassword', {
@@ -73,13 +82,13 @@ const ResetPasswordForm = () => {
                         })}
                         type={showNewPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-2xl pl-12 pr-12 py-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                        className={passwordInputClass}
                     />
 
                     <button
                         type="button"
                         onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors p-1"
+                        className={eyeButtonClass}
                     >
                         {showNewPassword ? (
                             <EyeOff size={18} />
@@ -90,22 +99,15 @@ const ResetPasswordForm = () => {
                 </div>
 
                 {errors.newPassword && (
-                    <p className="text-red-400 text-xs mt-2 ml-1">
-                        {errors.newPassword.message}
-                    </p>
+                    <p className={errorClass}>{errors.newPassword.message}</p>
                 )}
             </div>
 
             <div>
-                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-3 block opacity-70">
-                    Confirmar contraseña
-                </label>
+                <label className={labelClass}>Confirmar contraseña</label>
 
-                <div className="relative group">
-                    <Lock
-                        size={18}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-400 transition-colors"
-                    />
+                <div className="group relative">
+                    <Lock size={18} className={iconClass} />
 
                     <input
                         {...register('confirmPassword', {
@@ -116,7 +118,7 @@ const ResetPasswordForm = () => {
                         })}
                         type={showConfirmPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-2xl pl-12 pr-12 py-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                        className={passwordInputClass}
                     />
 
                     <button
@@ -124,7 +126,7 @@ const ResetPasswordForm = () => {
                         onClick={() =>
                             setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors p-1"
+                        className={eyeButtonClass}
                     >
                         {showConfirmPassword ? (
                             <EyeOff size={18} />
@@ -135,14 +137,14 @@ const ResetPasswordForm = () => {
                 </div>
 
                 {errors.confirmPassword && (
-                    <p className="text-red-400 text-xs mt-2 ml-1">
+                    <p className={errorClass}>
                         {errors.confirmPassword.message}
                     </p>
                 )}
             </div>
 
             {!token && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-2xl p-4">
+                <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4 text-sm font-semibold text-red-700">
                     El enlace de recuperación no contiene un token válido.
                 </div>
             )}
@@ -150,11 +152,11 @@ const ResetPasswordForm = () => {
             <button
                 type="submit"
                 disabled={isSubmitting || !token}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-2xl border border-[#c89b3c]/50 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] py-4 font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.34)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
             >
                 {isSubmitting ? (
                     <div className="flex items-center justify-center gap-3">
-                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                         <span>Actualizando contraseña...</span>
                     </div>
                 ) : (
@@ -165,7 +167,7 @@ const ResetPasswordForm = () => {
             <div className="text-center">
                 <Link
                     to="/login"
-                    className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
+                    className="text-sm font-semibold text-[#7a6849] transition-colors hover:text-[#8a611b]"
                 >
                     Volver al login
                 </Link>

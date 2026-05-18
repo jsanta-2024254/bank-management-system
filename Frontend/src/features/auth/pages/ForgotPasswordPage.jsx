@@ -3,56 +3,44 @@ import ForgotPasswordForm from '../components/ForgotPasswordForm'
 
 const ForgotPasswordPage = () => {
     return (
-        <div
-            className="min-h-screen flex items-center justify-center bg-zinc-950 p-4"
-            style={{
-                background:
-                    'radial-gradient(ellipse at top, #1e293b 0%, #09090b 70%)',
-            }}
-        >
-            <div
-                className="fixed -top-37.5 -right-37.5 w-96 h-96 rounded-full pointer-events-none"
-                style={{
-                    background:
-                        'radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)',
-                }}
-            />
+        <div className="premium-marble-bg relative flex min-h-screen items-center justify-center overflow-hidden p-4 text-[#3b2a14]">
+            <div className="pointer-events-none absolute -top-28 right-8 h-80 w-80 rounded-full bg-[#d9b45e]/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 left-10 h-96 w-96 rounded-full bg-white/50 blur-3xl" />
 
-            <div
-                className="fixed -bottom-37.5 -left-37.5 w-96 h-96 rounded-full pointer-events-none"
-                style={{
-                    background:
-                        'radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)',
-                }}
-            />
+            <div className="premium-marble-surface premium-soft-shadow relative w-full max-w-md overflow-hidden rounded-[2.25rem] border border-[#c89b3c]/45 p-8 sm:p-10">
+                <div className="premium-gold-line absolute left-10 right-10 top-0 h-px" />
+                <div className="premium-gold-line absolute bottom-0 left-10 right-10 h-px" />
+                <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-[#d9b45e]/18 blur-3xl" />
 
-            <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl p-10 relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-700 via-blue-400 to-blue-700" />
-
-                <div className="flex items-center justify-center gap-3 mb-10">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
-                        <Landmark className="text-white" size={24} />
+                <div className="mb-9 flex items-center justify-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_14px_30px_rgba(154,107,22,0.24)]">
+                        <Landmark className="text-[#5b3a0d]" size={24} />
                     </div>
 
-                    <span className="text-white font-black text-2xl tracking-tighter">
-                        BankManager
-                    </span>
+                    <div>
+                        <span className="block text-2xl font-black tracking-tight text-[#3f2c12]">
+                            BankManager
+                        </span>
+                        <span className="block text-[10px] font-bold uppercase tracking-[0.26em] text-[#9a6b16]/70">
+                            Recuperación
+                        </span>
+                    </div>
                 </div>
 
-                <div className="mb-6 text-center">
-                    <h1 className="text-2xl font-bold text-white mb-1">
+                <div className="mb-7 text-center">
+                    <h1 className="mb-1 text-3xl font-black tracking-tight text-[#3f2c12]">
                         Recuperar contraseña
                     </h1>
 
-                    <p className="text-zinc-500 text-sm">
+                    <p className="text-sm font-medium text-[#7a6849]">
                         Te enviaremos un enlace a tu correo
                     </p>
                 </div>
 
                 <ForgotPasswordForm />
 
-                <p className="text-center text-zinc-600 text-xs mt-8">
-                    © 2025 BankManager. Todos los derechos reservados.
+                <p className="mt-8 text-center text-xs font-medium text-[#9a8a6c]">
+                    © 2026 BankManager. Todos los derechos reservados.
                 </p>
             </div>
         </div>
