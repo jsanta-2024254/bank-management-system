@@ -63,13 +63,13 @@ const ProductCard = ({ product, onViewDetail }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -5 }}
-            className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/72 p-6 shadow-[0_20px_55px_rgba(92,64,19,0.1)] backdrop-blur-xl transition-all duration-300 hover:border-[#b98219]/55 hover:bg-white/78 hover:shadow-[0_26px_70px_rgba(92,64,19,0.16)]"
+            className="group relative flex h-full flex-col overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/72 p-6 shadow-[0_20px_55px_rgba(92,64,19,0.1)] backdrop-blur-xl transition-all duration-300 hover:border-[#b98219]/55 hover:bg-white/78 hover:shadow-[0_26px_70px_rgba(92,64,19,0.16)]"
         >
             <div className="pointer-events-none absolute -right-14 -top-14 h-32 w-32 rounded-full bg-[#d9b45e]/16 blur-3xl transition-all duration-300 group-hover:bg-[#d9b45e]/25" />
             <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
             <div className="relative mb-6 flex items-start justify-between gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_16px_34px_rgba(154,107,22,0.22)]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_16px_34px_rgba(154,107,22,0.22)]">
                     <ProductIcon type={type} esCredito={esCredito} />
                 </div>
 
@@ -175,7 +175,7 @@ const ProductCard = ({ product, onViewDetail }) => {
 
             <button
                 onClick={() => onViewDetail(product)}
-                className="relative mt-auto flex w-full items-center justify-center gap-2 rounded-2xl border border-[#d7bc73]/55 bg-white/55 py-4 text-sm font-black text-[#6f4d13] shadow-[0_12px_26px_rgba(92,64,19,0.08)] transition-all hover:border-[#b98219]/60 hover:bg-gradient-to-r hover:from-[#b98219] hover:via-[#d9b45e] hover:to-[#8a611b] hover:text-white"
+                className="relative mt-auto flex w-full items-center justify-center gap-2 rounded-2xl border border-[#d7bc73]/55 bg-white/55 py-4 text-sm font-black text-[#6f4d13] shadow-[0_12px_26px_rgba(92,64,19,0.08)] transition-all hover:border-[#b98219]/60 hover:bg-linear-to-r hover:from-[#b98219] hover:via-[#d9b45e] hover:to-[#8a611b] hover:text-white"
             >
                 Más información
                 <ChevronRight

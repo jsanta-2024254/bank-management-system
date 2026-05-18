@@ -9,10 +9,8 @@ import {
     CreditCard,
     CalendarDays,
     BadgePercent,
-    BadgeDollarSign,
     DollarSign,
     MessageSquare,
-    Percent,
     Landmark,
 } from 'lucide-react'
 import useAccountStore from '../../accounts/store/accountStore'
@@ -619,7 +617,7 @@ const ProductDetailModal = ({ product, onClose }) => {
                     <button
                         type="submit"
                         disabled={isLoading || accounts.length === 0}
-                        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/50 bg-gradient-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/50 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
                     >
                         <CreditCard size={18} />
 

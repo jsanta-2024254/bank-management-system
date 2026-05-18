@@ -32,13 +32,13 @@ const ProductCatalogPage = () => {
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8 overflow-hidden rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8"
+                className="mb-8 overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8"
             >
                 <div className="premium-gold-line mb-6 h-px w-full" />
 
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
                             <Package size={28} className="text-[#5b3a0d]" />
                         </div>
 
@@ -57,7 +57,7 @@ const ProductCatalogPage = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:min-w-[420px]">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:min-w-105">
                         <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/42 p-4">
                             <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                                 Disponibles
@@ -91,7 +91,7 @@ const ProductCatalogPage = () => {
                 </div>
             </motion.div>
 
-            <div className="mb-8 rounded-[2rem] border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-5 shadow-[0_18px_48px_rgba(92,64,19,0.08)] backdrop-blur-xl">
+            <div className="mb-8 rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-5 shadow-[0_18px_48px_rgba(92,64,19,0.08)] backdrop-blur-xl">
                 <div className="relative">
                     <Search
                         size={17}
@@ -118,7 +118,7 @@ const ProductCatalogPage = () => {
                     {[1, 2, 3, 4, 5, 6].map((item) => (
                         <div
                             key={item}
-                            className="h-[430px] animate-pulse rounded-[2rem] border border-[#d7bc73]/35 bg-[#ead9ad]/55"
+                            className="h-107.5 animate-pulse rounded-4xl border border-[#d7bc73]/35 bg-[#ead9ad]/55"
                         />
                     ))}
                 </div>
@@ -126,7 +126,7 @@ const ProductCatalogPage = () => {
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-[#d7bc73]/45 bg-[#fffaf0]/68 px-6 py-24 text-center shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl"
+                    className="flex flex-col items-center justify-center rounded-4xl border border-dashed border-[#d7bc73]/45 bg-[#fffaf0]/68 px-6 py-24 text-center shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl"
                 >
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b]">
                         <Package size={30} />
