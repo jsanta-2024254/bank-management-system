@@ -1,6 +1,80 @@
 @import "tailwindcss";
 
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+:root {
+  color: #3b2a14;
+  background: #f2e6cf;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  background: #f2e6cf;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f2e6cf;
+  color: #3b2a14;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.premium-marble-bg {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.9) 0%, transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(184, 132, 38, 0.18) 0%, transparent 24%),
+    radial-gradient(circle at 48% 100%, rgba(255, 244, 205, 0.72) 0%, transparent 34%),
+    linear-gradient(135deg, #fbf7ed 0%, #f0e2c7 48%, #e7d2a8 100%);
+}
+
+.premium-marble-surface {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 248, 232, 0.58)),
+    radial-gradient(circle at top left, rgba(180, 132, 39, 0.14), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.72), transparent 42%);
+  backdrop-filter: blur(18px);
+}
+
+.premium-gold-line {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(184, 132, 38, 0.25),
+    rgba(245, 211, 128, 0.72),
+    rgba(184, 132, 38, 0.25),
+    transparent
+  );
+}
+
+.premium-gold-text {
+  color: #8a611b;
+}
+
+.premium-soft-shadow {
+  box-shadow:
+    0 24px 80px rgba(92, 64, 19, 0.14),
+    0 8px 24px rgba(92, 64, 19, 0.08);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(151, 107, 28, 0.42);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(151, 107, 28, 0.65);
+}

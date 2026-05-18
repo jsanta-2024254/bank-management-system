@@ -97,30 +97,42 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <aside
       className={`
-                fixed inset-y-0 left-0 z-50 w-64 bg-zinc-950 flex flex-col border-r border-zinc-800 transition-transform duration-300 transform
-                lg:relative lg:translate-x-0
-                ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-            `}
+        fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#d7bc73]/45
+        bg-[#f8f0dd]/88 shadow-[24px_0_70px_rgba(92,64,19,0.12)] backdrop-blur-2xl
+        transition-transform duration-300
+        lg:sticky lg:top-0 lg:h-screen lg:translate-x-0
+        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+      `}
     >
-      <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <Landmark size={18} className="text-white" />
-          </div>
-          <span className="text-white font-bold text-lg tracking-wide">
-            BankManager
-          </span>
-        </div>
+      <div className="relative border-b border-[#d7bc73]/38 px-5 py-5">
+        <div className="premium-gold-line absolute bottom-0 left-6 right-6 h-px" />
 
-        <button
-          onClick={onClose}
-          className="p-2 text-zinc-500 hover:text-white lg:hidden transition-colors"
-        >
-          <X size={20} />
-        </button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#c89b3c]/45 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_10px_24px_rgba(154,107,22,0.24)]">
+              <Landmark size={20} className="text-[#5b3a0d]" />
+            </div>
+
+            <div>
+              <span className="block text-lg font-black tracking-tight text-[#3f2c12]">
+                BankManager
+              </span>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-[#9a6b16]/70">
+                Premium Banking
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="rounded-xl border border-[#d7bc73]/45 p-2 text-[#8a611b] transition-all hover:bg-white/70 hover:text-[#3f2c12] lg:hidden"
+          >
+            <X size={20} />
+          </button>
+        </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
+      <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto px-4 py-5">
         {filtered.map((item) => {
           const Icon = item.icon;
           const active =
@@ -140,29 +152,37 @@ const Sidebar = ({ isOpen, onClose }) => {
                 if (window.innerWidth < 1024) onClose();
               }}
               className={() =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all group ${
+                `group relative flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${
                   active
-                    ? "bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/20"
-                    : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                    ? "border-[#b98a23]/55 bg-white/72 text-[#3f2c12] shadow-[0_12px_28px_rgba(125,82,13,0.16)]"
+                    : "border-transparent text-[#6f5a33] hover:border-[#d7bc73]/45 hover:bg-white/50 hover:text-[#3f2c12]"
                 }`
               }
             >
-              <Icon size={18} />
-              {displayLabel}
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+                  active
+                    ? "bg-linear-to-br from-[#fff1bd] to-[#b98219] text-[#4a2f0c] shadow-[0_10px_20px_rgba(154,107,22,0.22)]"
+                    : "bg-[#efe0bd]/58 text-[#8a611b] group-hover:bg-[#f9edc9]"
+                }`}
+              >
+                <Icon size={17} />
+              </span>
+
+              <span className="leading-none">{displayLabel}</span>
             </NavLink>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-zinc-800">
+      <div className="border-t border-[#d7bc73]/38 p-4">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-zinc-500 hover:text-red-400 hover:bg-zinc-900 rounded-xl text-sm transition-all group"
+          className="group flex w-full items-center gap-3 rounded-2xl border border-transparent px-4 py-3 text-sm font-semibold text-[#8a6a3a] transition-all hover:border-red-200 hover:bg-red-50/70 hover:text-red-700"
         >
-          <LogOut
-            size={18}
-            className="group-hover:text-red-400 transition-colors"
-          />
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#efe0bd]/55 text-[#8a611b] transition-all group-hover:bg-red-100 group-hover:text-red-700">
+            <LogOut size={18} />
+          </span>
           Cerrar sesión
         </button>
       </div>
