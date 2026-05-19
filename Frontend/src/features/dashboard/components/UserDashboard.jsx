@@ -11,6 +11,8 @@ import {
     PackageCheck,
     XCircle,
     ReceiptText,
+    MessageSquare,
+    AlertTriangle,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
@@ -20,6 +22,7 @@ import useTransactionStore from '../../transactions/store/transactionStore'
 import useFavoriteStore from '../../favorites/store/favoriteStore'
 import useProductStore from '../../products/store/productStore'
 import TransactionForm from '../../transactions/components/TransactionForm'
+import Modal from '../../../shared/components/ui/Modal'
 
 const fmt = (n) =>
     new Intl.NumberFormat('es-GT', {
@@ -98,9 +101,120 @@ const StatCard = ({ icon: Icon, label, value, color, path, delay, loading }) => 
     </motion.div>
 )
 
+const CancelSubscriptionModal = ({
+    subscription,
+    loading,
+    onClose,
+    onConfirm,
+}) => {
+    const [motivoCancelacion, setMotivoCancelacion] = useState('')
+
+    const monto =
+        subscription?.monto ||
+        subscription?.totalEstimado ||
+        subscription?.montoCobradoInicial ||
+        0
+
+    return (
+        <Modal title="Cancelar suscripción" onClose={onClose}>
+            <div className="space-y-5">
+                <div className="rounded-3xl border border-red-200 bg-red-50/80 p-5">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-red-200 bg-white/70 text-red-700 shadow-[0_12px_24px_rgba(185,28,28,0.1)]">
+                            <AlertTriangle size={20} />
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-black text-red-800">
+                                Esta acción cancelará la renovación de la suscripción.
+                            </p>
+
+                            <p className="mt-1 text-sm leading-6 text-red-700">
+                                La suscripción dejará de generar cobros futuros. Esta acción quedará registrada en el sistema.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-5">
+                    <p className="mb-1 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                        Suscripción seleccionada
+                    </p>
+
+                    <p className="text-lg font-black text-[#3f2c12]">
+                        {getProductName(subscription)}
+                    </p>
+
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
+                                Monto
+                            </p>
+
+                            <p className="mt-1 text-sm font-black text-[#3f2c12]">
+                                {fmt(monto)}
+                            </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
+                                Próximo cobro
+                            </p>
+
+                            <p className="mt-1 text-sm font-black text-[#3f2c12]">
+                                {dateFmt(getNextChargeDate(subscription))}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="mb-3 ml-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75">
+                        <MessageSquare size={11} />
+                        Motivo opcional
+                    </label>
+
+                    <textarea
+                        value={motivoCancelacion}
+                        onChange={(event) =>
+                            setMotivoCancelacion(event.target.value)
+                        }
+                        rows={3}
+                        placeholder="Ej. Ya no deseo continuar con esta suscripción..."
+                        disabled={loading}
+                        className="w-full resize-none rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                </div>
+
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="flex-1 rounded-2xl border border-[#d7bc73]/55 bg-white/45 py-4 text-sm font-black text-[#6f5a33] transition-all hover:bg-white/85 hover:text-[#3f2c12] disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                        Volver
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => onConfirm(motivoCancelacion)}
+                        disabled={loading}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-red-300 bg-red-700 py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(185,28,28,0.22)] transition-all hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                        <XCircle size={18} />
+                        {loading ? 'Cancelando...' : 'Cancelar suscripción'}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    )
+}
+
 const UserDashboard = () => {
     const user = useAuthStore((s) => s.user)
     const [showTransferModal, setShowTransferModal] = useState(false)
+    const [subscriptionToCancel, setSubscriptionToCancel] = useState(null)
 
     const { accounts, loading: loadingAccounts, fetchAccounts } = useAccountStore()
 
@@ -234,30 +348,31 @@ const UserDashboard = () => {
             .slice(0, 6)
     }, [transactions, missingProductCharges, currentAccountId])
 
-    const handleCancelSubscription = async (subscription) => {
-        const id = subscription._id || subscription.id
-        const nombre = getProductName(subscription)
+    const handleCancelSubscription = (subscription) => {
+        setSubscriptionToCancel(subscription)
+    }
 
-        const confirmed = window.confirm(
-            `¿Desea cancelar la suscripción "${nombre}"?`
-        )
+    const confirmarCancelacionSuscripcion = async (motivoCancelacion) => {
+        if (!subscriptionToCancel) return
 
-        if (!confirmed) return
-
+        const id = subscriptionToCancel._id || subscriptionToCancel.id
         const toastId = toast.loading('Cancelando suscripción...')
 
         try {
             await cancelSubscription(id, {
-                motivoCancelacion: 'Cancelada por el cliente desde el dashboard',
+                motivoCancelacion:
+                    motivoCancelacion?.trim() ||
+                    'Cancelada por el cliente desde el dashboard',
             })
 
             await fetchMyProductAcquisitions()
 
+            setSubscriptionToCancel(null)
             toast.success('Suscripción cancelada correctamente', { id: toastId })
         } catch (error) {
             toast.error(
                 error?.response?.data?.message ||
-                'No se pudo cancelar la suscripción',
+                    'No se pudo cancelar la suscripción',
                 { id: toastId }
             )
         }
@@ -265,6 +380,17 @@ const UserDashboard = () => {
 
     return (
         <div className="pb-10">
+            <AnimatePresence>
+                {subscriptionToCancel && (
+                    <CancelSubscriptionModal
+                        subscription={subscriptionToCancel}
+                        loading={loadingProducts}
+                        onClose={() => setSubscriptionToCancel(null)}
+                        onConfirm={confirmarCancelacionSuscripcion}
+                    />
+                )}
+            </AnimatePresence>
+
             <div className="mb-8">
                 <div className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
                     <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[#d9b45e]/18 blur-3xl" />
@@ -436,8 +562,8 @@ const UserDashboard = () => {
                                                     <p className="mt-2 text-sm font-black text-[#8a611b]">
                                                         {fmt(
                                                             subscription.monto ||
-                                                            subscription.totalEstimado ||
-                                                            subscription.montoCobradoInicial
+                                                                subscription.totalEstimado ||
+                                                                subscription.montoCobradoInicial
                                                         )}
                                                     </p>
                                                 </div>
@@ -532,10 +658,11 @@ const UserDashboard = () => {
                                         >
                                             <div className="flex min-w-0 items-center gap-4">
                                                 <div
-                                                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${esSalida
+                                                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${
+                                                        esSalida
                                                             ? 'border-red-200 bg-red-50 text-red-700'
                                                             : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                                        }`}
+                                                    }`}
                                                 >
                                                     {esSalida ? (
                                                         <ArrowUpRight size={18} />
@@ -549,8 +676,8 @@ const UserDashboard = () => {
                                                         {tipo === 'suscripcion'
                                                             ? 'Cobro de suscripción'
                                                             : tipo === 'compra'
-                                                                ? 'Cobro de producto'
-                                                                : tipo}
+                                                              ? 'Cobro de producto'
+                                                              : tipo}
                                                     </p>
 
                                                     <p className="mt-0.5 truncate text-xs font-semibold text-[#8a6a3a]">
@@ -566,10 +693,11 @@ const UserDashboard = () => {
 
                                             <div className="shrink-0 text-right">
                                                 <p
-                                                    className={`text-sm font-black ${esSalida
+                                                    className={`text-sm font-black ${
+                                                        esSalida
                                                             ? 'text-red-700'
                                                             : 'text-emerald-700'
-                                                        }`}
+                                                    }`}
                                                 >
                                                     {esSalida ? '-' : '+'}
                                                     {fmt(item.monto)}
