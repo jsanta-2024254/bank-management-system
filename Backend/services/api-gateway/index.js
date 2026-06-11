@@ -73,7 +73,10 @@ const crearProxy = ({ nombreServicio, target }) => {
 };
 
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  credentials: false,
+}));
 app.use(morgan('dev'));
 
 app.get(`${BASE_PATH}/health`, (req, res) => {
