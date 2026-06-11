@@ -1,9 +1,22 @@
 'use strict';
+
 import { verifyJWT } from '../helpers/generate-jwt.js';
+
+const obtenerIdUsuarioDesdeToken = (decoded) => {
+  return (
+    decoded?.sub ??
+    decoded?.id ??
+    decoded?.Id ??
+    decoded?.userId ??
+    decoded?.UserId ??
+    decoded?.uid ??
+    null
+  );
+};
 
 export const verifyToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
@@ -13,35 +26,28 @@ export const verifyToken = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
+
     const decoded = await verifyJWT(token);
+    const idUsuario = obtenerIdUsuarioDesdeToken(decoded);
 
-    // Normalizar el id: el token del sistema principal usa "sub"
-    const normalizedId =
-      decoded?.sub ??
-      decoded?.id ??
-      decoded?.Id ??
-      decoded?.userId ??
-      decoded?.UserId ??
-      decoded?.uid ??
-      null;
-
-    if (!normalizedId) {
+    if (!idUsuario) {
       return res.status(401).json({
         success: false,
-        message: 'Token válido pero sin identificador de usuario (id)',
+        message: 'Token válido pero sin identificador de usuario',
       });
     }
 
     req.user = {
       ...decoded,
-      id: normalizedId,
+      id: idUsuario,
+      userId: idUsuario,
     };
 
-    next();
+    return next();
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: 'Token invalido o expirado',
+      message: 'Token inválido o expirado',
     });
   }
 };
@@ -53,7 +59,8 @@ export const isAdmin = (req, res, next) => {
       message: 'Acceso denegado. Se requiere rol de administrador',
     });
   }
-  next();
+
+  return next();
 };
 
 export const isCliente = (req, res, next) => {
@@ -63,5 +70,6 @@ export const isCliente = (req, res, next) => {
       message: 'Acceso denegado. Se requiere rol de cliente',
     });
   }
-  next();
+
+  return next();
 };

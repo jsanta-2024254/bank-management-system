@@ -8,7 +8,11 @@ import {
   sendTwoFactorHelper,
   verifyTwoFactorHelper,
 } from '../../helpers/auth-operations.js';
-import { getUserProfileHelper } from '../../helpers/profile-operations.js';
+import {
+  getUserProfileHelper,
+  updateUserProfileHelper,
+  changePasswordHelper,
+} from '../../helpers/profile-operations.js';
 import { asyncHandler } from '../../middlewares/server-genericError-handler.js';
 
 export const register = asyncHandler(async (req, res) => {
@@ -185,6 +189,57 @@ export const getProfile = asyncHandler(async (req, res) => {
     message: 'Perfil obtenido exitosamente',
     data: user,
   });
+});
+
+export const updateProfile = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'No se pudo identificar al usuario autenticado',
+      });
+    }
+
+    const updatedUser = await updateUserProfileHelper(userId, req.body, req.file);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Perfil actualizado exitosamente',
+      data: updatedUser,
+    });
+  } catch (error) {
+    return res.status(error.status || 400).json({
+      success: false,
+      message: error.message || 'Error al actualizar el perfil',
+      error: error.message,
+    });
+  }
+});
+
+export const changePassword = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'No se pudo identificar al usuario autenticado',
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    const result = await changePasswordHelper(userId, currentPassword, newPassword);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(error.status || 400).json({
+      success: false,
+      message: error.message || 'Error al cambiar contraseña',
+      error: error.message,
+    });
+  }
 });
 
 export const getProfileById = asyncHandler(async (req, res) => {

@@ -51,6 +51,7 @@ const obtenerCuentaActiva = async ({ numeroCuenta, tipoCuenta, session }) => {
   return account;
 };
 
+
 const obtenerDepositoConCuenta = async ({ depositId, session }) => {
   const deposit = await Deposit.findById(depositId).session(session);
 
@@ -289,6 +290,7 @@ export const createDeposit = async (req, res) => {
     await session.endSession();
   }
 };
+
 
 // GET /api/v1/admin/deposits
 export const getDeposits = async (req, res) => {

@@ -1,67 +1,115 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import Modal from '../../../shared/components/ui/Modal'
+import { Camera, IdCard, Mail, Phone, Save, User } from 'lucide-react'
 import api from '../../../shared/api/api'
 import useAuthStore from '../../auth/store/authStore'
 
-const ProfileForm = ({ user, onClose }) => {
+const obtenerValorUsuario = (user, claves, valorPorDefecto = '') => {
+    const valor = claves.find(
+        (clave) => user?.[clave] !== undefined && user?.[clave] !== null
+    )
+    return valor ? user[valor] : valorPorDefecto
+}
+
+const obtenerImagenPerfil = (user) => {
+    return (
+        user?.profilePicture ||
+        user?.profileImage ||
+        user?.ProfilePicture ||
+        user?.avatar ||
+        ''
+    )
+}
+
+const obtenerUsuarioActualizado = (response) => {
+    return response.data?.data || response.data?.user || response.data
+}
+
+const ProfileForm = ({ user }) => {
     const [loading, setLoading] = useState(false)
+    const [archivoImagen, setArchivoImagen] = useState(null)
     const setUser = useAuthStore((state) => state.setUser)
+
+    const valoresIniciales = useMemo(
+        () => ({
+            name: obtenerValorUsuario(user, ['name', 'nombre', 'Name']),
+            surname: obtenerValorUsuario(user, [
+                'surname',
+                'apellido',
+                'Surname',
+            ]),
+            email: obtenerValorUsuario(user, ['email', 'Email']),
+            phone: obtenerValorUsuario(user, ['phone', 'celular', 'Phone']),
+            dpi: obtenerValorUsuario(user, ['dpi', 'Dpi']),
+        }),
+        [user]
+    )
+
+    const imagenPerfilActual = useMemo(() => obtenerImagenPerfil(user), [user])
+
+    const previewImagen = useMemo(() => {
+        if (!archivoImagen) {
+            return imagenPerfilActual
+        }
+
+        return URL.createObjectURL(archivoImagen)
+    }, [archivoImagen, imagenPerfilActual])
 
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors, isSubmitting },
-    } = useForm({
-        defaultValues: {
-            nombre: user?.nombre || user?.name || user?.Name || '',
-            apellido: user?.apellido || user?.surname || user?.Surname || '',
-            celular: user?.celular || user?.phone || user?.Phone || '',
-            direccion: user?.direccion || '',
-            nombreTrabajo: user?.nombreTrabajo || '',
-            ingresosMensuales: user?.ingresosMensuales || '',
-        },
-    })
+    } = useForm({ defaultValues: valoresIniciales })
+
+    useEffect(() => {
+        reset(valoresIniciales)
+    }, [reset, valoresIniciales])
+
+    useEffect(() => {
+        if (!archivoImagen || !previewImagen?.startsWith('blob:')) {
+            return undefined
+        }
+
+        return () => URL.revokeObjectURL(previewImagen)
+    }, [archivoImagen, previewImagen])
 
     const isLoading = loading || isSubmitting
 
-    const limpiarTexto = (valor) => {
-        if (valor === undefined || valor === null) return undefined
+    const agregarCampoSiExiste = (formData, nombreCampo, valor) => {
+        const texto = String(valor || '').trim()
 
-        const texto = String(valor).trim()
-        return texto === '' ? undefined : texto
-    }
-
-    const prepararDatos = (data) => {
-        const datosPerfil = {
-            nombre: limpiarTexto(data.nombre),
-            apellido: limpiarTexto(data.apellido),
-            celular: limpiarTexto(data.celular),
-            direccion: limpiarTexto(data.direccion),
-            nombreTrabajo: limpiarTexto(data.nombreTrabajo),
-            ingresosMensuales: limpiarTexto(data.ingresosMensuales),
+        if (texto) {
+            formData.append(nombreCampo, texto)
         }
-
-        return Object.fromEntries(
-            Object.entries(datosPerfil).filter(([, value]) => value !== undefined)
-        )
     }
 
     const onSubmit = async (data) => {
         const toastId = toast.loading('Actualizando perfil...')
-
         setLoading(true)
 
         try {
-            const datosPerfil = prepararDatos(data)
-            const response = await api.put('/me', datosPerfil)
-            const updatedUser = response.data?.data || response.data?.user || response.data
+            const formData = new FormData()
+            agregarCampoSiExiste(formData, 'name', data.name)
+            agregarCampoSiExiste(formData, 'surname', data.surname)
+            agregarCampoSiExiste(formData, 'email', data.email)
+            agregarCampoSiExiste(formData, 'phone', data.phone)
+            agregarCampoSiExiste(formData, 'dpi', data.dpi)
+
+            if (archivoImagen) {
+                formData.append('profilePicture', archivoImagen)
+            }
+
+            const response = await api.put('/auth/profile', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+
+            const updatedUser = obtenerUsuarioActualizado(response)
 
             setUser(updatedUser)
-
+            setArchivoImagen(null)
             toast.success('Perfil actualizado correctamente', { id: toastId })
-            onClose()
         } catch (error) {
             toast.error(
                 error?.response?.data?.message || 'Error al actualizar perfil',
@@ -72,57 +120,154 @@ const ProfileForm = ({ user, onClose }) => {
         }
     }
 
+    const manejarCambioImagen = (event) => {
+        const file = event.target.files?.[0]
+
+        if (!file) return
+
+        if (!file.type.startsWith('image/')) {
+            toast.error('Debe seleccionar una imagen válida')
+            event.target.value = ''
+            return
+        }
+
+        setArchivoImagen(file)
+    }
+
     const inputClass =
-        'w-full bg-zinc-900 border border-zinc-800 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all placeholder:text-zinc-600 text-sm'
+        'w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18 disabled:cursor-not-allowed disabled:opacity-60'
+
+    const labelClass =
+        'mb-3 ml-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75'
+
+    const errorClass = 'mt-2 ml-1 text-xs font-semibold text-red-700'
 
     return (
-        <Modal title="Editar Perfil" onClose={onClose}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                            Nombre
-                        </label>
-                        <input
-                            {...register('nombre', { required: 'El nombre es requerido' })}
-                            className={inputClass}
-                            placeholder="Nombre"
-                            disabled={isLoading}
-                        />
-                        {errors.nombre && (
-                            <p className="text-red-400 text-xs mt-1">
-                                {errors.nombre.message}
-                            </p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-6">
+                <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+                    <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-[#d7bc73]/45 bg-[#fff8df] shadow-[0_14px_32px_rgba(92,64,19,0.1)]">
+                        {previewImagen ? (
+                            <img
+                                src={previewImagen}
+                                alt="Foto de perfil"
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <User size={44} className="text-[#9a6b16]/65" />
                         )}
                     </div>
 
-                    <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                            Apellido
+                    <div className="flex-1">
+                        <h3 className="text-lg font-black text-[#3f2c12]">
+                            Foto de perfil
+                        </h3>
+
+                        <p className="mt-1 mb-4 text-sm leading-6 text-[#7a6849]">
+                            Selecciona una imagen para actualizar tu fotografía de perfil.
+                        </p>
+
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-[#d7bc73]/55 bg-white/52 px-5 py-3 text-sm font-black text-[#6f5a33] shadow-[0_12px_26px_rgba(92,64,19,0.08)] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12]">
+                            <Camera size={18} />
+                            Seleccionar imagen
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={manejarCambioImagen}
+                                disabled={isLoading}
+                                className="hidden"
+                            />
                         </label>
-                        <input
-                            {...register('apellido', { required: 'El apellido es requerido' })}
-                            className={inputClass}
-                            placeholder="Apellido"
-                            disabled={isLoading}
-                        />
-                        {errors.apellido && (
-                            <p className="text-red-400 text-xs mt-1">
-                                {errors.apellido.message}
+
+                        {archivoImagen && (
+                            <p className="mt-3 text-xs font-semibold text-[#8a6a3a]">
+                                Imagen seleccionada: {archivoImagen.name}
                             </p>
                         )}
                     </div>
                 </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <label className={labelClass}>
+                        <User size={11} />
+                        Nombre
+                    </label>
+
+                    <input
+                        {...register('name', {
+                            required: 'El nombre es requerido',
+                        })}
+                        className={inputClass}
+                        placeholder="Nombre"
+                        disabled={isLoading}
+                    />
+
+                    {errors.name && (
+                        <p className={errorClass}>{errors.name.message}</p>
+                    )}
+                </div>
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                        Celular
+                    <label className={labelClass}>
+                        <User size={11} />
+                        Apellido
                     </label>
+
                     <input
-                        {...register('celular', {
+                        {...register('surname', {
+                            required: 'El apellido es requerido',
+                        })}
+                        className={inputClass}
+                        placeholder="Apellido"
+                        disabled={isLoading}
+                    />
+
+                    {errors.surname && (
+                        <p className={errorClass}>{errors.surname.message}</p>
+                    )}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <label className={labelClass}>
+                        <Mail size={11} />
+                        Correo electrónico
+                    </label>
+
+                    <input
+                        {...register('email', {
+                            required: 'El correo es requerido',
+                            pattern: {
+                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                message: 'Ingrese un correo válido',
+                            },
+                        })}
+                        type="email"
+                        className={inputClass}
+                        placeholder="correo@ejemplo.com"
+                        disabled={isLoading}
+                    />
+
+                    {errors.email && (
+                        <p className={errorClass}>{errors.email.message}</p>
+                    )}
+                </div>
+
+                <div>
+                    <label className={labelClass}>
+                        <Phone size={11} />
+                        Teléfono
+                    </label>
+
+                    <input
+                        {...register('phone', {
                             pattern: {
                                 value: /^\d{8}$/,
-                                message: 'El celular debe tener exactamente 8 dígitos',
+                                message:
+                                    'El teléfono debe tener exactamente 8 dígitos',
                             },
                         })}
                         type="tel"
@@ -130,84 +275,47 @@ const ProfileForm = ({ user, onClose }) => {
                         placeholder="55555555"
                         disabled={isLoading}
                     />
-                    {errors.celular && (
-                        <p className="text-red-400 text-xs mt-1">
-                            {errors.celular.message}
-                        </p>
+
+                    {errors.phone && (
+                        <p className={errorClass}>{errors.phone.message}</p>
                     )}
                 </div>
+            </div>
 
-                <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                        Dirección
-                    </label>
-                    <input
-                        {...register('direccion')}
-                        className={inputClass}
-                        placeholder="Dirección"
-                        disabled={isLoading}
-                    />
-                </div>
+            <div>
+                <label className={labelClass}>
+                    <IdCard size={11} />
+                    DPI
+                </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                            Lugar de trabajo
-                        </label>
-                        <input
-                            {...register('nombreTrabajo')}
-                            className={inputClass}
-                            placeholder="Empresa / trabajo"
-                            disabled={isLoading}
-                        />
-                    </div>
+                <input
+                    {...register('dpi', {
+                        pattern: {
+                            value: /^\d{13}$/,
+                            message: 'El DPI debe tener exactamente 13 dígitos',
+                        },
+                    })}
+                    className={inputClass}
+                    placeholder="1234567890101"
+                    disabled={isLoading}
+                />
 
-                    <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                            Ingresos mensuales
-                        </label>
-                        <input
-                            {...register('ingresosMensuales', {
-                                min: {
-                                    value: 100,
-                                    message: 'Los ingresos deben ser al menos Q100',
-                                },
-                            })}
-                            type="number"
-                            min="100"
-                            step="0.01"
-                            className={inputClass}
-                            placeholder="5000"
-                            disabled={isLoading}
-                        />
-                        {errors.ingresosMensuales && (
-                            <p className="text-red-400 text-xs mt-1">
-                                {errors.ingresosMensuales.message}
-                            </p>
-                        )}
-                    </div>
-                </div>
+                {errors.dpi && (
+                    <p className={errorClass}>{errors.dpi.message}</p>
+                )}
+            </div>
 
-                <div className="flex gap-4 pt-4">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={isLoading}
-                        className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-4 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Cancelar
-                    </button>
-
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-sm transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isLoading ? 'Guardando...' : 'Guardar Cambios'}
-                    </button>
-                </div>
-            </form>
-        </Modal>
+            <div className="flex justify-end pt-2">
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/50 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-6 py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0 sm:w-auto"
+                >
+                    <Save size={18} />
+                    {isLoading ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+            </div>
+        </form>
     )
 }
 

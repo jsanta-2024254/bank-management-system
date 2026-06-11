@@ -1,22 +1,30 @@
 const ConfirmDialog = ({ message, onConfirm, onCancel }) => {
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-sm shadow-2xl p-8 animate-in zoom-in-95 duration-200">
-                <div className="flex items-center justify-center w-14 h-14 bg-red-500/10 rounded-2xl mx-auto mb-6">
-                    <span className="text-red-400 text-2xl">⚠</span>
+        <div className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-[#2f1f0b]/35 p-4 backdrop-blur-sm duration-200 fade-in">
+            <div className="premium-marble-surface premium-soft-shadow w-full max-w-sm animate-in rounded-4xl border border-[#d7bc73]/50 p-8 duration-200 zoom-in-95">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl border border-red-200 bg-red-50/80 shadow-[0_14px_30px_rgba(185,28,28,0.1)]">
+                    <span className="text-3xl text-red-700">⚠</span>
                 </div>
-                <h3 className="text-white font-bold text-xl text-center mb-2">¿Confirmar eliminación?</h3>
-                <p className="text-zinc-400 text-sm text-center mb-8">{message}</p>
+
+                <h3 className="mb-2 text-center text-xl font-black text-[#3f2c12]">
+                    ¿Confirmar eliminación?
+                </h3>
+
+                <p className="mb-8 text-center text-sm leading-6 text-[#7a6849]">
+                    {message}
+                </p>
+
                 <div className="flex gap-3">
                     <button
                         onClick={onCancel}
-                        className="flex-1 py-3 rounded-2xl border border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500 transition-all text-sm font-bold"
+                        className="flex-1 rounded-2xl border border-[#d7bc73]/55 bg-white/45 py-3 text-sm font-black text-[#6f5a33] transition-all hover:bg-white/85 hover:text-[#3f2c12]"
                     >
                         Cancelar
                     </button>
+
                     <button
                         onClick={onConfirm}
-                        className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm transition-all shadow-lg shadow-red-500/20"
+                        className="flex-1 rounded-2xl bg-red-700 py-3 text-sm font-black text-white shadow-[0_14px_30px_rgba(185,28,28,0.22)] transition-all hover:bg-red-800"
                     >
                         Eliminar
                     </button>

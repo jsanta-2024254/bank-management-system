@@ -167,3 +167,65 @@ export const validateVerifyTwoFactor = [
 
   handleValidationErrors,
 ];
+
+/**
+ * Validaciones para actualización de perfil propio
+ */
+export const validateUpdateProfile = [
+  body('name')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('El nombre no puede estar vacío')
+    .isLength({ max: 25 })
+    .withMessage('El nombre no puede tener más de 25 caracteres')
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+    .withMessage('El nombre solo puede contener letras y espacios'),
+
+  body('surname')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('El apellido no puede estar vacío')
+    .isLength({ max: 25 })
+    .withMessage('El apellido no puede tener más de 25 caracteres')
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+    .withMessage('El apellido solo puede contener letras y espacios'),
+
+  body('email')
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage('El correo electrónico no tiene un formato válido')
+    .isLength({ max: 150 })
+    .withMessage('El correo electrónico no puede tener más de 150 caracteres'),
+
+  body('phone')
+    .optional()
+    .matches(/^\d{8}$/)
+    .withMessage('El teléfono debe tener exactamente 8 dígitos'),
+
+  body('dpi')
+    .optional()
+    .matches(/^\d{13}$/)
+    .withMessage('El DPI debe tener exactamente 13 dígitos'),
+
+  handleValidationErrors,
+];
+
+/**
+ * Validaciones para cambio de contraseña del usuario autenticado
+ */
+export const validateChangePassword = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('La contraseña actual es obligatoria'),
+
+  body('newPassword')
+    .notEmpty()
+    .withMessage('La nueva contraseña es obligatoria')
+    .isLength({ min: 8, max: 255 })
+    .withMessage('La nueva contraseña debe tener entre 8 y 255 caracteres'),
+
+  handleValidationErrors,
+];

@@ -15,6 +15,8 @@ import {
   validateResetPassword,
   validateSendTwoFactor,
   validateVerifyTwoFactor,
+  validateUpdateProfile,
+  validateChangePassword,
 } from '../../middlewares/validation.js';
 
 const router = Router();
@@ -266,6 +268,22 @@ router.post(
  *         description: Email no verificado
  */
 router.get('/profile', validateJWT, authController.getProfile);
+
+router.put(
+  '/profile',
+  validateJWT,
+  upload.single('profilePicture'),
+  handleUploadError,
+  validateUpdateProfile,
+  authController.updateProfile
+);
+
+router.put(
+  '/change-password',
+  validateJWT,
+  validateChangePassword,
+  authController.changePassword
+);
 
 /**
  * @swagger

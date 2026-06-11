@@ -13,7 +13,9 @@ import './src/transactions/transaction.model.js';
 import './src/deposits/dailyLimit.model.js';
 import './src/deposits/deposit.model.js';
 import './src/favorites/favorite.model.js';
+import './src/depositRequests/depositRequest.model.js';
 
+import depositRequestRoutes from './src/depositRequests/depositRequest.routes.js';
 import depositRoutes from './src/deposits/deposit.routes.js';
 import favoriteRoutes from './src/favorites/favorite.router.js';
 import currencyRoutes from './src/currency/currency.routes.js';
@@ -51,6 +53,7 @@ app.get(`${BASE_PATH}/health`, (req, res) => {
 });
 
 app.use(`${BASE_PATH}/admin/deposits`, depositRoutes);
+app.use(`${BASE_PATH}/deposit-requests`, depositRequestRoutes);
 app.use(`${BASE_PATH}/favorites`, favoriteRoutes);
 app.use(`${BASE_PATH}/currency`, currencyRoutes);
 
