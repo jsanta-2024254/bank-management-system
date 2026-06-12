@@ -7,6 +7,7 @@ import {
 import { COLORS } from '../../../shared/constants/colors';
 import { THEME, COMMON_STYLES } from '../../../shared/constants/theme';
 import { login } from '../../../api/auth';
+import useAuthStore from '../../../store/useAuthStore';
 
 const LoginScreen = ({ navigation }) => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
@@ -20,20 +21,16 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
     setLoading(true);
-  console.log('URL:', process.env.EXPO_PUBLIC_API_URL);
-  console.log('emailOrUsername:', emailOrUsername);
-  console.log('password:', password);
     try {
       await login({ emailOrUsername: emailOrUsername.trim(), password });
+      await useAuthStore.getState().requestTwoFactor(emailOrUsername.trim());
       navigation.navigate('TwoFactor', { emailOrUsername: emailOrUsername.trim() });
     } catch (error) {
-  console.log('STATUS:', error.response?.status);
-  console.log('ERROR:', error.response?.data);
-  console.log('ERROR COMPLETO:', error.message);
-  console.log('ERROR TIPO:', error.code);
+      console.log('Login error status:', error.response?.status);
+      console.log('Login error data:', JSON.stringify(error.response?.data));
       const status = error.response?.status;
       if (status === 423) {
-        Alert.alert('Cuenta bloqueada', 'Tu cuenta ha sido bloqueada. Contacta con soporte.');
+        Alert.alert('Cuenta bloqueada', 'Tu cuenta ha sido bloqueada.');
       } else if (status === 401) {
         Alert.alert('Credenciales inválidas', 'Usuario o contraseña incorrectos.');
       } else {
@@ -86,14 +83,11 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-<TouchableOpacity
-  style={[COMMON_STYLES.primaryButton, loading && COMMON_STYLES.primaryButtonDisabled]}
-  onPress={() => {
-    console.log('BOTON PRESIONADO');
-    handleLogin();
-  }}
-  disabled={loading}
->
+          <TouchableOpacity
+            style={[COMMON_STYLES.primaryButton, loading && COMMON_STYLES.primaryButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
             {loading
               ? <ActivityIndicator color={COLORS.white} />
               : <Text style={COMMON_STYLES.buttonText}>Continuar</Text>

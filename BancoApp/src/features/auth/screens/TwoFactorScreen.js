@@ -15,8 +15,6 @@ const TwoFactorScreen = ({ route }) => {
   const [countdown, setCountdown] = useState(60);
   const { requestTwoFactor, verifyAndLogin } = useAuthStore();
 
-  useEffect(() => { handleSendCode(); }, []);
-
   useEffect(() => {
     if (countdown <= 0) return;
     const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
@@ -42,9 +40,13 @@ const TwoFactorScreen = ({ route }) => {
     }
     setLoading(true);
     try {
-      await verifyAndLogin(code.trim());
+      console.log('Verificando con email:', emailOrUsername);
+      console.log('Código:', code.trim());
+      await verifyAndLogin(code.trim(), emailOrUsername);
     } catch (error) {
-      Alert.alert('Código incorrecto', 'El código es inválido o ya expiró.');
+      console.log('Error completo:', error.message);
+      console.log('Error response:', JSON.stringify(error.response));
+      Alert.alert('Error', error.message || 'Código inválido');
       setCode('');
     } finally {
       setLoading(false);

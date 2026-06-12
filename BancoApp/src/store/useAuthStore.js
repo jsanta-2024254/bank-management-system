@@ -30,15 +30,15 @@ const useAuthStore = create((set, get) => ({
   },
 
   // Paso 2 — verifica código y guarda sesión
-  verifyAndLogin: async (code) => {
-    const { pendingEmailOrUsername } = get();
-    const data = await verifyTwoFactor({ emailOrUsername: pendingEmailOrUsername, code });
-    const token = data.data?.token || data.token;
-    const user  = data.data?.user  || data.user;
-    await SecureStore.setItemAsync('userToken', token);
-    await SecureStore.setItemAsync('userData', JSON.stringify(user));
-    set({ token, user, isAuthenticated: true, pendingEmailOrUsername: null });
-  },
+ verifyAndLogin: async (code, emailOrUsername) => {
+  const pending = emailOrUsername || get().pendingEmailOrUsername;
+  const data = await verifyTwoFactor({ emailOrUsername: pending, code });
+  const token = data.token;
+  const user = data.userDetails;
+  await SecureStore.setItemAsync('userToken', String(token));
+  await SecureStore.setItemAsync('userData', JSON.stringify(user));
+  set({ token, user, isAuthenticated: true, pendingEmailOrUsername: null });
+},
 
   logout: async () => {
     await SecureStore.deleteItemAsync('userToken');
