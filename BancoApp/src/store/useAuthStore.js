@@ -39,6 +39,11 @@ const useAuthStore = create((set, get) => ({
   await SecureStore.setItemAsync('userData', JSON.stringify(user));
   set({ token, user, isAuthenticated: true, pendingEmailOrUsername: null });
 },
+setAuthenticated: async (token, user) => {
+  await SecureStore.setItemAsync('userToken', String(token));
+  await SecureStore.setItemAsync('userData', JSON.stringify(user));
+  set({ token, user, isAuthenticated: true });
+},
 
   logout: async () => {
     await SecureStore.deleteItemAsync('userToken');

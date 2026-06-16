@@ -7,6 +7,7 @@ import {
 import { COLORS } from '../../../shared/constants/colors';
 import { THEME, COMMON_STYLES } from '../../../shared/constants/theme';
 import { login } from '../../../api/auth';
+import * as SecureStore from 'expo-secure-store';
 import useAuthStore from '../../../store/useAuthStore';
 
 const LoginScreen = ({ navigation }) => {
@@ -16,30 +17,31 @@ const LoginScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
-    if (!emailOrUsername.trim() || !password.trim()) {
-      Alert.alert('Campos requeridos', 'Ingresa tu usuario/correo y contraseña.');
-      return;
+  if (!emailOrUsername.trim() || !password.trim()) {
+    Alert.alert('Campos requeridos', 'Ingresa tu usuario/correo y contraseña.');
+    return;
+  }
+  setLoading(true);
+  try {
+    const response = await login({ emailOrUsername: emailOrUsername.trim(), password });
+    const token = response.token || response.data?.token;
+    const user = response.userDetails || response.data?.userDetails;
+    await SecureStore.setItemAsync('userToken', String(token));
+    await SecureStore.setItemAsync('userData', JSON.stringify(user));
+    useAuthStore.getState().setAuthenticated(token, user);
+  } catch (error) {
+    const status = error.response?.status;
+    if (status === 423) {
+      Alert.alert('Cuenta bloqueada', 'Tu cuenta ha sido bloqueada.');
+    } else if (status === 401) {
+      Alert.alert('Credenciales inválidas', 'Usuario o contraseña incorrectos.');
+    } else {
+      Alert.alert('Error', error.response?.data?.message || 'Error al iniciar sesión.');
     }
-    setLoading(true);
-    try {
-      await login({ emailOrUsername: emailOrUsername.trim(), password });
-      await useAuthStore.getState().requestTwoFactor(emailOrUsername.trim());
-      navigation.navigate('TwoFactor', { emailOrUsername: emailOrUsername.trim() });
-    } catch (error) {
-      console.log('Login error status:', error.response?.status);
-      console.log('Login error data:', JSON.stringify(error.response?.data));
-      const status = error.response?.status;
-      if (status === 423) {
-        Alert.alert('Cuenta bloqueada', 'Tu cuenta ha sido bloqueada.');
-      } else if (status === 401) {
-        Alert.alert('Credenciales inválidas', 'Usuario o contraseña incorrectos.');
-      } else {
-        Alert.alert('Error', error.response?.data?.message || 'Error al iniciar sesión.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
