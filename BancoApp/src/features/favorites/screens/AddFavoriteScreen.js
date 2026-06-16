@@ -9,13 +9,13 @@ import { COMMON_STYLES, THEME } from '../../../shared/constants/theme';
 import { addFavorite } from '../../../api/favorites';
 
 const AddFavoriteScreen = ({ navigation }) => {
-  const [accountNumber, setAccountNumber] = useState('');
-  const [accountType, setAccountType] = useState('monetaria');
+  const [numeroCuenta, setNumeroCuenta] = useState('');
+  const [tipoCuenta, setTipoCuenta] = useState('monetaria');
   const [alias, setAlias] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
-    if (!accountNumber.trim()) {
+    if (!numeroCuenta.trim()) {
       Alert.alert('Campo requerido', 'Ingresa el número de cuenta.'); return;
     }
     if (!alias.trim()) {
@@ -23,13 +23,12 @@ const AddFavoriteScreen = ({ navigation }) => {
     }
     setLoading(true);
     try {
-      await addFavorite({ accountNumber: accountNumber.trim(), accountType, alias: alias.trim() });
-      Alert.alert('Favorito agregado', `"${alias}" fue guardado correctamente.`, [
+      await addFavorite({ numeroCuenta: numeroCuenta.trim(), tipoCuenta, alias: alias.trim() });
+      Alert.alert('✅ Favorito agregado', `"${alias}" fue guardado correctamente.`, [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      const msg = error.response?.data?.message || 'No se pudo agregar el favorito.';
-      Alert.alert('Error', msg);
+      Alert.alert('Error', error.response?.data?.message || 'No se pudo agregar el favorito.');
     } finally {
       setLoading(false);
     }
@@ -42,10 +41,10 @@ const AddFavoriteScreen = ({ navigation }) => {
         <Text style={COMMON_STYLES.label}>Número de cuenta</Text>
         <TextInput
           style={COMMON_STYLES.input}
-          placeholder="Ej. 1234567890"
+          placeholder="Ej. 1000000003"
           placeholderTextColor={COLORS.textSecondary}
-          value={accountNumber}
-          onChangeText={setAccountNumber}
+          value={numeroCuenta}
+          onChangeText={setNumeroCuenta}
           keyboardType="numeric"
         />
 
@@ -54,10 +53,10 @@ const AddFavoriteScreen = ({ navigation }) => {
           {['monetaria', 'ahorro'].map(type => (
             <TouchableOpacity
               key={type}
-              style={[styles.typeBtn, accountType === type && styles.typeBtnActive]}
-              onPress={() => setAccountType(type)}
+              style={[styles.typeBtn, tipoCuenta === type && styles.typeBtnActive]}
+              onPress={() => setTipoCuenta(type)}
             >
-              <Text style={[styles.typeBtnText, accountType === type && styles.typeBtnTextActive]}>
+              <Text style={[styles.typeBtnText, tipoCuenta === type && styles.typeBtnTextActive]}>
                 {type === 'monetaria' ? 'Monetaria' : 'Ahorro'}
               </Text>
             </TouchableOpacity>
@@ -67,11 +66,11 @@ const AddFavoriteScreen = ({ navigation }) => {
         <Text style={COMMON_STYLES.label}>Alias</Text>
         <TextInput
           style={COMMON_STYLES.input}
-          placeholder="Ej. Mamá, Arrendador, etc."
+          placeholder="Ej. Mamá, Arrendador, Joshua..."
           placeholderTextColor={COLORS.textSecondary}
           value={alias}
           onChangeText={setAlias}
-          maxLength={30}
+          maxLength={80}
         />
 
         <TouchableOpacity
@@ -85,10 +84,7 @@ const AddFavoriteScreen = ({ navigation }) => {
           }
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[COMMON_STYLES.secondaryButton, { marginTop: 12 }]}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={[COMMON_STYLES.secondaryButton, { marginTop: 12 }]} onPress={() => navigation.goBack()}>
           <Text style={COMMON_STYLES.secondaryButtonText}>Cancelar</Text>
         </TouchableOpacity>
 
