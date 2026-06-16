@@ -6,6 +6,8 @@ import AccountsStack from './stacks/AccountsStack';
 import TransfersStack from './stacks/TransfersStack';
 import FavoritesStack from './stacks/FavoritesStack';
 import ProfileStack from './stacks/ProfileStack';
+import DepositsStack from './stacks/DepositsStack';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -13,6 +15,7 @@ const TABS = [
   { name: 'Inicio',      icon: 'home',            stack: AccountsStack  },
   { name: 'Transferir',  icon: 'swap-horizontal',  stack: TransfersStack },
   { name: 'Favoritos',   icon: 'heart',            stack: FavoritesStack },
+  { name: 'Depósitos',   icon: 'arrow-down-circle', stack: DepositsStack },
   { name: 'Perfil',      icon: 'person',           stack: ProfileStack   },
 ];
 
