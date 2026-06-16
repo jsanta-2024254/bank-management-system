@@ -1,24 +1,28 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../../shared/constants/colors';
 import { COMMON_STYLES, THEME } from '../../../shared/constants/theme';
 
 const formatCurrency = (amount) =>
-  `Q ${parseFloat(amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `Q ${parseFloat(amount || 0).toLocaleString('es-GT', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 const TransferSuccessScreen = ({ navigation, route }) => {
-  const { amount, toAccountNumber } = route.params;
+  const { monto, numeroCuentaDestino } = route.params;
 
   return (
     <View style={styles.container}>
       <View style={styles.iconBox}>
-        <Text style={styles.icon}>✅</Text>
+        <Ionicons name="checkmark-circle" size={72} color={COLORS.success} />
       </View>
       <Text style={styles.title}>¡Transferencia exitosa!</Text>
-      <Text style={styles.amount}>{formatCurrency(amount)}</Text>
+      <Text style={styles.amount}>{formatCurrency(monto)}</Text>
       <Text style={styles.subtitle}>
-        Transferencia enviada a la cuenta{'\n'}
-        <Text style={styles.highlight}>{toAccountNumber}</Text>
+        Enviado a la cuenta{'\n'}
+        <Text style={styles.highlight}>{numeroCuentaDestino}</Text>
       </Text>
 
       <TouchableOpacity
@@ -44,11 +48,10 @@ const styles = StyleSheet.create({
     padding: THEME.spacing.lg, justifyContent: 'center', alignItems: 'center',
   },
   iconBox: {
-    width: 96, height: 96, borderRadius: 48,
+    width: 100, height: 100, borderRadius: 50,
     backgroundColor: '#E6F9F2', justifyContent: 'center',
     alignItems: 'center', marginBottom: 24,
   },
-  icon: { fontSize: 48 },
   title: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 12 },
   amount: { fontSize: 36, fontWeight: '800', color: COLORS.primary, marginBottom: 12 },
   subtitle: { fontSize: 15, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: 40 },

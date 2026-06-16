@@ -10,13 +10,13 @@ export const getTransactionById = async (id) => {
   return response.data;
 };
 
-export const transfer = async ({ fromAccountId, toAccountNumber, toAccountType, amount, description }) => {
+export const transfer = async ({ numeroCuentaDestino, tipoCuentaDestino, tipoCuentaOrigen, monto, descripcion }) => {
   const response = await api.post('/transactions/transfer', {
-    fromAccountId,
-    toAccountNumber,
-    toAccountType,
-    amount,
-    description,
+    numeroCuentaDestino,
+    tipoCuentaDestino,
+    tipoCuentaOrigen,
+    monto,
+    descripcion,
   });
   return response.data;
 };

@@ -8,30 +8,35 @@ import { COMMON_STYLES, THEME } from '../../../shared/constants/theme';
 import { transfer } from '../../../api/transactions';
 
 const formatCurrency = (amount) =>
-  `Q ${parseFloat(amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `Q ${parseFloat(amount || 0).toLocaleString('es-GT', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 const Row = ({ label, value, highlight }) => (
   <View style={styles.row}>
     <Text style={styles.rowLabel}>{label}</Text>
-    <Text style={[styles.rowValue, highlight && { color: COLORS.primary, fontWeight: '700' }]}>{value}</Text>
+    <Text style={[styles.rowValue, highlight && { color: COLORS.primary, fontWeight: '700', fontSize: 16 }]}>
+      {value}
+    </Text>
   </View>
 );
 
 const TransferConfirmScreen = ({ navigation, route }) => {
-  const { fromAccount, toAccountNumber, toAccountType, amount, description } = route.params;
+  const { fromAccount, numeroCuentaDestino, tipoCuentaDestino, tipoCuentaOrigen, monto, descripcion } = route.params;
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
     setLoading(true);
     try {
       await transfer({
-        fromAccountId: fromAccount._id || fromAccount.id,
-        toAccountNumber,
-        toAccountType,
-        amount,
-        description,
+        numeroCuentaDestino,
+        tipoCuentaDestino,
+        tipoCuentaOrigen,
+        monto,
+        descripcion,
       });
-      navigation.replace('TransferSuccess', { amount, toAccountNumber });
+      navigation.replace('TransferSuccess', { monto, numeroCuentaDestino });
     } catch (error) {
       const msg = error.response?.data?.message || 'No se pudo completar la transferencia.';
       Alert.alert('Transferencia fallida', msg);
@@ -49,14 +54,14 @@ const TransferConfirmScreen = ({ navigation, route }) => {
       <Text style={styles.subtitle}>Revisa los datos antes de continuar. Esta acción no se puede deshacer.</Text>
 
       <View style={styles.card}>
-        <Row label="Cuenta origen" value={`•••• ${fromAccount.accountNumber?.slice(-4)}`} />
-        <Row label="Tipo origen" value={fromAccount.accountType === 'monetaria' ? 'Monetaria' : 'Ahorro'} />
+        <Row label="Cuenta origen" value={`${fromAccount.tipoCuenta === 'monetaria' ? 'Monetaria' : 'Ahorro'} •••• ${fromAccount.numeroCuenta?.slice(-4)}`} />
+        <Row label="Saldo disponible" value={formatCurrency(fromAccount.saldo)} />
         <View style={styles.divider} />
-        <Row label="Cuenta destino" value={toAccountNumber} />
-        <Row label="Tipo destino" value={toAccountType === 'monetaria' ? 'Monetaria' : 'Ahorro'} />
-        {description ? <Row label="Descripción" value={description} /> : null}
+        <Row label="Cuenta destino" value={numeroCuentaDestino} />
+        <Row label="Tipo destino" value={tipoCuentaDestino === 'monetaria' ? 'Monetaria' : 'Ahorro'} />
+        {descripcion ? <Row label="Descripción" value={descripcion} /> : null}
         <View style={styles.divider} />
-        <Row label="Monto a transferir" value={formatCurrency(amount)} highlight />
+        <Row label="Monto a transferir" value={formatCurrency(monto)} highlight />
       </View>
 
       <TouchableOpacity
