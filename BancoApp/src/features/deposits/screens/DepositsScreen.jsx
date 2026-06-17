@@ -88,16 +88,18 @@ const DepositsScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchRequests = async () => {
-    try {
-      const data = await getMyDepositRequests();
-      setRequests(data.data || data);
-    } catch {
-      Alert.alert('Error', 'No se pudieron cargar las solicitudes.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  try {
+    const data = await getMyDepositRequests();
+    setRequests(data.data || data);
+  } catch (error) {
+    console.log('ERROR deposits:', error.message);
+    console.log('ERROR status:', error.response?.status);
+    Alert.alert('Error', 'No se pudieron cargar las solicitudes.');
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   useFocusEffect(useCallback(() => { fetchRequests(); }, []));
 

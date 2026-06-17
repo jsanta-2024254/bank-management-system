@@ -6,7 +6,9 @@ export const requestDeposit = async (data) => {
 };
 
 export const getMyDepositRequests = async () => {
+  console.log('Llamando a deposit-requests/my...');
   const response = await api.get('/deposit-requests/my');
+  console.log('Respuesta:', JSON.stringify(response.data).slice(0, 200));
   return response.data;
 };
 
