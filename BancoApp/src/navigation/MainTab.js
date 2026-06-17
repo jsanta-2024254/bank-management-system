@@ -7,15 +7,18 @@ import TransfersStack from './stacks/TransfersStack';
 import FavoritesStack from './stacks/FavoritesStack';
 import ProfileStack from './stacks/ProfileStack';
 import DepositsStack from './stacks/DepositsStack';
+import CurrencyStack from './stacks/CurrencyStack';
+
 
 
 const Tab = createBottomTabNavigator();
 
 const TABS = [
-  { name: 'Inicio',      icon: 'home',            stack: AccountsStack  },
+  { name: 'Inicio',      icon: 'home',             stack: AccountsStack  },
   { name: 'Transferir',  icon: 'swap-horizontal',  stack: TransfersStack },
   { name: 'Favoritos',   icon: 'heart',            stack: FavoritesStack },
   { name: 'Depósitos',   icon: 'arrow-down-circle', stack: DepositsStack },
+  { name: 'Divisas',     icon: 'cash',             stack: CurrencyStack  },
   { name: 'Perfil',      icon: 'person',           stack: ProfileStack   },
 ];
 
