@@ -8,6 +8,7 @@ import FavoritesStack from './stacks/FavoritesStack';
 import ProfileStack from './stacks/ProfileStack';
 import DepositsStack from './stacks/DepositsStack';
 import CurrencyStack from './stacks/CurrencyStack';
+import ProductsStack from './stacks/ProductsStack';
 
 
 
@@ -19,6 +20,7 @@ const TABS = [
   { name: 'Favoritos',   icon: 'heart',            stack: FavoritesStack },
   { name: 'Depósitos',   icon: 'arrow-down-circle', stack: DepositsStack },
   { name: 'Divisas',     icon: 'cash',             stack: CurrencyStack  },
+  { name: 'Productos',   icon: 'briefcase',             stack: ProductsStack },
   { name: 'Perfil',      icon: 'person',           stack: ProfileStack   },
 ];
 
