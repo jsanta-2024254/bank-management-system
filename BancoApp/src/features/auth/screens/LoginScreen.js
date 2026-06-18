@@ -1,47 +1,65 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, KeyboardAvoidingView,
+  StyleSheet, KeyboardAvoidingView,
   Platform, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { COLORS } from '../../../shared/constants/colors';
 import { THEME, COMMON_STYLES } from '../../../shared/constants/theme';
 import { login } from '../../../api/auth';
-import * as SecureStore from 'expo-secure-store';
 import useAuthStore from '../../../store/useAuthStore';
+import { useAlert } from '../../../shared/components/CustomAlert';
+import * as SecureStore from 'expo-secure-store';
 
 const LoginScreen = ({ navigation }) => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { showAlert } = useAlert();
 
   const handleLogin = async () => {
-  if (!emailOrUsername.trim() || !password.trim()) {
-    Alert.alert('Campos requeridos', 'Ingresa tu usuario/correo y contraseña.');
-    return;
-  }
-  setLoading(true);
-  try {
-    const response = await login({ emailOrUsername: emailOrUsername.trim(), password });
-    const token = response.token || response.data?.token;
-    const user = response.userDetails || response.data?.userDetails;
-    await SecureStore.setItemAsync('userToken', String(token));
-    await SecureStore.setItemAsync('userData', JSON.stringify(user));
-    useAuthStore.getState().setAuthenticated(token, user);
-  } catch (error) {
-    const status = error.response?.status;
-    if (status === 423) {
-      Alert.alert('Cuenta bloqueada', 'Tu cuenta ha sido bloqueada.');
-    } else if (status === 401) {
-      Alert.alert('Credenciales inválidas', 'Usuario o contraseña incorrectos.');
-    } else {
-      Alert.alert('Error', error.response?.data?.message || 'Error al iniciar sesión.');
+    if (!emailOrUsername.trim() || !password.trim()) {
+      showAlert({
+        type: 'warning',
+        title: 'Campos requeridos',
+        message: 'Ingresa tu usuario/correo y contraseña.',
+      });
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      const response = await login({ emailOrUsername: emailOrUsername.trim(), password });
+      const token = response.token || response.data?.token;
+      const user = response.userDetails || response.data?.userDetails;
+      await SecureStore.setItemAsync('userToken', String(token));
+      await SecureStore.setItemAsync('userData', JSON.stringify(user));
+      useAuthStore.getState().setAuthenticated(token, user);
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 423) {
+        showAlert({
+          type: 'error',
+          title: 'Cuenta bloqueada',
+          message: 'Tu cuenta ha sido bloqueada por seguridad. Contacta con tu banco.',
+        });
+      } else if (status === 401) {
+        showAlert({
+          type: 'error',
+          title: 'Credenciales inválidas',
+          message: 'El usuario o la contraseña son incorrectos.',
+        });
+      } else {
+        showAlert({
+          type: 'error',
+          title: 'Error al iniciar sesión',
+          message: error.response?.data?.message || 'Ocurrió un problema. Intenta de nuevo.',
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -89,6 +107,7 @@ const LoginScreen = ({ navigation }) => {
             style={[COMMON_STYLES.primaryButton, loading && COMMON_STYLES.primaryButtonDisabled]}
             onPress={handleLogin}
             disabled={loading}
+            activeOpacity={0.85}
           >
             {loading
               ? <ActivityIndicator color={COLORS.white} />
@@ -114,18 +133,19 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, backgroundColor: COLORS.background, padding: THEME.spacing.lg, justifyContent: 'center' },
   header: { alignItems: 'center', marginBottom: 36 },
   logoBox: {
-    width: 72, height: 72, borderRadius: 20,
+    width: 76, height: 76, borderRadius: 22,
     backgroundColor: COLORS.primary,
-    justifyContent: 'center', alignItems: 'center', marginBottom: 12,
+    justifyContent: 'center', alignItems: 'center', marginBottom: 14,
+    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
   },
-  logoText: { fontSize: 36, fontWeight: '800', color: COLORS.white },
-  bankName: { fontSize: 26, fontWeight: '800', color: COLORS.primary, letterSpacing: 0.5 },
+  logoText: { fontSize: 38, fontWeight: '800', color: COLORS.white },
+  bankName: { fontSize: 27, fontWeight: '800', color: COLORS.primary, letterSpacing: 0.5 },
   subtitle: { fontSize: 14, color: COLORS.textSecondary, marginTop: 4 },
   form: {
     backgroundColor: COLORS.surface, borderRadius: THEME.borderRadius.xl,
     padding: THEME.spacing.lg, marginBottom: THEME.spacing.lg,
     shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08, shadowRadius: 12, elevation: 3,
+    shadowOpacity: 0.1, shadowRadius: 16, elevation: 4,
   },
   formTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 20 },
   passwordRow: { position: 'relative' },
