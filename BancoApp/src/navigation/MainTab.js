@@ -5,12 +5,8 @@ import { COLORS } from '../shared/constants/colors';
 import AccountsStack from './stacks/AccountsStack';
 import TransfersStack from './stacks/TransfersStack';
 import FavoritesStack from './stacks/FavoritesStack';
-import ProfileStack from './stacks/ProfileStack';
 import DepositsStack from './stacks/DepositsStack';
 import CurrencyStack from './stacks/CurrencyStack';
-import ProductsStack from './stacks/ProductsStack';
-
-
 
 const Tab = createBottomTabNavigator();
 
@@ -20,14 +16,12 @@ const TABS = [
   { name: 'Favoritos',   icon: 'heart',            stack: FavoritesStack },
   { name: 'Depósitos',   icon: 'arrow-down-circle', stack: DepositsStack },
   { name: 'Divisas',     icon: 'cash',             stack: CurrencyStack  },
-  { name: 'Productos',   icon: 'briefcase',             stack: ProductsStack },
-  { name: 'Perfil',      icon: 'person',           stack: ProfileStack   },
 ];
 
 const MainTab = () => (
   <Tab.Navigator
     screenOptions={({ route }) => {
-      const tab = TABS.find(t => t.name === route.name);
+      const tab = TABS.find((t) => t.name === route.name);
       return {
         headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
@@ -50,7 +44,7 @@ const MainTab = () => (
       };
     }}
   >
-    {TABS.map(tab => (
+    {TABS.map((tab) => (
       <Tab.Screen key={tab.name} name={tab.name} component={tab.stack} />
     ))}
   </Tab.Navigator>

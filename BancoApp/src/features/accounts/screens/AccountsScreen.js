@@ -9,6 +9,7 @@ import { COLORS } from '../../../shared/constants/colors';
 import { COMMON_STYLES, THEME } from '../../../shared/constants/theme';
 import { getMyAccounts } from '../../../api/accounts';
 import useAuthStore from '../../../store/useAuthStore';
+import ProfileMenu from '../../../shared/components/ProfileMenu';
 
 const formatCurrency = (amount) =>
   `Q ${parseFloat(amount || 0).toLocaleString('es-GT', {
@@ -106,10 +107,15 @@ const AccountsScreen = ({ navigation }) => {
 
       {/* Banner / Greeting */}
       <View style={styles.headerBanner}>
-        <Text style={styles.greeting}>Hola, {firstName} 👋</Text>
-        <Text style={styles.headerSub}>Aquí están tus cuentas</Text>
+        <View style={styles.headerTopRow}>
+          <View>
+            <Text style={styles.greeting}>Hola, {firstName} 👋</Text>
+            <Text style={styles.headerSub}>Aquí están tus cuentas</Text>
+          </View>
+          <ProfileMenu />
+        </View>
 
-        {/* Resumen rápido */}
+        {/* Resumen rápido sigue igual */}
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryValue}>{accounts.length}</Text>
@@ -174,6 +180,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 4,
+  },
+    headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 20,
   },
 

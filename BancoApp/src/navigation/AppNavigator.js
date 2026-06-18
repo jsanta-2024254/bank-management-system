@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, ActivityIndicator } from 'react-native';
 import AuthStack from './AuthStack';
 import MainTab from './MainTab';
+import ProfileStack from './stacks/ProfileStack';
+import ProductsStack from './stacks/ProductsStack';
 import useAuthStore from '../store/useAuthStore';
 import { COLORS } from '../shared/constants/colors';
 
@@ -25,10 +27,15 @@ const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated
-          ? <Stack.Screen name="Main" component={MainTab} />
-          : <Stack.Screen name="Auth" component={AuthStack} />
-        }
+        {isAuthenticated ? (
+          <>
+            <Stack.Screen name="Main" component={MainTab} />
+            <Stack.Screen name="ProfileStack" component={ProfileStack} />
+            <Stack.Screen name="ProductsStack" component={ProductsStack} />
+          </>
+        ) : (
+          <Stack.Screen name="Auth" component={AuthStack} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
