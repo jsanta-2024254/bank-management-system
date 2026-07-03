@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
+import { CreditCard, ShieldCheck, UserRound, WalletCards } from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import useAccountStore from '../store/accountStore'
 import useAuthStore from '../../auth/store/authStore'
@@ -92,7 +93,12 @@ const AccountForm = ({ account, onClose }) => {
     }
 
     const inputClass =
-        'w-full bg-zinc-800/50 border border-zinc-700/50 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-zinc-600'
+        'w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18'
+
+    const labelClass =
+        'mb-3 block text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75'
+
+    const errorClass = 'mt-2 ml-1 text-xs font-semibold text-red-700'
 
     return (
         <Modal
@@ -106,29 +112,57 @@ const AccountForm = ({ account, onClose }) => {
             onClose={onClose}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-5">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b] shadow-[0_12px_24px_rgba(154,107,22,0.12)]">
+                            <WalletCards size={20} />
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-black text-[#3f2c12]">
+                                {estaEditando
+                                    ? 'Actualización de cuenta bancaria'
+                                    : 'Configuración de nueva cuenta'}
+                            </p>
+
+                            <p className="mt-1 text-sm leading-6 text-[#7a6849]">
+                                {esAdmin
+                                    ? 'Complete los datos administrativos de la cuenta.'
+                                    : 'Seleccione el tipo de cuenta que desea abrir.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                        Tipo de Cuenta
-                    </label>
-                    <select
-                        {...register('tipoCuenta', { required: 'El tipo es requerido' })}
-                        className={`${inputClass} appearance-none`}
-                    >
-                        <option value="monetaria">Monetaria</option>
-                        <option value="ahorro">Ahorro</option>
-                    </select>
+                    <label className={labelClass}>Tipo de Cuenta</label>
+
+                    <div className="relative">
+                        <CreditCard
+                            size={18}
+                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70"
+                        />
+
+                        <select
+                            {...register('tipoCuenta', { required: 'El tipo es requerido' })}
+                            className={`${inputClass} appearance-none pl-12`}
+                        >
+                            <option value="monetaria">Monetaria</option>
+                            <option value="ahorro">Ahorro</option>
+                        </select>
+                    </div>
+
                     {errors.tipoCuenta && (
-                        <p className="text-red-400 text-xs mt-1.5 ml-1">
-                            {errors.tipoCuenta.message}
-                        </p>
+                        <p className={errorClass}>{errors.tipoCuenta.message}</p>
                     )}
                 </div>
 
                 {esAdmin && (
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                        <label className={labelClass}>
                             Saldo {estaEditando ? 'actual' : 'inicial'} (Q)
                         </label>
+
                         <input
                             {...register('saldo', {
                                 required: 'El saldo es requerido',
@@ -142,36 +176,41 @@ const AccountForm = ({ account, onClose }) => {
                             placeholder="0.00"
                             className={inputClass}
                         />
+
                         {errors.saldo && (
-                            <p className="text-red-400 text-xs mt-1.5 ml-1">
-                                {errors.saldo.message}
-                            </p>
+                            <p className={errorClass}>{errors.saldo.message}</p>
                         )}
                     </div>
                 )}
 
                 {esAdmin && (
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                            ID de Usuario
-                        </label>
-                        <input
-                            {...register('usuario', {
-                                required: !estaEditando ? 'El usuario es requerido' : false,
-                            })}
-                            placeholder="ID del usuario"
-                            className={`${inputClass} ${
-                                estaEditando ? 'opacity-60 cursor-not-allowed' : ''
-                            }`}
-                            disabled={estaEditando}
-                        />
+                        <label className={labelClass}>ID de Usuario</label>
+
+                        <div className="relative">
+                            <UserRound
+                                size={18}
+                                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70"
+                            />
+
+                            <input
+                                {...register('usuario', {
+                                    required: !estaEditando ? 'El usuario es requerido' : false,
+                                })}
+                                placeholder="ID del usuario"
+                                className={`${inputClass} pl-12 ${
+                                    estaEditando ? 'cursor-not-allowed opacity-60' : ''
+                                }`}
+                                disabled={estaEditando}
+                            />
+                        </div>
+
                         {errors.usuario && (
-                            <p className="text-red-400 text-xs mt-1.5 ml-1">
-                                {errors.usuario.message}
-                            </p>
+                            <p className={errorClass}>{errors.usuario.message}</p>
                         )}
+
                         {estaEditando && (
-                            <p className="text-zinc-500 text-xs mt-1.5 ml-1">
+                            <p className="mt-2 ml-1 text-xs font-semibold text-[#8a6a3a]">
                                 El usuario propietario de la cuenta no se puede cambiar.
                             </p>
                         )}
@@ -179,7 +218,7 @@ const AccountForm = ({ account, onClose }) => {
                 )}
 
                 {!esAdmin && !estaEditando && (
-                    <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-2xl px-4 py-3 text-sm">
+                    <div className="rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df]/65 px-4 py-3 text-sm font-semibold leading-6 text-[#6f5a33]">
                         Tu cuenta será creada a tu nombre y comenzará con saldo Q0.00.
                         El saldo únicamente puede cambiar por operaciones bancarias válidas.
                     </div>
@@ -187,16 +226,22 @@ const AccountForm = ({ account, onClose }) => {
 
                 {esAdmin && estaEditando && (
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
-                            Estado
-                        </label>
-                        <select
-                            {...register('estado')}
-                            className={`${inputClass} appearance-none`}
-                        >
-                            <option value="true">Activa</option>
-                            <option value="false">Inactiva</option>
-                        </select>
+                        <label className={labelClass}>Estado</label>
+
+                        <div className="relative">
+                            <ShieldCheck
+                                size={18}
+                                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70"
+                            />
+
+                            <select
+                                {...register('estado')}
+                                className={`${inputClass} appearance-none pl-12`}
+                            >
+                                <option value="true">Activa</option>
+                                <option value="false">Inactiva</option>
+                            </select>
+                        </div>
                     </div>
                 )}
 
@@ -204,7 +249,7 @@ const AccountForm = ({ account, onClose }) => {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-4 rounded-2xl text-sm font-semibold transition-all"
+                        className="flex-1 rounded-2xl border border-[#d7bc73]/55 bg-white/45 py-4 text-sm font-black text-[#6f5a33] transition-all hover:bg-white/85 hover:text-[#3f2c12]"
                     >
                         Cancelar
                     </button>
@@ -212,7 +257,7 @@ const AccountForm = ({ account, onClose }) => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-sm transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50"
+                        className="flex-1 rounded-2xl border border-[#c89b3c]/50 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
                     >
                         {isSubmitting
                             ? estaEditando

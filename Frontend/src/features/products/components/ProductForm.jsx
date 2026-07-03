@@ -1,5 +1,16 @@
 import { useWatch, useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
+import {
+    AlignLeft,
+    BadgeDollarSign,
+    CalendarDays,
+    CreditCard,
+    DollarSign,
+    Landmark,
+    Package,
+    Percent,
+    ShieldCheck,
+} from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import useProductStore from '../store/productStore'
 
@@ -108,7 +119,12 @@ const ProductForm = ({ product, onClose }) => {
     }
 
     const inputClass =
-        'w-full bg-zinc-900 border border-zinc-800 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all placeholder:text-zinc-600 text-sm disabled:opacity-60 disabled:cursor-not-allowed'
+        'w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18 disabled:cursor-not-allowed disabled:opacity-60'
+
+    const labelClass =
+        'mb-3 ml-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75'
+
+    const errorClass = 'mt-2 ml-1 text-xs font-semibold text-red-700'
 
     return (
         <Modal
@@ -116,27 +132,54 @@ const ProductForm = ({ product, onClose }) => {
             onClose={onClose}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-5">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b] shadow-[0_12px_24px_rgba(154,107,22,0.12)]">
+                            <Package size={20} />
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-black text-[#3f2c12]">
+                                {isEditing
+                                    ? 'Actualización de producto financiero'
+                                    : 'Configuración de nuevo producto financiero'}
+                            </p>
+
+                            <p className="mt-1 text-sm leading-6 text-[#7a6849]">
+                                Mantenga claros los datos comerciales, condiciones y disponibilidad del producto.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                    <label className={labelClass}>
+                        <Landmark size={11} />
                         Nombre
                     </label>
+
                     <input
                         {...register('nombre', { required: 'El nombre es requerido' })}
-                        placeholder={esCredito ? 'Ej. Crédito personal rápido' : 'Nombre del producto'}
+                        placeholder={
+                            esCredito
+                                ? 'Ej. Crédito personal rápido'
+                                : 'Nombre del producto'
+                        }
                         className={inputClass}
                         disabled={isLoading}
                     />
+
                     {errors.nombre && (
-                        <p className="text-red-400 text-xs mt-1.5 ml-1">
-                            {errors.nombre.message}
-                        </p>
+                        <p className={errorClass}>{errors.nombre.message}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                    <label className={labelClass}>
+                        <AlignLeft size={11} />
                         Descripción
                     </label>
+
                     <textarea
                         {...register('descripcion', {
                             required: 'La descripción es requerida',
@@ -150,20 +193,21 @@ const ProductForm = ({ product, onClose }) => {
                         rows={3}
                         disabled={isLoading}
                     />
+
                     {errors.descripcion && (
-                        <p className="text-red-400 text-xs mt-1.5 ml-1">
-                            {errors.descripcion.message}
-                        </p>
+                        <p className={errorClass}>{errors.descripcion.message}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                    <label className={labelClass}>
+                        <BadgeDollarSign size={11} />
                         Tipo
                     </label>
+
                     <select
                         {...register('tipo', { required: 'El tipo es requerido' })}
-                        className={`${inputClass} appearance-none cursor-pointer`}
+                        className={`${inputClass} cursor-pointer appearance-none`}
                         disabled={isLoading}
                     >
                         {tiposProducto.map((tipo) => (
@@ -172,31 +216,38 @@ const ProductForm = ({ product, onClose }) => {
                             </option>
                         ))}
                     </select>
+
                     {errors.tipo && (
-                        <p className="text-red-400 text-xs mt-1.5 ml-1">
-                            {errors.tipo.message}
-                        </p>
+                        <p className={errorClass}>{errors.tipo.message}</p>
                     )}
                 </div>
 
                 {esCredito ? (
-                    <div className="space-y-5 rounded-3xl border border-blue-500/20 bg-blue-500/5 p-5">
+                    <div className="space-y-5 rounded-3xl border border-[#d7bc73]/45 bg-[#fff8df]/52 p-5">
                         <div>
-                            <h4 className="text-white font-bold">Configuración de crédito</h4>
-                            <p className="text-zinc-500 text-sm mt-1">
+                            <h4 className="text-base font-black text-[#3f2c12]">
+                                Configuración de crédito
+                            </h4>
+
+                            <p className="mt-1 text-sm leading-6 text-[#7a6849]">
                                 El cliente no compra este producto. Envía una solicitud y el administrador decide si aprueba el desembolso.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <DollarSign size={11} />
                                     Monto mínimo
                                 </label>
+
                                 <input
                                     {...register('montoMinimo', {
                                         required: 'El monto mínimo es requerido',
-                                        min: { value: 0.01, message: 'Debe ser mayor que 0' },
+                                        min: {
+                                            value: 0.01,
+                                            message: 'Debe ser mayor que 0',
+                                        },
                                     })}
                                     type="number"
                                     step="0.01"
@@ -204,21 +255,27 @@ const ProductForm = ({ product, onClose }) => {
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
                                 {errors.montoMinimo && (
-                                    <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                    <p className={errorClass}>
                                         {errors.montoMinimo.message}
                                     </p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <DollarSign size={11} />
                                     Monto máximo
                                 </label>
+
                                 <input
                                     {...register('montoMaximo', {
                                         required: 'El monto máximo es requerido',
-                                        min: { value: 0.01, message: 'Debe ser mayor que 0' },
+                                        min: {
+                                            value: 0.01,
+                                            message: 'Debe ser mayor que 0',
+                                        },
                                     })}
                                     type="number"
                                     step="0.01"
@@ -226,67 +283,85 @@ const ProductForm = ({ product, onClose }) => {
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
                                 {errors.montoMaximo && (
-                                    <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                    <p className={errorClass}>
                                         {errors.montoMaximo.message}
                                     </p>
                                 )}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <CalendarDays size={11} />
                                     Plazo mínimo en meses
                                 </label>
+
                                 <input
                                     {...register('plazoMesesMinimo', {
                                         required: 'El plazo mínimo es requerido',
-                                        min: { value: 1, message: 'Debe ser mayor o igual a 1' },
+                                        min: {
+                                            value: 1,
+                                            message: 'Debe ser mayor o igual a 1',
+                                        },
                                     })}
                                     type="number"
                                     step="1"
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
                                 {errors.plazoMesesMinimo && (
-                                    <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                    <p className={errorClass}>
                                         {errors.plazoMesesMinimo.message}
                                     </p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <CalendarDays size={11} />
                                     Plazo máximo en meses
                                 </label>
+
                                 <input
                                     {...register('plazoMesesMaximo', {
                                         required: 'El plazo máximo es requerido',
-                                        min: { value: 1, message: 'Debe ser mayor o igual a 1' },
+                                        min: {
+                                            value: 1,
+                                            message: 'Debe ser mayor o igual a 1',
+                                        },
                                     })}
                                     type="number"
                                     step="1"
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
                                 {errors.plazoMesesMaximo && (
-                                    <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                    <p className={errorClass}>
                                         {errors.plazoMesesMaximo.message}
                                     </p>
                                 )}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <Percent size={11} />
                                     Tasa de interés anual %
                                 </label>
+
                                 <input
                                     {...register('tasaInteres', {
                                         required: 'La tasa de interés es requerida',
-                                        min: { value: 0, message: 'Debe ser mayor o igual a 0' },
+                                        min: {
+                                            value: 0,
+                                            message: 'Debe ser mayor o igual a 0',
+                                        },
                                     })}
                                     type="number"
                                     step="0.01"
@@ -294,20 +369,26 @@ const ProductForm = ({ product, onClose }) => {
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
                                 {errors.tasaInteres && (
-                                    <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                    <p className={errorClass}>
                                         {errors.tasaInteres.message}
                                     </p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <Percent size={11} />
                                     Mora %
                                 </label>
+
                                 <input
                                     {...register('moraPorcentaje', {
-                                        min: { value: 0, message: 'Debe ser mayor o igual a 0' },
+                                        min: {
+                                            value: 0,
+                                            message: 'Debe ser mayor o igual a 0',
+                                        },
                                     })}
                                     type="number"
                                     step="0.01"
@@ -315,27 +396,41 @@ const ProductForm = ({ product, onClose }) => {
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
+                                {errors.moraPorcentaje && (
+                                    <p className={errorClass}>
+                                        {errors.moraPorcentaje.message}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-5 rounded-3xl border border-white/5 bg-white/2 p-5">
+                    <div className="space-y-5 rounded-3xl border border-[#d7bc73]/45 bg-white/36 p-5">
                         <div>
-                            <h4 className="text-white font-bold">Configuración de cobro</h4>
-                            <p className="text-zinc-500 text-sm mt-1">
+                            <h4 className="text-base font-black text-[#3f2c12]">
+                                Configuración de cobro
+                            </h4>
+
+                            <p className="mt-1 text-sm leading-6 text-[#7a6849]">
                                 Estos productos descuentan dinero de la cuenta del cliente al adquirirse.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <DollarSign size={11} />
                                     Precio
                                 </label>
+
                                 <input
                                     {...register('precio', {
                                         required: 'El precio es requerido',
-                                        min: { value: 0.01, message: 'Debe ser mayor que 0' },
+                                        min: {
+                                            value: 0.01,
+                                            message: 'Debe ser mayor que 0',
+                                        },
                                     })}
                                     type="number"
                                     step="0.01"
@@ -343,21 +438,30 @@ const ProductForm = ({ product, onClose }) => {
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
                                 {errors.precio && (
-                                    <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                    <p className={errorClass}>
                                         {errors.precio.message}
                                     </p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <Percent size={11} />
                                     Descuento app %
                                 </label>
+
                                 <input
                                     {...register('descuentoAppPorcentaje', {
-                                        min: { value: 0, message: 'Debe ser mayor o igual a 0' },
-                                        max: { value: 100, message: 'No puede ser mayor a 100' },
+                                        min: {
+                                            value: 0,
+                                            message: 'Debe ser mayor o igual a 0',
+                                        },
+                                        max: {
+                                            value: 100,
+                                            message: 'No puede ser mayor a 100',
+                                        },
                                     })}
                                     type="number"
                                     step="0.01"
@@ -365,8 +469,9 @@ const ProductForm = ({ product, onClose }) => {
                                     className={inputClass}
                                     disabled={isLoading}
                                 />
+
                                 {errors.descuentoAppPorcentaje && (
-                                    <p className="text-red-400 text-xs mt-1.5 ml-1">
+                                    <p className={errorClass}>
                                         {errors.descuentoAppPorcentaje.message}
                                     </p>
                                 )}
@@ -376,12 +481,14 @@ const ProductForm = ({ product, onClose }) => {
                         {tipoSeleccionado !== 'suscripcion' && (
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                    <label className={labelClass}>
+                                        <CreditCard size={11} />
                                         ¿Permite pago en cuotas?
                                     </label>
+
                                     <select
                                         {...register('permitePagoCuotas')}
-                                        className={inputClass}
+                                        className={`${inputClass} appearance-none`}
                                         disabled={isLoading}
                                     >
                                         <option value="false">No</option>
@@ -390,35 +497,59 @@ const ProductForm = ({ product, onClose }) => {
                                 </div>
 
                                 {permitePagoCuotas && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <div>
-                                            <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                            <label className={labelClass}>
+                                                <CalendarDays size={11} />
                                                 Cuotas mínimas
                                             </label>
+
                                             <input
                                                 {...register('cuotasMinimas', {
-                                                    min: { value: 1, message: 'Debe ser mayor o igual a 1' },
+                                                    min: {
+                                                        value: 1,
+                                                        message:
+                                                            'Debe ser mayor o igual a 1',
+                                                    },
                                                 })}
                                                 type="number"
                                                 step="1"
                                                 className={inputClass}
                                                 disabled={isLoading}
                                             />
+
+                                            {errors.cuotasMinimas && (
+                                                <p className={errorClass}>
+                                                    {errors.cuotasMinimas.message}
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div>
-                                            <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                            <label className={labelClass}>
+                                                <CalendarDays size={11} />
                                                 Cuotas máximas
                                             </label>
+
                                             <input
                                                 {...register('cuotasMaximas', {
-                                                    min: { value: 1, message: 'Debe ser mayor o igual a 1' },
+                                                    min: {
+                                                        value: 1,
+                                                        message:
+                                                            'Debe ser mayor o igual a 1',
+                                                    },
                                                 })}
                                                 type="number"
                                                 step="1"
                                                 className={inputClass}
                                                 disabled={isLoading}
                                             />
+
+                                            {errors.cuotasMaximas && (
+                                                <p className={errorClass}>
+                                                    {errors.cuotasMaximas.message}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -429,12 +560,14 @@ const ProductForm = ({ product, onClose }) => {
 
                 {isEditing && (
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                        <label className={labelClass}>
+                            <ShieldCheck size={11} />
                             Estado
                         </label>
+
                         <select
                             {...register('estado')}
-                            className={`${inputClass} appearance-none cursor-pointer`}
+                            className={`${inputClass} cursor-pointer appearance-none`}
                             disabled={isLoading}
                         >
                             <option value="true">Activo</option>
@@ -443,12 +576,12 @@ const ProductForm = ({ product, onClose }) => {
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white px-5 py-3 rounded-2xl text-sm font-bold transition-all disabled:opacity-60"
+                        className="flex-1 rounded-2xl border border-[#d7bc73]/55 bg-white/45 px-5 py-4 text-sm font-black text-[#6f5a33] transition-all hover:bg-white/85 hover:text-[#3f2c12] disabled:cursor-not-allowed disabled:opacity-55"
                     >
                         Cancelar
                     </button>
@@ -456,7 +589,7 @@ const ProductForm = ({ product, onClose }) => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl text-sm font-bold transition-all disabled:opacity-60"
+                        className="flex-1 rounded-2xl border border-[#c89b3c]/50 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-5 py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
                     >
                         {isLoading ? 'Guardando...' : isEditing ? 'Actualizar' : 'Crear'}
                     </button>

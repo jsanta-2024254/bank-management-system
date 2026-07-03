@@ -97,71 +97,42 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <aside
       className={`
-        fixed inset-y-0 left-0 z-50 w-64 flex flex-col transition-transform duration-300 transform
-        lg:relative lg:translate-x-0
+        fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#d7bc73]/45
+        bg-[#f8f0dd]/88 shadow-[24px_0_70px_rgba(92,64,19,0.12)] backdrop-blur-2xl
+        transition-transform duration-300
+        lg:sticky lg:top-0 lg:h-screen lg:translate-x-0
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}
-      style={{
-        backgroundColor: "#100b04",
-        borderRight: "1px solid rgba(184,137,42,0.18)",
-      }}
     >
-      {/* ── Logo ── */}
-      <div
-        className="p-6 flex items-center justify-between"
-        style={{ borderBottom: "1px solid rgba(184,137,42,0.12)" }}
-      >
-        <div className="flex items-center gap-3">
-          {/* Ícono cofre dorado */}
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{
-              background: "linear-gradient(135deg, #b8892a 0%, #8a6318 100%)",
-              boxShadow: "0 4px 16px rgba(184,137,42,0.30)",
-            }}
-          >
-            <Landmark size={17} style={{ color: "#0e0a05" }} />
+      <div className="relative border-b border-[#d7bc73]/38 px-5 py-5">
+        <div className="premium-gold-line absolute bottom-0 left-6 right-6 h-px" />
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#c89b3c]/45 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_10px_24px_rgba(154,107,22,0.24)]">
+              <Landmark size={20} className="text-[#5b3a0d]" />
+            </div>
+
+            <div>
+              <span className="block text-lg font-black tracking-tight text-[#3f2c12]">
+                BankManager
+              </span>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-[#9a6b16]/70">
+                Premium Banking
+              </span>
+            </div>
           </div>
-          <span
-            className="font-display text-lg tracking-wide"
-            style={{ color: "#d4a843", fontFamily: "var(--font-display)" }}
+
+          <button
+            onClick={onClose}
+            className="rounded-xl border border-[#d7bc73]/45 p-2 text-[#8a611b] transition-all hover:bg-white/70 hover:text-[#3f2c12] lg:hidden"
           >
-            BankManager
-          </span>
+            <X size={20} />
+          </button>
         </div>
-
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg lg:hidden transition-colors"
-          style={{ color: "var(--texto-tenue)" }}
-          onMouseEnter={e => e.currentTarget.style.color = "var(--oro-claro)"}
-          onMouseLeave={e => e.currentTarget.style.color = "var(--texto-tenue)"}
-        >
-          <X size={18} />
-        </button>
       </div>
 
-      {/* ── Rol del usuario ── */}
-      <div
-        className="px-6 py-3"
-        style={{ borderBottom: "1px solid rgba(184,137,42,0.08)" }}
-      >
-        <p
-          className="text-[10px] font-bold uppercase tracking-[0.25em]"
-          style={{ color: "var(--texto-tenue)" }}
-        >
-          {role === "ADMIN_ROLE" ? "Administrador" : "Cliente"}
-        </p>
-        <p
-          className="text-xs mt-0.5 truncate"
-          style={{ color: "var(--texto-claro)" }}
-        >
-          {user?.username || user?.email || "Usuario"}
-        </p>
-      </div>
-
-      {/* ── Navegación ── */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto custom-scrollbar">
+      <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto px-4 py-5">
         {filtered.map((item) => {
           const Icon = item.icon;
           const active =
@@ -175,73 +146,44 @@ const Sidebar = ({ isOpen, onClose }) => {
 
           return (
             <NavLink
-              key={item.path + item.label}
+              key={item.path}
               to={item.path}
               onClick={() => {
                 if (window.innerWidth < 1024) onClose();
               }}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all group"
-              style={
-                active
-                  ? {
-                      background: "linear-gradient(90deg, rgba(184,137,42,0.18) 0%, rgba(184,137,42,0.06) 100%)",
-                      borderLeft: "2px solid var(--oro-medio)",
-                      color: "var(--oro-claro)",
-                      fontWeight: 600,
-                    }
-                  : {
-                      borderLeft: "2px solid transparent",
-                      color: "var(--texto-tenue)",
-                    }
+              className={() =>
+                `group relative flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${
+                  active
+                    ? "border-[#b98a23]/55 bg-white/72 text-[#3f2c12] shadow-[0_12px_28px_rgba(125,82,13,0.16)]"
+                    : "border-transparent text-[#6f5a33] hover:border-[#d7bc73]/45 hover:bg-white/50 hover:text-[#3f2c12]"
+                }`
               }
-              onMouseEnter={e => {
-                if (!active) {
-                  e.currentTarget.style.backgroundColor = "rgba(184,137,42,0.07)";
-                  e.currentTarget.style.color = "var(--texto-claro)";
-                }
-              }}
-              onMouseLeave={e => {
-                if (!active) {
-                  e.currentTarget.style.backgroundColor = "";
-                  e.currentTarget.style.color = "var(--texto-tenue)";
-                }
-              }}
             >
-              <Icon
-                size={16}
-                style={{ flexShrink: 0, opacity: active ? 1 : 0.7 }}
-              />
-              <span style={{ fontFamily: "var(--font-body)" }}>
-                {displayLabel}
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+                  active
+                    ? "bg-linear-to-br from-[#fff1bd] to-[#b98219] text-[#4a2f0c] shadow-[0_10px_20px_rgba(154,107,22,0.22)]"
+                    : "bg-[#efe0bd]/58 text-[#8a611b] group-hover:bg-[#f9edc9]"
+                }`}
+              >
+                <Icon size={17} />
               </span>
+
+              <span className="leading-none">{displayLabel}</span>
             </NavLink>
           );
         })}
       </nav>
 
-      {/* ── Línea decorativa ── */}
-      <div className="linea-oro mx-4" />
-
-      {/* ── Cerrar sesión ── */}
-      <div className="p-3">
+      <div className="border-t border-[#d7bc73]/38 p-4">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all group"
-          style={{
-            color: "var(--texto-tenue)",
-            borderLeft: "2px solid transparent",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.backgroundColor = "rgba(200,60,60,0.08)";
-            e.currentTarget.style.color = "#c87a7a";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.backgroundColor = "";
-            e.currentTarget.style.color = "var(--texto-tenue)";
-          }}
+          className="group flex w-full items-center gap-3 rounded-2xl border border-transparent px-4 py-3 text-sm font-semibold text-[#8a6a3a] transition-all hover:border-red-200 hover:bg-red-50/70 hover:text-red-700"
         >
-          <LogOut size={16} style={{ flexShrink: 0 }} />
-          <span style={{ fontFamily: "var(--font-body)" }}>Cerrar sesión</span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#efe0bd]/55 text-[#8a611b] transition-all group-hover:bg-red-100 group-hover:text-red-700">
+            <LogOut size={18} />
+          </span>
+          Cerrar sesión
         </button>
       </div>
     </aside>

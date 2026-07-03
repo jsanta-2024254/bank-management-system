@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { Camera, User } from 'lucide-react'
+import { Camera, IdCard, Mail, Phone, Save, User } from 'lucide-react'
 import api from '../../../shared/api/api'
 import useAuthStore from '../../auth/store/authStore'
 
 const obtenerValorUsuario = (user, claves, valorPorDefecto = '') => {
-    const valor = claves.find((clave) => user?.[clave] !== undefined && user?.[clave] !== null)
+    const valor = claves.find(
+        (clave) => user?.[clave] !== undefined && user?.[clave] !== null
+    )
     return valor ? user[valor] : valorPorDefecto
 }
 
@@ -32,7 +34,11 @@ const ProfileForm = ({ user }) => {
     const valoresIniciales = useMemo(
         () => ({
             name: obtenerValorUsuario(user, ['name', 'nombre', 'Name']),
-            surname: obtenerValorUsuario(user, ['surname', 'apellido', 'Surname']),
+            surname: obtenerValorUsuario(user, [
+                'surname',
+                'apellido',
+                'Surname',
+            ]),
             email: obtenerValorUsuario(user, ['email', 'Email']),
             phone: obtenerValorUsuario(user, ['phone', 'celular', 'Phone']),
             dpi: obtenerValorUsuario(user, ['dpi', 'Dpi']),
@@ -129,80 +135,108 @@ const ProfileForm = ({ user }) => {
     }
 
     const inputClass =
-        'w-full bg-zinc-950/70 border border-zinc-800 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all placeholder:text-zinc-600 text-sm disabled:opacity-60 disabled:cursor-not-allowed'
+        'w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18 disabled:cursor-not-allowed disabled:opacity-60'
+
+    const labelClass =
+        'mb-3 ml-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75'
+
+    const errorClass = 'mt-2 ml-1 text-xs font-semibold text-red-700'
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center bg-zinc-950/40 border border-zinc-800 rounded-3xl p-6">
-                <div className="w-28 h-28 rounded-3xl bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center shrink-0">
-                    {previewImagen ? (
-                        <img
-                            src={previewImagen}
-                            alt="Foto de perfil"
-                            className="w-full h-full object-cover"
-                        />
-                    ) : (
-                        <User size={44} className="text-zinc-500" />
-                    )}
-                </div>
+            <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-6">
+                <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+                    <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-[#d7bc73]/45 bg-[#fff8df] shadow-[0_14px_32px_rgba(92,64,19,0.1)]">
+                        {previewImagen ? (
+                            <img
+                                src={previewImagen}
+                                alt="Foto de perfil"
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <User size={44} className="text-[#9a6b16]/65" />
+                        )}
+                    </div>
 
-                <div className="flex-1">
-                    <h3 className="text-white font-bold text-lg">Foto de perfil</h3>
-                    <p className="text-zinc-500 text-sm mt-1 mb-4">
-                        Seleccione una imagen para actualizar su fotografía de perfil.
-                    </p>
+                    <div className="flex-1">
+                        <h3 className="text-lg font-black text-[#3f2c12]">
+                            Foto de perfil
+                        </h3>
 
-                    <label className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-5 py-3 rounded-2xl text-sm font-semibold cursor-pointer transition-all">
-                        <Camera size={18} />
-                        Seleccionar imagen
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={manejarCambioImagen}
-                            disabled={isLoading}
-                            className="hidden"
-                        />
-                    </label>
+                        <p className="mt-1 mb-4 text-sm leading-6 text-[#7a6849]">
+                            Selecciona una imagen para actualizar tu fotografía de perfil.
+                        </p>
+
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-[#d7bc73]/55 bg-white/52 px-5 py-3 text-sm font-black text-[#6f5a33] shadow-[0_12px_26px_rgba(92,64,19,0.08)] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12]">
+                            <Camera size={18} />
+                            Seleccionar imagen
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={manejarCambioImagen}
+                                disabled={isLoading}
+                                className="hidden"
+                            />
+                        </label>
+
+                        {archivoImagen && (
+                            <p className="mt-3 text-xs font-semibold text-[#8a6a3a]">
+                                Imagen seleccionada: {archivoImagen.name}
+                            </p>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                    <label className={labelClass}>
+                        <User size={11} />
                         Nombre
                     </label>
+
                     <input
-                        {...register('name', { required: 'El nombre es requerido' })}
+                        {...register('name', {
+                            required: 'El nombre es requerido',
+                        })}
                         className={inputClass}
                         placeholder="Nombre"
                         disabled={isLoading}
                     />
+
                     {errors.name && (
-                        <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>
+                        <p className={errorClass}>{errors.name.message}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                    <label className={labelClass}>
+                        <User size={11} />
                         Apellido
                     </label>
+
                     <input
-                        {...register('surname', { required: 'El apellido es requerido' })}
+                        {...register('surname', {
+                            required: 'El apellido es requerido',
+                        })}
                         className={inputClass}
                         placeholder="Apellido"
                         disabled={isLoading}
                     />
+
                     {errors.surname && (
-                        <p className="text-red-400 text-xs mt-1">{errors.surname.message}</p>
+                        <p className={errorClass}>{errors.surname.message}</p>
                     )}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                    <label className={labelClass}>
+                        <Mail size={11} />
                         Correo electrónico
                     </label>
+
                     <input
                         {...register('email', {
                             required: 'El correo es requerido',
@@ -216,20 +250,24 @@ const ProfileForm = ({ user }) => {
                         placeholder="correo@ejemplo.com"
                         disabled={isLoading}
                     />
+
                     {errors.email && (
-                        <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
+                        <p className={errorClass}>{errors.email.message}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                    <label className={labelClass}>
+                        <Phone size={11} />
                         Teléfono
                     </label>
+
                     <input
                         {...register('phone', {
                             pattern: {
                                 value: /^\d{8}$/,
-                                message: 'El teléfono debe tener exactamente 8 dígitos',
+                                message:
+                                    'El teléfono debe tener exactamente 8 dígitos',
                             },
                         })}
                         type="tel"
@@ -237,16 +275,19 @@ const ProfileForm = ({ user }) => {
                         placeholder="55555555"
                         disabled={isLoading}
                     />
+
                     {errors.phone && (
-                        <p className="text-red-400 text-xs mt-1">{errors.phone.message}</p>
+                        <p className={errorClass}>{errors.phone.message}</p>
                     )}
                 </div>
             </div>
 
             <div>
-                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                <label className={labelClass}>
+                    <IdCard size={11} />
                     DPI
                 </label>
+
                 <input
                     {...register('dpi', {
                         pattern: {
@@ -258,8 +299,9 @@ const ProfileForm = ({ user }) => {
                     placeholder="1234567890101"
                     disabled={isLoading}
                 />
+
                 {errors.dpi && (
-                    <p className="text-red-400 text-xs mt-1">{errors.dpi.message}</p>
+                    <p className={errorClass}>{errors.dpi.message}</p>
                 )}
             </div>
 
@@ -267,8 +309,9 @@ const ProfileForm = ({ user }) => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-4 rounded-2xl text-sm transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/50 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-6 py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0 sm:w-auto"
                 >
+                    <Save size={18} />
                     {isLoading ? 'Guardando...' : 'Guardar cambios'}
                 </button>
             </div>

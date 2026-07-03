@@ -2,8 +2,8 @@ import { create } from 'zustand'
 import { toast } from 'react-hot-toast'
 import {
     getAccounts,
+    getMyAccounts,
     createAccount as createAccountRequest,
-    createMyAccount as createMyAccountRequest,
     updateAccount as updateAccountRequest,
     deleteAccount as deleteAccountRequest,
 } from '../../../shared/api/accounts'
@@ -138,6 +138,17 @@ const useAccountStore = create((set) => ({
         set({ loading: true, error: null })
 
         try {
+             fetchMyAccounts: async (userId) => {
+        set({ loading: true, error: null })
+        try {
+            const response = await getMyAccounts(userId)
+            set({ accounts: getAccountList(response), loading: false, error: null })
+        } catch (error) {
+            const message = getErrorMessage(error, 'Error al cargar tus cuentas')
+            set({ error: message, loading: false, accounts: [] })
+            toast.error(message)
+        }
+    },
             await deleteAccountRequest(id)
 
             set((state) => ({

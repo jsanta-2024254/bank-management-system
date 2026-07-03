@@ -11,6 +11,10 @@ import {
     Search,
     UserRound,
     XCircle,
+    Landmark,
+    Percent,
+    MessageSquare,
+    Coins,
 } from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import useProductStore from '../store/productStore'
@@ -72,7 +76,12 @@ const obtenerCuenta = (request) => {
     if (!request?.cuenta) return 'Cuenta no disponible'
     if (typeof request.cuenta === 'string') return request.cuenta
 
-    return request.cuenta.numeroCuenta || request.cuenta._id || request.cuenta.id || 'Cuenta no disponible'
+    return (
+        request.cuenta.numeroCuenta ||
+        request.cuenta._id ||
+        request.cuenta.id ||
+        'Cuenta no disponible'
+    )
 }
 
 const obtenerTipoCuenta = (request) => {
@@ -95,11 +104,23 @@ const obtenerTextoOrigen = (origen) => {
 }
 
 const obtenerClaseEstado = (estado) => {
-    if (estado === 'aprobada') return 'bg-emerald-500/10 text-emerald-400'
-    if (estado === 'rechazada') return 'bg-red-500/10 text-red-400'
-    if (estado === 'pendiente') return 'bg-amber-500/10 text-amber-400'
-    if (estado === 'finalizada') return 'bg-blue-500/10 text-blue-400'
-    return 'bg-zinc-700/40 text-zinc-400'
+    if (estado === 'aprobada') {
+        return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+    }
+
+    if (estado === 'rechazada') {
+        return 'border-red-200 bg-red-50 text-red-700'
+    }
+
+    if (estado === 'pendiente') {
+        return 'border-amber-200 bg-amber-50 text-amber-700'
+    }
+
+    if (estado === 'finalizada') {
+        return 'border-blue-200 bg-blue-50 text-blue-700'
+    }
+
+    return 'border-[#d7bc73]/40 bg-[#ead9ad]/35 text-[#8a6a3a]'
 }
 
 const obtenerValoresAprobacion = (request) => ({
@@ -112,6 +133,16 @@ const obtenerValoresAprobacion = (request) => ({
     ),
     comentarioAdmin: '',
 })
+
+const Skeleton = ({ className }) => (
+    <div className={`animate-pulse bg-[#ead9ad]/70 ${className}`} />
+)
+
+const inputClass =
+    'w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18 disabled:cursor-not-allowed disabled:opacity-60'
+
+const labelClass =
+    'mb-3 ml-1 block text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75'
 
 const CreditRequestList = () => {
     const {
@@ -151,6 +182,23 @@ const CreditRequestList = () => {
             return valores.join(' ').toLowerCase().includes(query)
         })
     }, [creditRequests, search])
+
+    const totalSolicitado = useMemo(
+        () =>
+            solicitudesFiltradas.reduce(
+                (sum, request) => sum + Number(request.montoSolicitado || 0),
+                0
+            ),
+        [solicitudesFiltradas]
+    )
+
+    const totalPendientes = useMemo(
+        () =>
+            solicitudesFiltradas.filter(
+                (request) => request.estado === 'pendiente'
+            ).length,
+        [solicitudesFiltradas]
+    )
 
     const actualizarSolicitudes = () => {
         fetchCreditRequests(obtenerParametrosFiltro(filtroEstado))
@@ -241,10 +289,6 @@ const CreditRequestList = () => {
         }
     }
 
-    const Skeleton = ({ className }) => (
-        <div className={`bg-zinc-800 animate-pulse ${className}`} />
-    )
-
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -261,112 +305,146 @@ const CreditRequestList = () => {
                     onClose={cerrarDecision}
                 >
                     <form onSubmit={procesarDecision} className="space-y-5">
-                        <div className="bg-zinc-950/70 border border-zinc-800 rounded-2xl p-4">
-                            <p className="text-zinc-500 text-[10px] uppercase font-black tracking-widest mb-1">
-                                Solicitud
-                            </p>
+                        <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b] shadow-[0_12px_24px_rgba(154,107,22,0.12)]">
+                                    <BadgeDollarSign size={20} />
+                                </div>
 
-                            <p className="text-white font-bold">
-                                {obtenerNombreProducto(decision.request)}
-                            </p>
+                                <div className="min-w-0">
+                                    <p className="mb-1 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                                        Solicitud
+                                    </p>
 
-                            <p className="text-zinc-400 text-xs mt-1">
-                                Cuenta {obtenerCuenta(decision.request)} · Usuario:{' '}
-                                {obtenerUsuarioCuenta(decision.request)}
-                            </p>
+                                    <p className="truncate text-sm font-black text-[#3f2c12]">
+                                        {obtenerNombreProducto(decision.request)}
+                                    </p>
 
-                            <p className="text-zinc-400 text-xs mt-1">
-                                Monto solicitado:{' '}
-                                <span className="text-white font-semibold">
-                                    {formatearMoneda(decision.request.montoSolicitado)}
-                                </span>{' '}
-                                · Plazo: {decision.request.plazoMeses} meses
-                            </p>
+                                    <p className="mt-1 text-xs font-semibold text-[#7a6849]">
+                                        Cuenta {obtenerCuenta(decision.request)} · Usuario:{' '}
+                                        {obtenerUsuarioCuenta(decision.request)}
+                                    </p>
+
+                                    <p className="mt-1 text-xs font-semibold text-[#7a6849]">
+                                        Monto solicitado:{' '}
+                                        <span className="font-black text-[#3f2c12]">
+                                            {formatearMoneda(
+                                                decision.request.montoSolicitado
+                                            )}
+                                        </span>{' '}
+                                        · Plazo: {decision.request.plazoMeses} meses
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         {decision.tipo === 'aprobar' ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 <div>
-                                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                                    <label className={labelClass}>
                                         Monto aprobado
                                     </label>
 
-                                    <input
-                                        name="montoAprobado"
-                                        type="number"
-                                        min="0.01"
-                                        step="0.01"
-                                        value={decision.form.montoAprobado}
-                                        onChange={cambiarDecision}
-                                        required
-                                        disabled={loading}
-                                        className="w-full bg-zinc-950/70 border border-zinc-800 text-white rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm disabled:opacity-60"
-                                    />
+                                    <div className="relative">
+                                        <Coins
+                                            size={14}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70"
+                                        />
+
+                                        <input
+                                            name="montoAprobado"
+                                            type="number"
+                                            min="0.01"
+                                            step="0.01"
+                                            value={decision.form.montoAprobado}
+                                            onChange={cambiarDecision}
+                                            required
+                                            disabled={loading}
+                                            className={`${inputClass} pl-10`}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
-                                        Tasa %
-                                    </label>
+                                    <label className={labelClass}>Tasa %</label>
 
-                                    <input
-                                        name="tasaInteres"
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={decision.form.tasaInteres}
-                                        onChange={cambiarDecision}
-                                        required
-                                        disabled={loading}
-                                        className="w-full bg-zinc-950/70 border border-zinc-800 text-white rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm disabled:opacity-60"
-                                    />
+                                    <div className="relative">
+                                        <Percent
+                                            size={14}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70"
+                                        />
+
+                                        <input
+                                            name="tasaInteres"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={decision.form.tasaInteres}
+                                            onChange={cambiarDecision}
+                                            required
+                                            disabled={loading}
+                                            className={`${inputClass} pl-10`}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
-                                        Mora %
-                                    </label>
+                                    <label className={labelClass}>Mora %</label>
 
-                                    <input
-                                        name="moraPorcentaje"
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={decision.form.moraPorcentaje}
-                                        onChange={cambiarDecision}
-                                        required
-                                        disabled={loading}
-                                        className="w-full bg-zinc-950/70 border border-zinc-800 text-white rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm disabled:opacity-60"
-                                    />
+                                    <div className="relative">
+                                        <Percent
+                                            size={14}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70"
+                                        />
+
+                                        <input
+                                            name="moraPorcentaje"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={decision.form.moraPorcentaje}
+                                            onChange={cambiarDecision}
+                                            required
+                                            disabled={loading}
+                                            className={`${inputClass} pl-10`}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
-                                <p className="text-red-300 text-sm font-semibold">
+                            <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4">
+                                <p className="text-sm font-semibold leading-6 text-red-700">
                                     Esta acción marcará la solicitud como rechazada y no realizará ningún desembolso.
                                 </p>
                             </div>
                         )}
 
                         <div>
-                            <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block ml-1">
+                            <label className={labelClass}>
                                 Comentario administrativo
                             </label>
 
-                            <textarea
-                                name="comentarioAdmin"
-                                value={decision.form.comentarioAdmin}
-                                onChange={cambiarDecision}
-                                rows={3}
-                                required={decision.tipo === 'rechazar'}
-                                disabled={loading}
-                                placeholder={
-                                    decision.tipo === 'aprobar'
-                                        ? 'Comentario opcional para el cliente o auditoría...'
-                                        : 'Indique el motivo del rechazo...'
-                                }
-                                className="w-full bg-zinc-950/70 border border-zinc-800 text-white rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm resize-none disabled:opacity-60 placeholder:text-zinc-600"
-                            />
+                            <div className="relative">
+                                <MessageSquare
+                                    size={14}
+                                    className="absolute left-4 top-4 text-[#9a6b16]/70"
+                                />
+
+                                <textarea
+                                    name="comentarioAdmin"
+                                    value={decision.form.comentarioAdmin}
+                                    onChange={cambiarDecision}
+                                    rows={3}
+                                    required={decision.tipo === 'rechazar'}
+                                    disabled={loading}
+                                    placeholder={
+                                        decision.tipo === 'aprobar'
+                                            ? 'Comentario opcional para el cliente o auditoría...'
+                                            : 'Indique el motivo del rechazo...'
+                                    }
+                                    className={`${inputClass} resize-none pl-10`}
+                                />
+                            </div>
                         </div>
 
                         <div className="flex gap-4 pt-2">
@@ -374,7 +452,7 @@ const CreditRequestList = () => {
                                 type="button"
                                 onClick={cerrarDecision}
                                 disabled={loading}
-                                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-4 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50"
+                                className="flex-1 rounded-2xl border border-[#d7bc73]/55 bg-white/45 py-4 text-sm font-black text-[#6f5a33] transition-all hover:bg-white/85 hover:text-[#3f2c12] disabled:cursor-not-allowed disabled:opacity-55"
                             >
                                 Cancelar
                             </button>
@@ -382,10 +460,10 @@ const CreditRequestList = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`flex-1 text-white font-bold py-4 rounded-2xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${
+                                className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black text-white transition-all disabled:cursor-not-allowed disabled:opacity-55 ${
                                     decision.tipo === 'aprobar'
-                                        ? 'bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20'
-                                        : 'bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20'
+                                        ? 'border border-emerald-300 bg-emerald-700 shadow-[0_18px_36px_rgba(4,120,87,0.22)] hover:bg-emerald-800'
+                                        : 'border border-red-300 bg-red-700 shadow-[0_18px_36px_rgba(185,28,28,0.22)] hover:bg-red-800'
                                 }`}
                             >
                                 {decision.tipo === 'aprobar' ? (
@@ -405,40 +483,89 @@ const CreditRequestList = () => {
                 </Modal>
             )}
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">
-                        Solicitudes de Crédito
-                    </h1>
+            <div className="mb-8 overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
+                <div className="premium-gold-line mb-6 h-px w-full" />
 
-                    <p className="text-zinc-500 text-sm mt-1">
-                        Revise, apruebe o rechace créditos solicitados por los clientes.
-                    </p>
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
+                            <Landmark size={28} className="text-[#5b3a0d]" />
+                        </div>
+
+                        <div>
+                            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.28em] text-[#9a6b16]/75">
+                                Gestión crediticia
+                            </p>
+
+                            <h1 className="text-3xl font-black tracking-tight text-[#3f2c12] md:text-4xl">
+                                Solicitudes de Crédito
+                            </h1>
+
+                            <p className="mt-1 text-sm font-semibold text-[#7a6849]">
+                                Revise, apruebe o rechace créditos solicitados por los clientes.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={actualizarSolicitudes}
+                        disabled={loading}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#d7bc73]/55 bg-white/52 px-5 py-3 text-sm font-black text-[#6f5a33] shadow-[0_12px_26px_rgba(92,64,19,0.08)] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12] disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto"
+                    >
+                        <RefreshCw
+                            size={16}
+                            className={loading ? 'animate-spin' : ''}
+                        />
+                        {loading ? 'Actualizando...' : 'Actualizar'}
+                    </button>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={actualizarSolicitudes}
-                    disabled={loading}
-                    className="w-full sm:w-auto bg-zinc-900 hover:bg-zinc-800 text-white px-6 py-3 rounded-2xl text-sm font-bold transition-all border border-zinc-800 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    {loading ? 'Actualizando...' : 'Actualizar'}
-                </button>
+                <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/42 p-5">
+                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                            Solicitudes visibles
+                        </p>
+
+                        <p className="mt-2 text-2xl font-black text-[#3f2c12]">
+                            {solicitudesFiltradas.length}
+                        </p>
+                    </div>
+
+                    <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/42 p-5">
+                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                            Pendientes visibles
+                        </p>
+
+                        <p className="mt-2 text-2xl font-black text-[#3f2c12]">
+                            {totalPendientes}
+                        </p>
+                    </div>
+
+                    <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/42 p-5">
+                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                            Monto solicitado visible
+                        </p>
+
+                        <p className="mt-2 text-2xl font-black text-[#3f2c12]">
+                            {formatearMoneda(totalSolicitado)}
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto] gap-4 mb-6">
+            <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_auto]">
                 <div className="relative">
                     <Search
                         size={16}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9a6b16]/70"
                     />
 
                     <input
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder="Buscar por producto, cuenta, usuario, estado o comentario..."
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm"
+                        className="w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 py-3.5 pl-10 pr-4 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18"
                     />
                 </div>
 
@@ -448,10 +575,10 @@ const CreditRequestList = () => {
                             key={estado.value}
                             type="button"
                             onClick={() => setFiltroEstado(estado.value)}
-                            className={`px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border ${
+                            className={`rounded-2xl border px-4 py-3 text-xs font-black uppercase tracking-[0.18em] transition-all ${
                                 filtroEstado === estado.value
-                                    ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/20'
-                                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-700'
+                                    ? 'border-[#c89b3c]/55 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] text-white shadow-[0_14px_28px_rgba(154,107,22,0.22)]'
+                                    : 'border-[#d7bc73]/45 bg-white/45 text-[#6f5a33] hover:bg-white/85 hover:text-[#3f2c12]'
                             }`}
                         >
                             {estado.label}
@@ -461,43 +588,45 @@ const CreditRequestList = () => {
             </div>
 
             {error && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl mb-6 text-center">
+                <div className="mb-6 rounded-2xl border border-red-200 bg-red-50/80 px-4 py-3 text-center text-sm font-semibold text-red-700">
                     {error}
                 </div>
             )}
 
-            <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                <div className="overflow-x-auto">
+            <div className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl">
+                <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
+
+                <div className="custom-scrollbar overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-white/5 border-b border-white/5">
-                                <th className="text-zinc-400 text-[10px] font-black uppercase tracking-widest px-8 py-5">
+                            <tr className="border-b border-[#d7bc73]/28 bg-[#ead9ad]/22">
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
                                     Solicitud
                                 </th>
 
-                                <th className="text-zinc-400 text-[10px] font-black uppercase tracking-widest px-8 py-5">
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
                                     Cliente / Cuenta
                                 </th>
 
-                                <th className="text-zinc-400 text-[10px] font-black uppercase tracking-widest px-8 py-5 text-right">
+                                <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
                                     Monto
                                 </th>
 
-                                <th className="text-zinc-400 text-[10px] font-black uppercase tracking-widest px-8 py-5">
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
                                     Condiciones
                                 </th>
 
-                                <th className="text-zinc-400 text-[10px] font-black uppercase tracking-widest px-8 py-5">
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
                                     Estado
                                 </th>
 
-                                <th className="text-zinc-400 text-[10px] font-black uppercase tracking-widest px-8 py-5 text-right">
+                                <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
                                     Acciones
                                 </th>
                             </tr>
                         </thead>
 
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-[#d7bc73]/28">
                             {loading && solicitudesFiltradas.length === 0 ? (
                                 [1, 2, 3].map((item) => (
                                     <tr key={item}>
@@ -510,7 +639,7 @@ const CreditRequestList = () => {
                                         </td>
 
                                         <td className="px-8 py-5">
-                                            <Skeleton className="h-6 w-28 rounded-lg ml-auto" />
+                                            <Skeleton className="ml-auto h-6 w-28 rounded-lg" />
                                         </td>
 
                                         <td className="px-8 py-5">
@@ -522,15 +651,22 @@ const CreditRequestList = () => {
                                         </td>
 
                                         <td className="px-8 py-5">
-                                            <Skeleton className="h-8 w-20 rounded-lg ml-auto" />
+                                            <Skeleton className="ml-auto h-8 w-20 rounded-lg" />
                                         </td>
                                     </tr>
                                 ))
                             ) : solicitudesFiltradas.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-8 py-16 text-center text-zinc-500">
-                                        <Clock size={36} className="mx-auto mb-3 opacity-30" />
-                                        <p className="font-medium">
+                                    <td
+                                        colSpan={6}
+                                        className="px-8 py-16 text-center text-[#8a6a3a]"
+                                    >
+                                        <Clock
+                                            size={36}
+                                            className="mx-auto mb-3 opacity-40"
+                                        />
+
+                                        <p className="font-bold">
                                             No se encontraron solicitudes de crédito
                                         </p>
                                     </td>
@@ -539,7 +675,8 @@ const CreditRequestList = () => {
                                 <AnimatePresence>
                                     {solicitudesFiltradas.map((request) => {
                                         const id = obtenerId(request)
-                                        const puedeGestionar = request.estado === 'pendiente'
+                                        const puedeGestionar =
+                                            request.estado === 'pendiente'
 
                                         return (
                                             <motion.tr
@@ -547,84 +684,99 @@ const CreditRequestList = () => {
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
                                                 exit={{ opacity: 0 }}
-                                                className="hover:bg-white/3 transition-colors"
+                                                className="transition-colors hover:bg-white/35"
                                             >
                                                 <td className="px-8 py-5 align-top">
-                                                    <div className="flex items-start gap-3 min-w-65">
-                                                        <div className="w-10 h-10 rounded-2xl bg-blue-600/10 border border-blue-600/20 flex items-center justify-center shrink-0">
-                                                            <BadgeDollarSign
-                                                                size={17}
-                                                                className="text-blue-400"
-                                                            />
+                                                    <div className="flex min-w-65 items-start gap-3">
+                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b] shadow-[0_12px_24px_rgba(154,107,22,0.12)]">
+                                                            <BadgeDollarSign size={17} />
                                                         </div>
 
                                                         <div>
-                                                            <p className="text-white font-bold text-sm">
+                                                            <p className="text-sm font-black text-[#3f2c12]">
                                                                 {obtenerNombreProducto(request)}
                                                             </p>
 
-                                                            <p className="text-zinc-500 text-xs mt-1">
-                                                                {obtenerTextoOrigen(request.origenSolicitud)}
+                                                            <p className="mt-1 text-xs font-semibold text-[#8a6a3a]">
+                                                                {obtenerTextoOrigen(
+                                                                    request.origenSolicitud
+                                                                )}
                                                             </p>
 
-                                                            <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1">
+                                                            <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-[#8a6a3a]">
                                                                 <CalendarDays size={12} />
-                                                                {formatearFecha(request.createdAt)}
+                                                                {formatearFecha(
+                                                                    request.createdAt
+                                                                )}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </td>
 
                                                 <td className="px-8 py-5 align-top">
-                                                    <div className="space-y-2 min-w-55">
-                                                        <p className="text-zinc-300 text-xs flex items-center gap-2">
-                                                            <UserRound size={13} className="text-zinc-500" />
+                                                    <div className="min-w-55 space-y-2">
+                                                        <p className="flex items-center gap-2 text-xs font-semibold text-[#7a6849]">
+                                                            <UserRound
+                                                                size={13}
+                                                                className="text-[#9a6b16]/70"
+                                                            />
                                                             {obtenerUsuarioCuenta(request)}
                                                         </p>
 
-                                                        <p className="text-white font-mono text-xs flex items-center gap-2">
-                                                            <CreditCard size={13} className="text-zinc-500" />
+                                                        <p className="flex items-center gap-2 font-mono text-xs font-black text-[#3f2c12]">
+                                                            <CreditCard
+                                                                size={13}
+                                                                className="text-[#9a6b16]/70"
+                                                            />
                                                             {obtenerCuenta(request)}
                                                         </p>
 
-                                                        <p className="text-zinc-500 text-xs capitalize">
+                                                        <p className="text-xs font-semibold capitalize text-[#8a6a3a]">
                                                             {obtenerTipoCuenta(request)}
                                                         </p>
                                                     </div>
                                                 </td>
 
-                                                <td className="px-8 py-5 align-top text-right">
-                                                    <p className="text-white font-black text-sm">
-                                                        {formatearMoneda(request.montoSolicitado)}
+                                                <td className="px-8 py-5 text-right align-top">
+                                                    <p className="text-sm font-black text-[#3f2c12]">
+                                                        {formatearMoneda(
+                                                            request.montoSolicitado
+                                                        )}
                                                     </p>
 
                                                     {request.montoAprobado && (
-                                                        <p className="text-emerald-400 text-xs mt-1">
+                                                        <p className="mt-1 text-xs font-black text-emerald-700">
                                                             Aprobado:{' '}
-                                                            {formatearMoneda(request.montoAprobado)}
+                                                            {formatearMoneda(
+                                                                request.montoAprobado
+                                                            )}
                                                         </p>
                                                     )}
                                                 </td>
 
                                                 <td className="px-8 py-5 align-top">
-                                                    <div className="text-xs text-zinc-400 min-w-47.5 space-y-1">
+                                                    <div className="min-w-47.5 space-y-1 text-xs font-semibold text-[#8a6a3a]">
                                                         <p>
                                                             Plazo:{' '}
-                                                            <span className="text-white font-semibold">
+                                                            <span className="font-black text-[#3f2c12]">
                                                                 {request.plazoMeses} meses
                                                             </span>
                                                         </p>
 
                                                         <p>
                                                             Tasa:{' '}
-                                                            <span className="text-white font-semibold">
-                                                                {Number(request.tasaInteresAplicada || 0)}%
+                                                            <span className="font-black text-[#3f2c12]">
+                                                                {Number(
+                                                                    request.tasaInteresAplicada ||
+                                                                        0
+                                                                )}
+                                                                %
                                                             </span>
                                                         </p>
 
                                                         <p>
                                                             Cuota estimada:{' '}
-                                                            <span className="text-white font-semibold">
+                                                            <span className="font-black text-[#3f2c12]">
                                                                 {formatearMoneda(
                                                                     request.cuotaMensualEstimada
                                                                 )}
@@ -632,14 +784,16 @@ const CreditRequestList = () => {
                                                         </p>
 
                                                         {request.comentarioCliente && (
-                                                            <p className="text-zinc-500 line-clamp-2 pt-1">
-                                                                Cliente: {request.comentarioCliente}
+                                                            <p className="pt-1 text-[#8a6a3a]">
+                                                                Cliente:{' '}
+                                                                {request.comentarioCliente}
                                                             </p>
                                                         )}
 
                                                         {request.comentarioAdmin && (
-                                                            <p className="text-zinc-500 line-clamp-2 pt-1">
-                                                                Admin: {request.comentarioAdmin}
+                                                            <p className="pt-1 text-[#8a6a3a]">
+                                                                Admin:{' '}
+                                                                {request.comentarioAdmin}
                                                             </p>
                                                         )}
                                                     </div>
@@ -647,11 +801,11 @@ const CreditRequestList = () => {
 
                                                 <td className="px-8 py-5 align-top">
                                                     <span
-                                                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold capitalize ${obtenerClaseEstado(
+                                                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-black capitalize ${obtenerClaseEstado(
                                                             request.estado
                                                         )}`}
                                                     >
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                                                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                                         {request.estado || 'pendiente'}
                                                     </span>
                                                 </td>
@@ -662,9 +816,13 @@ const CreditRequestList = () => {
                                                             <>
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => abrirAprobacion(request)}
+                                                                    onClick={() =>
+                                                                        abrirAprobacion(
+                                                                            request
+                                                                        )
+                                                                    }
                                                                     disabled={loading}
-                                                                    className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 disabled:opacity-50 transition-all"
+                                                                    className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-2 text-emerald-700 transition-all hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
                                                                     title="Aprobar crédito"
                                                                 >
                                                                     <CheckCircle2 size={18} />
@@ -672,16 +830,20 @@ const CreditRequestList = () => {
 
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => abrirRechazo(request)}
+                                                                    onClick={() =>
+                                                                        abrirRechazo(
+                                                                            request
+                                                                        )
+                                                                    }
                                                                     disabled={loading}
-                                                                    className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 disabled:opacity-50 transition-all"
+                                                                    className="rounded-xl border border-red-200 bg-red-50/80 p-2 text-red-700 transition-all hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                                                                     title="Rechazar crédito"
                                                                 >
                                                                     <XCircle size={18} />
                                                                 </button>
                                                             </>
                                                         ) : (
-                                                            <span className="text-zinc-600 text-xs font-semibold">
+                                                            <span className="text-xs font-semibold text-[#8a6a3a]">
                                                                 Sin acciones
                                                             </span>
                                                         )}

@@ -9,6 +9,9 @@ import {
     CreditCard,
     CalendarDays,
     BadgePercent,
+    DollarSign,
+    MessageSquare,
+    Landmark,
 } from 'lucide-react'
 import useAccountStore from '../../accounts/store/accountStore'
 import useProductStore from '../store/productStore'
@@ -36,7 +39,9 @@ const ProductDetailModal = ({ product, onClose }) => {
         {
             length: Math.max(
                 1,
-                Number(product?.cuotasMaximas || 1) - Number(product?.cuotasMinimas || 1) + 1
+                Number(product?.cuotasMaximas || 1) -
+                Number(product?.cuotasMinimas || 1) +
+                1
             ),
         },
         (_, index) => Number(product?.cuotasMinimas || 1) + index
@@ -59,7 +64,9 @@ const ProductDetailModal = ({ product, onClose }) => {
     })
 
     const valoresFormulario = useWatch({ control })
-    const numeroCuotas = Number(valoresFormulario?.numeroCuotas || product?.cuotasMinimas || 1)
+    const numeroCuotas = Number(
+        valoresFormulario?.numeroCuotas || product?.cuotasMinimas || 1
+    )
     const montoCredito = Number(valoresFormulario?.monto || 0)
     const plazoMeses = Number(valoresFormulario?.plazoMeses || plazoMinimoCredito)
 
@@ -79,9 +86,12 @@ const ProductDetailModal = ({ product, onClose }) => {
     const totalProducto = esCredito ? 0 : precioBase - descuentoAplicado
     const cuotaInicial = numeroCuotas > 1 ? totalProducto / numeroCuotas : totalProducto
 
-    const interesTotal = esCredito ? montoCredito * (tasaCredito / 100) * (plazoMeses / 12) : 0
+    const interesTotal = esCredito
+        ? montoCredito * (tasaCredito / 100) * (plazoMeses / 12)
+        : 0
     const totalCredito = esCredito ? montoCredito + interesTotal : 0
-    const cuotaMensualCredito = esCredito && plazoMeses > 0 ? totalCredito / plazoMeses : 0
+    const cuotaMensualCredito =
+        esCredito && plazoMeses > 0 ? totalCredito / plazoMeses : 0
 
     const isLoading = loading || isSubmitting
 
@@ -112,23 +122,25 @@ const ProductDetailModal = ({ product, onClose }) => {
     const cronogramaProducto =
         !esCredito && numeroCuotas > 1
             ? Array.from({ length: numeroCuotas }, (_, index) => ({
-                  numeroCuota: index + 1,
-                  fechaPago: agregarMeses(new Date(), index),
-                  montoCuota: totalProducto / numeroCuotas,
-              }))
+                numeroCuota: index + 1,
+                fechaPago: agregarMeses(new Date(), index),
+                montoCuota: totalProducto / numeroCuotas,
+            }))
             : []
 
     const cronogramaCredito = esCredito
         ? Array.from({ length: plazoMeses }, (_, index) => ({
-              numeroCuota: index + 1,
-              fechaPago: agregarMeses(new Date(), index + 1),
-              montoCuota: cuotaMensualCredito,
-          }))
+            numeroCuota: index + 1,
+            fechaPago: agregarMeses(new Date(), index + 1),
+            montoCuota: cuotaMensualCredito,
+        }))
         : []
 
     const onSubmit = async (data) => {
         const toastId = toast.loading(
-            esCredito ? 'Enviando solicitud de crédito...' : 'Procesando adquisición...'
+            esCredito
+                ? 'Enviando solicitud de crédito...'
+                : 'Procesando adquisición...'
         )
 
         try {
@@ -155,8 +167,8 @@ const ProductDetailModal = ({ product, onClose }) => {
                     Number(data.numeroCuotas || 1) > 1
                         ? 'Producto adquirido en cuotas correctamente'
                         : esSuscripcion
-                          ? 'Suscripción activada correctamente'
-                          : 'Producto adquirido correctamente',
+                            ? 'Suscripción activada correctamente'
+                            : 'Producto adquirido correctamente',
                     { id: toastId }
                 )
             }
@@ -173,70 +185,91 @@ const ProductDetailModal = ({ product, onClose }) => {
         } catch (error) {
             toast.error(
                 error?.response?.data?.message ||
-                    (esCredito ? 'Error al solicitar el crédito' : 'Error al adquirir el producto'),
+                (esCredito
+                    ? 'Error al solicitar el crédito'
+                    : 'Error al adquirir el producto'),
                 { id: toastId }
             )
         }
     }
 
     const inputClass =
-        'w-full bg-zinc-950/70 border border-zinc-800 text-white rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all placeholder:text-zinc-600 text-sm disabled:opacity-60 disabled:cursor-not-allowed'
+        'w-full rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18 disabled:cursor-not-allowed disabled:opacity-60'
+
+    const labelClass =
+        'mb-3 ml-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75'
+
+    const errorClass = 'mt-2 ml-1 text-xs font-semibold text-red-700'
 
     return (
         <Modal title={product.nombre || product.name} onClose={onClose}>
-            <div className="space-y-8">
+            <div className="space-y-7">
                 <div className="flex flex-wrap gap-3">
-                    <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                    <span className="rounded-full border border-[#d7bc73]/50 bg-[#fff8df] px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-[#8a611b]">
                         {product.tipo}
                     </span>
 
                     {descuento > 0 && !esCredito && (
-                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                        <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
                             <BadgePercent size={13} />
                             {descuento}% descuento app
                         </span>
                     )}
                 </div>
 
-                <div>
-                    <h4 className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                        <Info size={14} /> Descripción del producto
+                <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-5">
+                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75">
+                        <Info size={14} />
+                        Descripción del producto
                     </h4>
 
-                    <p className="text-white leading-relaxed">{product.descripcion}</p>
+                    <p className="text-sm leading-7 text-[#3f2c12]">
+                        {product.descripcion}
+                    </p>
                 </div>
 
                 {esCredito && (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="bg-zinc-950/70 border border-zinc-800 rounded-2xl p-4">
-                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                                     Crédito mínimo
                                 </p>
-                                <p className="text-white font-black text-xl mt-1">
+
+                                <p className="mt-1 text-xl font-black text-[#3f2c12]">
                                     {fmt(montoMinimoCredito)}
                                 </p>
                             </div>
 
-                            <div className="bg-zinc-950/70 border border-zinc-800 rounded-2xl p-4">
-                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                            <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                                     Crédito máximo
                                 </p>
-                                <p className="text-white font-black text-xl mt-1">
+
+                                <p className="mt-1 text-xl font-black text-[#3f2c12]">
                                     {fmt(montoMaximoCredito)}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
-                            <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest mb-2">
+                        <div className="rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df]/65 p-4">
+                            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                                 Condiciones visibles antes de solicitar
                             </p>
-                            <p className="text-zinc-200 text-sm">
-                                Puede solicitar desde <strong>{fmt(montoMinimoCredito)}</strong> hasta{' '}
-                                <strong>{fmt(montoMaximoCredito)}</strong>.
+
+                            <p className="text-sm leading-6 text-[#7a6849]">
+                                Puede solicitar desde{' '}
+                                <span className="font-black text-[#3f2c12]">
+                                    {fmt(montoMinimoCredito)}
+                                </span>{' '}
+                                hasta{' '}
+                                <span className="font-black text-[#3f2c12]">
+                                    {fmt(montoMaximoCredito)}
+                                </span>
+                                .
                             </p>
-                            <p className="text-zinc-400 text-xs mt-1">
+
+                            <p className="mt-1 text-xs font-semibold text-[#8a6a3a]">
                                 Plazo permitido: {formatearPlazo(plazoMinimoCredito, plazoMaximoCredito)} · Tasa anual:{' '}
                                 {tasaCredito}% · Mora: {moraCredito}% sobre cuota vencida.
                             </p>
@@ -246,29 +279,30 @@ const ProductDetailModal = ({ product, onClose }) => {
 
                 <form
                     onSubmit={handleSubmit(onSubmit)}
-                    className="bg-zinc-950/50 border border-zinc-800 rounded-3xl p-5 space-y-5"
+                    className="space-y-5 rounded-3xl border border-[#d7bc73]/45 bg-white/38 p-5"
                 >
                     <div>
-                        <h4 className="text-white font-bold flex items-center gap-2">
-                            <ShoppingCart size={18} className="text-blue-400" />
+                        <h4 className="flex items-center gap-2 text-base font-black text-[#3f2c12]">
+                            <ShoppingCart size={18} className="text-[#8a611b]" />
                             {esCredito
                                 ? 'Solicitar crédito'
                                 : esSuscripcion
-                                  ? 'Activar suscripción mensual'
-                                  : 'Adquirir desde la app'}
+                                    ? 'Activar suscripción mensual'
+                                    : 'Adquirir desde la app'}
                         </h4>
 
-                        <p className="text-zinc-500 text-sm mt-1">
+                        <p className="mt-1 text-sm leading-6 text-[#7a6849]">
                             {esCredito
                                 ? 'Esta solicitud queda pendiente. El dinero se acredita solo si un administrador la aprueba.'
                                 : numeroCuotas > 1
-                                  ? 'Se cobrará únicamente la primera cuota hoy y quedará registrado el cronograma de pagos.'
-                                  : 'El monto será descontado de la cuenta seleccionada.'}
+                                    ? 'Se cobrará únicamente la primera cuota hoy y quedará registrado el cronograma de pagos.'
+                                    : 'El monto será descontado de la cuenta seleccionada.'}
                         </p>
                     </div>
 
                     <div>
-                        <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                        <label className={labelClass}>
+                            <Landmark size={11} />
                             Cuenta
                         </label>
 
@@ -276,7 +310,7 @@ const ProductDetailModal = ({ product, onClose }) => {
                             {...register('cuentaId', {
                                 required: 'Debe seleccionar una cuenta',
                             })}
-                            className={inputClass}
+                            className={`${inputClass} appearance-none`}
                             disabled={isLoading}
                         >
                             <option value="">Seleccione una cuenta</option>
@@ -292,16 +326,15 @@ const ProductDetailModal = ({ product, onClose }) => {
                         </select>
 
                         {errors.cuentaId && (
-                            <p className="text-red-400 text-xs mt-1">
-                                {errors.cuentaId.message}
-                            </p>
+                            <p className={errorClass}>{errors.cuentaId.message}</p>
                         )}
                     </div>
 
                     {esCredito ? (
                         <div className="space-y-5">
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <DollarSign size={11} />
                                     Monto solicitado
                                 </label>
 
@@ -326,19 +359,18 @@ const ProductDetailModal = ({ product, onClose }) => {
                                     disabled={isLoading}
                                 />
 
-                                <p className="text-zinc-500 text-xs mt-1.5 ml-1">
+                                <p className="mt-1.5 ml-1 text-xs font-semibold text-[#8a6a3a]">
                                     Rango permitido: {fmt(montoMinimoCredito)} a {fmt(montoMaximoCredito)}.
                                 </p>
 
                                 {errors.monto && (
-                                    <p className="text-red-400 text-xs mt-1">
-                                        {errors.monto.message}
-                                    </p>
+                                    <p className={errorClass}>{errors.monto.message}</p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <CalendarDays size={11} />
                                     Plazo en meses
                                 </label>
 
@@ -362,19 +394,18 @@ const ProductDetailModal = ({ product, onClose }) => {
                                     disabled={isLoading}
                                 />
 
-                                <p className="text-zinc-500 text-xs mt-1.5 ml-1">
+                                <p className="mt-1.5 ml-1 text-xs font-semibold text-[#8a6a3a]">
                                     Plazo permitido: {formatearPlazo(plazoMinimoCredito, plazoMaximoCredito)}.
                                 </p>
 
                                 {errors.plazoMeses && (
-                                    <p className="text-red-400 text-xs mt-1">
-                                        {errors.plazoMeses.message}
-                                    </p>
+                                    <p className={errorClass}>{errors.plazoMeses.message}</p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <MessageSquare size={11} />
                                     Comentario para el banco
                                 </label>
 
@@ -390,13 +421,14 @@ const ProductDetailModal = ({ product, onClose }) => {
                     ) : (
                         permitePagoCuotas && (
                             <div>
-                                <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">
+                                <label className={labelClass}>
+                                    <CreditCard size={11} />
                                     Número de cuotas
                                 </label>
 
                                 <select
                                     {...register('numeroCuotas')}
-                                    className={inputClass}
+                                    className={`${inputClass} appearance-none`}
                                     disabled={isLoading}
                                 >
                                     {cuotasDisponibles.map((cuota) => (
@@ -410,32 +442,38 @@ const ProductDetailModal = ({ product, onClose }) => {
                     )}
 
                     {!esCredito && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                                     Precio base
                                 </p>
-                                <p className="text-white font-black text-xl">{fmt(precioBase)}</p>
+
+                                <p className="mt-1 text-xl font-black text-[#3f2c12]">
+                                    {fmt(precioBase)}
+                                </p>
                             </div>
 
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/85 p-4">
+                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-700">
                                     Descuento app
                                 </p>
-                                <p className="text-emerald-400 font-black text-xl">
+
+                                <p className="mt-1 text-xl font-black text-emerald-700">
                                     -{fmt(descuentoAplicado)}
                                 </p>
                             </div>
 
-                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 sm:col-span-2">
-                                <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest">
+                            <div className="rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df]/65 p-4 sm:col-span-2">
+                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                                     {numeroCuotas > 1 ? 'A pagar hoy' : 'Total a pagar hoy'}
                                 </p>
-                                <p className="text-white font-black text-2xl">
+
+                                <p className="mt-1 text-2xl font-black text-[#3f2c12]">
                                     {fmt(cuotaInicial)}
                                 </p>
+
                                 {numeroCuotas > 1 && (
-                                    <p className="text-zinc-400 text-xs mt-1">
+                                    <p className="mt-1 text-xs font-semibold text-[#8a6a3a]">
                                         Total con descuento: {fmt(totalProducto)} en {numeroCuotas} cuotas.
                                     </p>
                                 )}
@@ -444,23 +482,23 @@ const ProductDetailModal = ({ product, onClose }) => {
                     )}
 
                     {cronogramaProducto.length > 1 && (
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-                            <h5 className="text-white font-bold text-sm flex items-center gap-2 mb-3">
-                                <CalendarDays size={16} className="text-blue-400" />
+                        <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                            <h5 className="mb-3 flex items-center gap-2 text-sm font-black text-[#3f2c12]">
+                                <CalendarDays size={16} className="text-[#8a611b]" />
                                 Cronograma estimado de cuotas
                             </h5>
 
-                            <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+                            <div className="custom-scrollbar max-h-52 space-y-2 overflow-y-auto pr-1">
                                 {cronogramaProducto.map((cuota) => (
                                     <div
                                         key={cuota.numeroCuota}
-                                        className="flex justify-between text-xs border border-zinc-800 rounded-xl px-3 py-2"
+                                        className="flex justify-between rounded-xl border border-[#d7bc73]/35 bg-white/35 px-3 py-2 text-xs"
                                     >
-                                        <span className="text-zinc-400">
+                                        <span className="font-semibold text-[#8a6a3a]">
                                             Cuota {cuota.numeroCuota} - {fmtFecha(cuota.fechaPago)}
                                         </span>
 
-                                        <span className="text-white font-bold">
+                                        <span className="font-black text-[#3f2c12]">
                                             {fmt(cuota.montoCuota)}
                                         </span>
                                     </div>
@@ -471,63 +509,80 @@ const ProductDetailModal = ({ product, onClose }) => {
 
                     {esCredito && (
                         <div className="space-y-4">
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-2">
+                            <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                                     Condiciones estimadas del crédito
                                 </p>
 
-                                <p className="text-zinc-300 text-sm">
-                                    Monto a solicitar: <strong>{fmt(montoCredito)}</strong>
-                                </p>
+                                <div className="space-y-1 text-sm text-[#7a6849]">
+                                    <p>
+                                        Monto a solicitar:{' '}
+                                        <span className="font-black text-[#3f2c12]">
+                                            {fmt(montoCredito)}
+                                        </span>
+                                    </p>
 
-                                <p className="text-zinc-300 text-sm">
-                                    Rango disponible:{' '}
-                                    <strong>
-                                        {fmt(montoMinimoCredito)} a {fmt(montoMaximoCredito)}
-                                    </strong>
-                                </p>
+                                    <p>
+                                        Rango disponible:{' '}
+                                        <span className="font-black text-[#3f2c12]">
+                                            {fmt(montoMinimoCredito)} a {fmt(montoMaximoCredito)}
+                                        </span>
+                                    </p>
 
-                                <p className="text-zinc-300 text-sm">
-                                    Plazo seleccionado: <strong>{plazoMeses} meses</strong>
-                                </p>
+                                    <p>
+                                        Plazo seleccionado:{' '}
+                                        <span className="font-black text-[#3f2c12]">
+                                            {plazoMeses} meses
+                                        </span>
+                                    </p>
 
-                                <p className="text-zinc-300 text-sm">
-                                    Tasa anual: <strong>{tasaCredito}%</strong>
-                                </p>
+                                    <p>
+                                        Tasa anual:{' '}
+                                        <span className="font-black text-[#3f2c12]">
+                                            {tasaCredito}%
+                                        </span>
+                                    </p>
 
-                                <p className="text-zinc-300 text-sm">
-                                    Mora por incumplimiento:{' '}
-                                    <strong>{moraCredito}% sobre la cuota vencida</strong>
-                                </p>
+                                    <p>
+                                        Mora por incumplimiento:{' '}
+                                        <span className="font-black text-[#3f2c12]">
+                                            {moraCredito}% sobre la cuota vencida
+                                        </span>
+                                    </p>
 
-                                <p className="text-zinc-300 text-sm">
-                                    Total estimado a pagar:{' '}
-                                    <strong>{fmt(totalCredito)}</strong>
-                                </p>
+                                    <p>
+                                        Total estimado a pagar:{' '}
+                                        <span className="font-black text-[#3f2c12]">
+                                            {fmt(totalCredito)}
+                                        </span>
+                                    </p>
 
-                                <p className="text-zinc-300 text-sm">
-                                    Cuota mensual estimada:{' '}
-                                    <strong>{fmt(cuotaMensualCredito)}</strong>
-                                </p>
+                                    <p>
+                                        Cuota mensual estimada:{' '}
+                                        <span className="font-black text-[#3f2c12]">
+                                            {fmt(cuotaMensualCredito)}
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
 
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-                                <h5 className="text-white font-bold text-sm flex items-center gap-2 mb-3">
-                                    <CalendarDays size={16} className="text-blue-400" />
+                            <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                                <h5 className="mb-3 flex items-center gap-2 text-sm font-black text-[#3f2c12]">
+                                    <CalendarDays size={16} className="text-[#8a611b]" />
                                     Fechas estimadas de pago
                                 </h5>
 
-                                <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+                                <div className="custom-scrollbar max-h-52 space-y-2 overflow-y-auto pr-1">
                                     {cronogramaCredito.map((cuota) => (
                                         <div
                                             key={cuota.numeroCuota}
-                                            className="flex justify-between text-xs border border-zinc-800 rounded-xl px-3 py-2"
+                                            className="flex justify-between rounded-xl border border-[#d7bc73]/35 bg-white/35 px-3 py-2 text-xs"
                                         >
-                                            <span className="text-zinc-400">
+                                            <span className="font-semibold text-[#8a6a3a]">
                                                 Cuota {cuota.numeroCuota} - {fmtFecha(cuota.fechaPago)}
                                             </span>
 
-                                            <span className="text-white font-bold">
+                                            <span className="font-black text-[#3f2c12]">
                                                 {fmt(cuota.montoCuota)}
                                             </span>
                                         </div>
@@ -538,18 +593,23 @@ const ProductDetailModal = ({ product, onClose }) => {
                     )}
 
                     {esSuscripcion && (
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-                            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-2">
+                        <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
                                 Suscripción mensual
                             </p>
 
-                            <p className="text-zinc-300 text-sm">
-                                Primer cobro hoy: <strong>{fmt(totalProducto)}</strong>
+                            <p className="text-sm text-[#7a6849]">
+                                Primer cobro hoy:{' '}
+                                <span className="font-black text-[#3f2c12]">
+                                    {fmt(totalProducto)}
+                                </span>
                             </p>
 
-                            <p className="text-zinc-300 text-sm">
+                            <p className="text-sm text-[#7a6849]">
                                 Próximo cobro estimado:{' '}
-                                <strong>{fmtFecha(agregarMeses(new Date(), 1))}</strong>
+                                <span className="font-black text-[#3f2c12]">
+                                    {fmtFecha(agregarMeses(new Date(), 1))}
+                                </span>
                             </p>
                         </div>
                     )}
@@ -557,40 +617,40 @@ const ProductDetailModal = ({ product, onClose }) => {
                     <button
                         type="submit"
                         disabled={isLoading || accounts.length === 0}
-                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/50 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
                     >
                         <CreditCard size={18} />
 
                         {isLoading
                             ? 'Procesando...'
                             : esCredito
-                              ? 'Enviar solicitud'
-                              : numeroCuotas > 1
-                                ? 'Pagar primera cuota'
-                                : esSuscripcion
-                                  ? 'Activar suscripción'
-                                  : 'Adquirir producto'}
+                                ? 'Enviar solicitud'
+                                : numeroCuotas > 1
+                                    ? 'Pagar primera cuota'
+                                    : esSuscripcion
+                                        ? 'Activar suscripción'
+                                        : 'Adquirir producto'}
                     </button>
                 </form>
 
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-zinc-300 text-sm">
-                        <CheckCircle2 size={16} className="text-blue-500" />
+                    <div className="flex items-center gap-3 text-sm font-semibold text-[#7a6849]">
+                        <CheckCircle2 size={16} className="text-[#8a611b]" />
                         {esCredito
                             ? 'El desembolso se realiza únicamente si la solicitud es aprobada.'
                             : 'La operación queda registrada en el historial financiero.'}
                     </div>
 
                     {esCredito && (
-                        <div className="flex items-center gap-3 text-zinc-300 text-sm">
-                            <CheckCircle2 size={16} className="text-blue-500" />
+                        <div className="flex items-center gap-3 text-sm font-semibold text-[#7a6849]">
+                            <CheckCircle2 size={16} className="text-[#8a611b]" />
                             El monto solicitado debe estar dentro del mínimo y máximo configurado por el administrador.
                         </div>
                     )}
 
                     {!esCredito && descuento > 0 && (
-                        <div className="flex items-center gap-3 text-zinc-300 text-sm">
-                            <CheckCircle2 size={16} className="text-blue-500" />
+                        <div className="flex items-center gap-3 text-sm font-semibold text-[#7a6849]">
+                            <CheckCircle2 size={16} className="text-[#8a611b]" />
                             Los descuentos aplican únicamente al adquirir desde la app.
                         </div>
                     )}

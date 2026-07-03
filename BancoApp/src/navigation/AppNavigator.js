@@ -1,0 +1,44 @@
+import React, { useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, ActivityIndicator } from 'react-native';
+import AuthStack from './AuthStack';
+import MainTab from './MainTab';
+import ProfileStack from './stacks/ProfileStack';
+import ProductsStack from './stacks/ProductsStack';
+import useAuthStore from '../store/useAuthStore';
+import { COLORS } from '../shared/constants/colors';
+
+const Stack = createNativeStackNavigator();
+
+const AppNavigator = () => {
+  const { isAuthenticated, isLoading, initialize } = useAuthStore();
+
+  useEffect(() => { initialize(); }, []);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {isAuthenticated ? (
+          <>
+            <Stack.Screen name="Main" component={MainTab} />
+            <Stack.Screen name="ProfileStack" component={ProfileStack} />
+            <Stack.Screen name="ProductsStack" component={ProductsStack} />
+          </>
+        ) : (
+          <Stack.Screen name="Auth" component={AuthStack} />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default AppNavigator;

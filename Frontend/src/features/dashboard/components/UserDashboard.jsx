@@ -11,6 +11,8 @@ import {
     PackageCheck,
     XCircle,
     ReceiptText,
+    MessageSquare,
+    AlertTriangle,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
@@ -20,9 +22,13 @@ import useTransactionStore from '../../transactions/store/transactionStore'
 import useFavoriteStore from '../../favorites/store/favoriteStore'
 import useProductStore from '../../products/store/productStore'
 import TransactionForm from '../../transactions/components/TransactionForm'
+import Modal from '../../../shared/components/ui/Modal'
 
 const fmt = (n) =>
-    new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ' }).format(Number(n || 0))
+    new Intl.NumberFormat('es-GT', {
+        style: 'currency',
+        currency: 'GTQ',
+    }).format(Number(n || 0))
 
 const dateFmt = (d) =>
     new Date(d).toLocaleDateString('es-GT', {
@@ -41,86 +47,193 @@ const getId = (value) => {
     return String(value)
 }
 
-const getProductName = (acquisition) =>
-    acquisition?.producto?.nombre ||
-    acquisition?.producto?.name ||
-    acquisition?.beneficio ||
-    'Suscripción'
-
-const getNextChargeDate = (subscription) =>
-    subscription?.fechaProximoCobro || subscription?.createdAt || new Date()
-
-const coloresCard = [
-    { fondo: 'rgba(184,137,42,0.12)', borde: 'rgba(184,137,42,0.28)', icono: '#b8892a' },
-    { fondo: 'rgba(45,122,79,0.12)',  borde: 'rgba(45,122,79,0.28)',  icono: '#5cb87a' },
-    { fondo: 'rgba(180,140,30,0.12)', borde: 'rgba(180,140,30,0.28)', icono: '#d4a843' },
-    { fondo: 'rgba(100,70,140,0.12)', borde: 'rgba(130,90,180,0.25)', icono: '#a07ac8' },
-]
-
-const StatCard = ({ icon: Icon, label, value, colorIdx = 0, path, delay, loading }) => {
-    const c = coloresCard[colorIdx] || coloresCard[0]
+const getProductName = (acquisition) => {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay }}
-            style={{
-                backgroundColor: '#1a1208',
-                border: '1px solid var(--borde-card)',
-                borderRadius: '14px',
-                padding: '1.25rem 1.5rem',
-                transition: 'border-color 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'rgba(184,137,42,0.40)'
-                e.currentTarget.style.boxShadow = '0 4px 24px rgba(184,137,42,0.08)'
-            }}
-            onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'var(--borde-card)'
-                e.currentTarget.style.boxShadow = 'none'
-            }}
-        >
-            <div className="flex items-start justify-between mb-3">
-                <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: c.fondo, border: `1px solid ${c.borde}` }}
-                >
-                    <Icon size={18} style={{ color: c.icono }} />
-                </div>
-                {path && (
-                    <NavLink
-                        to={path}
-                        className="text-[10px] font-bold uppercase tracking-widest transition-colors"
-                        style={{ color: 'var(--texto-tenue)' }}
-                        onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
-                    >
-                        Ver →
-                    </NavLink>
-                )}
+        acquisition?.producto?.nombre ||
+        acquisition?.producto?.name ||
+        acquisition?.beneficio ||
+        'Suscripción'
+    )
+}
+
+const getNextChargeDate = (subscription) => {
+    return subscription?.fechaProximoCobro || subscription?.createdAt || new Date()
+}
+
+const StatCard = ({ icon: Icon, label, value, color, path, delay, loading }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay }}
+        className="group relative overflow-hidden rounded-[1.75rem] border border-[#d7bc73]/45 bg-[#fffaf0]/70 p-6 shadow-[0_20px_55px_rgba(92,64,19,0.1)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#b98219]/55 hover:bg-white/78 hover:shadow-[0_26px_70px_rgba(92,64,19,0.16)]"
+    >
+        <div className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full bg-[#d9b45e]/16 blur-2xl transition-all duration-300 group-hover:bg-[#d9b45e]/25" />
+        <div className="premium-gold-line absolute left-6 right-6 top-0 h-px" />
+
+        <div className="relative mb-5 flex items-start justify-between">
+            <div
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d7bc73]/45 shadow-[0_14px_28px_rgba(154,107,22,0.18)] ${color}`}
+            >
+                <Icon size={22} className="text-[#4a2f0c]" />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--texto-tenue)' }}>
-                {label}
-            </p>
-            {loading ? (
-                <div className="h-8 w-20 rounded-lg animate-pulse mt-1" style={{ backgroundColor: 'rgba(184,137,42,0.08)' }} />
-            ) : (
-                <p className="text-3xl font-black" style={{ color: 'var(--texto-blanco)', fontFamily: 'var(--font-body)' }}>
-                    {value}
-                </p>
+
+            {path && (
+                <NavLink
+                    to={path}
+                    className="rounded-full border border-[#d7bc73]/40 bg-white/52 px-3 py-1 text-xs font-black text-[#8a611b] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12]"
+                >
+                    Ver →
+                </NavLink>
             )}
-        </motion.div>
+        </div>
+
+        <p className="relative mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/72">
+            {label}
+        </p>
+
+        {loading ? (
+            <div className="relative mt-2 h-10 w-24 animate-pulse rounded-xl bg-[#ead9ad]/65" />
+        ) : (
+            <p className="relative text-3xl font-black tracking-tight text-[#3f2c12]">
+                {value}
+            </p>
+        )}
+    </motion.div>
+)
+
+const CancelSubscriptionModal = ({
+    subscription,
+    loading,
+    onClose,
+    onConfirm,
+}) => {
+    const [motivoCancelacion, setMotivoCancelacion] = useState('')
+
+    const monto =
+        subscription?.monto ||
+        subscription?.totalEstimado ||
+        subscription?.montoCobradoInicial ||
+        0
+
+    return (
+        <Modal title="Cancelar suscripción" onClose={onClose}>
+            <div className="space-y-5">
+                <div className="rounded-3xl border border-red-200 bg-red-50/80 p-5">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-red-200 bg-white/70 text-red-700 shadow-[0_12px_24px_rgba(185,28,28,0.1)]">
+                            <AlertTriangle size={20} />
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-black text-red-800">
+                                Esta acción cancelará la renovación de la suscripción.
+                            </p>
+
+                            <p className="mt-1 text-sm leading-6 text-red-700">
+                                La suscripción dejará de generar cobros futuros. Esta acción quedará registrada en el sistema.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="rounded-3xl border border-[#d7bc73]/40 bg-white/38 p-5">
+                    <p className="mb-1 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                        Suscripción seleccionada
+                    </p>
+
+                    <p className="text-lg font-black text-[#3f2c12]">
+                        {getProductName(subscription)}
+                    </p>
+
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
+                                Monto
+                            </p>
+
+                            <p className="mt-1 text-sm font-black text-[#3f2c12]">
+                                {fmt(monto)}
+                            </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#8a611b]/70">
+                                Próximo cobro
+                            </p>
+
+                            <p className="mt-1 text-sm font-black text-[#3f2c12]">
+                                {dateFmt(getNextChargeDate(subscription))}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="mb-3 ml-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/75">
+                        <MessageSquare size={11} />
+                        Motivo opcional
+                    </label>
+
+                    <textarea
+                        value={motivoCancelacion}
+                        onChange={(event) =>
+                            setMotivoCancelacion(event.target.value)
+                        }
+                        rows={3}
+                        placeholder="Ej. Ya no deseo continuar con esta suscripción..."
+                        disabled={loading}
+                        className="w-full resize-none rounded-2xl border border-[#d7bc73]/50 bg-white/58 px-5 py-3.5 text-sm font-semibold text-[#3b2a14] placeholder-[#a89365] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all focus:border-[#b98219]/70 focus:bg-white/80 focus:outline-none focus:ring-4 focus:ring-[#d9b45e]/18 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                </div>
+
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="flex-1 rounded-2xl border border-[#d7bc73]/55 bg-white/45 py-4 text-sm font-black text-[#6f5a33] transition-all hover:bg-white/85 hover:text-[#3f2c12] disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                        Volver
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => onConfirm(motivoCancelacion)}
+                        disabled={loading}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-red-300 bg-red-700 py-4 text-sm font-black text-white shadow-[0_18px_36px_rgba(185,28,28,0.22)] transition-all hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                        <XCircle size={18} />
+                        {loading ? 'Cancelando...' : 'Cancelar suscripción'}
+                    </button>
+                </div>
+            </div>
+        </Modal>
     )
 }
 
 const UserDashboard = () => {
     const user = useAuthStore((s) => s.user)
     const [showTransferModal, setShowTransferModal] = useState(false)
+    const [subscriptionToCancel, setSubscriptionToCancel] = useState(null)
 
     const { accounts, loading: loadingAccounts, fetchAccounts } = useAccountStore()
-    const { transactions, loading: loadingTx, setCurrentAccountId, currentAccountId, fetchTransactions } = useTransactionStore()
+
+    const {
+        transactions,
+        loading: loadingTx,
+        setCurrentAccountId,
+        currentAccountId,
+        fetchTransactions,
+    } = useTransactionStore()
+
     const { favorites, fetchFavorites, loading: loadingFavorites } = useFavoriteStore()
-    const { acquisitions, loading: loadingProducts, fetchMyProductAcquisitions, cancelSubscription } = useProductStore()
+
+    const {
+        acquisitions,
+        loading: loadingProducts,
+        fetchMyProductAcquisitions,
+        cancelSubscription,
+    } = useProductStore()
 
     useEffect(() => {
         fetchAccounts()
@@ -134,187 +247,296 @@ const UserDashboard = () => {
         }
     }, [accounts, currentAccountId, setCurrentAccountId])
 
-    const activeAccounts = useMemo(() => accounts.filter((a) => a.estado).length, [accounts])
-    const totalBalance = useMemo(() => accounts.reduce((sum, a) => sum + Number(a.saldo || 0), 0), [accounts])
+    const activeAccounts = useMemo(
+        () => accounts.filter((a) => a.estado).length,
+        [accounts]
+    )
 
-    const activeSubscriptions = useMemo(() =>
-        acquisitions.filter((item) => {
+    const totalBalance = useMemo(
+        () => accounts.reduce((sum, a) => sum + Number(a.saldo || 0), 0),
+        [accounts]
+    )
+
+    const activeSubscriptions = useMemo(() => {
+        return acquisitions.filter((item) => {
             const tipoOperacion = String(item?.tipoOperacion || '').toLowerCase()
             const tipoProducto = String(item?.producto?.tipo || '').toLowerCase()
             const estado = String(item?.estado || '').toLowerCase()
-            return estado === 'activa' && (tipoOperacion === 'suscripcion' || tipoProducto === 'suscripcion')
-        }), [acquisitions])
+
+            return (
+                estado === 'activa' &&
+                (tipoOperacion === 'suscripcion' || tipoProducto === 'suscripcion')
+            )
+        })
+    }, [acquisitions])
 
     const accountTypes = useMemo(() => {
         const types = [...new Set(accounts.map((a) => a.tipoCuenta).filter(Boolean))]
-        return types.map((t) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ') || 'Sin cuentas'
+
+        return (
+            types
+                .map((t) => t.charAt(0).toUpperCase() + t.slice(1))
+                .join(', ') || 'Sin cuentas'
+        )
     }, [accounts])
 
-    const transactionIds = useMemo(() => new Set(transactions.map((tx) => getId(tx._id || tx.id))), [transactions])
+    const transactionIds = useMemo(() => {
+        return new Set(transactions.map((tx) => getId(tx._id || tx.id)))
+    }, [transactions])
 
-    const missingProductCharges = useMemo(() =>
-        acquisitions
+    const missingProductCharges = useMemo(() => {
+        return acquisitions
             .filter((item) => {
                 const tipoOperacion = String(item?.tipoOperacion || '').toLowerCase()
                 const transaccionId = getId(item?.transaccion)
-                const esCobro = ['compra', 'compra_cuotas', 'suscripcion', 'ahorro', 'inversion'].includes(tipoOperacion)
+
+                const esCobro =
+                    tipoOperacion === 'compra' ||
+                    tipoOperacion === 'compra_cuotas' ||
+                    tipoOperacion === 'suscripcion' ||
+                    tipoOperacion === 'ahorro' ||
+                    tipoOperacion === 'inversion'
+
                 return esCobro && (!transaccionId || !transactionIds.has(transaccionId))
             })
             .map((item) => ({
                 _id: `acquisition-${item._id || item.id}`,
                 tipo: item.tipoOperacion === 'suscripcion' ? 'suscripcion' : 'compra',
-                descripcion: item.tipoOperacion === 'suscripcion'
-                    ? `Cobro de suscripción: ${getProductName(item)}`
-                    : `Cobro de producto: ${getProductName(item)}`,
+                descripcion:
+                    item.tipoOperacion === 'suscripcion'
+                        ? `Cobro de suscripción: ${getProductName(item)}`
+                        : `Cobro de producto: ${getProductName(item)}`,
                 monto: Number(item.montoCobradoInicial || item.monto || 0),
                 createdAt: item.createdAt,
                 fecha: item.createdAt,
                 esSalida: true,
                 origenDashboard: 'adquisicion',
-            })), [acquisitions, transactionIds])
+            }))
+    }, [acquisitions, transactionIds])
 
     const recentActivity = useMemo(() => {
         const normalizedTransactions = transactions.map((tx) => {
             const cuentaOrigen = getId(tx.cuentaOrigen)
             const cuentaDestino = getId(tx.cuentaDestino)
             const cuentaActual = getId(currentAccountId)
+
             const tipo = String(tx.tipo || '').toLowerCase()
-            const esSalida = tipo === 'compra' || (tipo === 'transferencia' && cuentaOrigen && cuentaOrigen === cuentaActual)
-            const esEntrada = tipo === 'deposito' || tipo === 'credito' || tipo === 'reversion' || (tipo === 'transferencia' && cuentaDestino && cuentaDestino === cuentaActual)
-            return { ...tx, esSalida: esSalida && !esEntrada, origenDashboard: 'transaccion' }
+
+            const esSalida =
+                tipo === 'compra' ||
+                (tipo === 'transferencia' && cuentaOrigen && cuentaOrigen === cuentaActual)
+
+            const esEntrada =
+                tipo === 'deposito' ||
+                tipo === 'credito' ||
+                tipo === 'reversion' ||
+                (tipo === 'transferencia' && cuentaDestino && cuentaDestino === cuentaActual)
+
+            return {
+                ...tx,
+                esSalida: esSalida && !esEntrada,
+                origenDashboard: 'transaccion',
+            }
         })
+
         return [...normalizedTransactions, ...missingProductCharges]
-            .sort((a, b) => new Date(b.createdAt || b.fecha) - new Date(a.createdAt || a.fecha))
+            .sort(
+                (a, b) =>
+                    new Date(b.createdAt || b.fecha) -
+                    new Date(a.createdAt || a.fecha)
+            )
             .slice(0, 6)
     }, [transactions, missingProductCharges, currentAccountId])
 
-    const handleCancelSubscription = async (subscription) => {
-        const id = subscription._id || subscription.id
-        const nombre = getProductName(subscription)
-        const confirmed = window.confirm(`¿Desea cancelar la suscripción "${nombre}"?`)
-        if (!confirmed) return
-        const toastId = toast.loading('Cancelando suscripción...')
-        try {
-            await cancelSubscription(id, { motivoCancelacion: 'Cancelada por el cliente desde el dashboard' })
-            await fetchMyProductAcquisitions()
-            toast.success('Suscripción cancelada correctamente', { id: toastId })
-        } catch (error) {
-            toast.error(error?.response?.data?.message || 'No se pudo cancelar la suscripción', { id: toastId })
-        }
+    const handleCancelSubscription = (subscription) => {
+        setSubscriptionToCancel(subscription)
     }
 
-    const iniciales = (user?.nombre || user?.username || 'U').slice(0, 2).toUpperCase()
+    const confirmarCancelacionSuscripcion = async (motivoCancelacion) => {
+        if (!subscriptionToCancel) return
 
-    const estiloPanel = {
-        backgroundColor: '#1a1208',
-        border: '1px solid var(--borde-card)',
-        borderRadius: '14px',
-        overflow: 'hidden',
+        const id = subscriptionToCancel._id || subscriptionToCancel.id
+        const toastId = toast.loading('Cancelando suscripción...')
+
+        try {
+            await cancelSubscription(id, {
+                motivoCancelacion:
+                    motivoCancelacion?.trim() ||
+                    'Cancelada por el cliente desde el dashboard',
+            })
+
+            await fetchMyProductAcquisitions()
+
+            setSubscriptionToCancel(null)
+            toast.success('Suscripción cancelada correctamente', { id: toastId })
+        } catch (error) {
+            toast.error(
+                error?.response?.data?.message ||
+                    'No se pudo cancelar la suscripción',
+                { id: toastId }
+            )
+        }
     }
 
     return (
         <div className="pb-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-8">
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-4"
-                >
-                    <div className="relative">
-                        <div
-                            className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold flex-shrink-0"
-                            style={{
-                                background: 'linear-gradient(135deg, #b8892a 0%, #6b4a10 100%)',
-                                boxShadow: '0 4px 20px rgba(184,137,42,0.30)',
-                                fontFamily: 'var(--font-display)',
-                                color: '#0e0a05',
-                                letterSpacing: '0.05em',
-                            }}
+            <AnimatePresence>
+                {subscriptionToCancel && (
+                    <CancelSubscriptionModal
+                        subscription={subscriptionToCancel}
+                        loading={loadingProducts}
+                        onClose={() => setSubscriptionToCancel(null)}
+                        onConfirm={confirmarCancelacionSuscripcion}
+                    />
+                )}
+            </AnimatePresence>
+
+            <div className="mb-8">
+                <div className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/62 px-6 py-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:px-8">
+                    <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[#d9b45e]/18 blur-3xl" />
+                    <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
+
+                    <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="flex items-center gap-4"
                         >
-                            {iniciales}
-                        </div>
-                        <div
-                            className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2"
-                            style={{ backgroundColor: '#5cb87a', borderColor: '#0e0a05' }}
-                        />
-                    </div>
+                            <div className="relative">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_18px_38px_rgba(154,107,22,0.24)]">
+                                    <span className="text-2xl font-black uppercase text-[#4a2f0c]">
+                                        {user?.nombre?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                                    </span>
+                                </div>
 
-                    <div>
-                        <h1 className="text-2xl font-bold" style={{ color: 'var(--texto-blanco)', fontFamily: 'var(--font-body)' }}>
-                            Bienvenido,{' '}
-                            <span style={{ color: 'var(--oro-claro)' }}>
-                                {user?.nombre || user?.username || 'Usuario'}
-                            </span>
-                        </h1>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--texto-tenue)' }}>
-                            Qué gusto verte de nuevo.
-                        </p>
-                    </div>
-                </motion.div>
+                                <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-4 border-[#fff8ea] bg-emerald-600 shadow-[0_6px_16px_rgba(5,150,105,0.25)]" />
+                            </div>
 
-                <motion.button
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowTransferModal(true)}
-                    className="btn-oro flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm"
-                >
-                    <Plus size={16} />
-                    Nueva Transferencia
-                </motion.button>
+                            <div>
+                                <p className="mb-1 text-[10px] font-black uppercase tracking-[0.28em] text-[#9a6b16]/75">
+                                    Banca personal
+                                </p>
+
+                                <h1 className="text-3xl font-black tracking-tight text-[#3f2c12] md:text-4xl">
+                                    Bienvenido, {user?.nombre || user?.username || 'Usuario'}
+                                </h1>
+
+                                <p className="mt-1 text-sm font-semibold text-[#7a6849]">
+                                    Qué gusto verte de nuevo.
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.92 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.015 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setShowTransferModal(true)}
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#c89b3c]/55 bg-linear-to-r from-[#b98219] via-[#d9b45e] to-[#8a611b] px-6 py-3.5 text-sm font-black text-white shadow-[0_18px_36px_rgba(154,107,22,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(154,107,22,0.32)] md:self-center"
+                        >
+                            <Plus size={19} />
+                            Nueva Transferencia
+                        </motion.button>
+                    </div>
+                </div>
             </div>
 
-            <div className="linea-oro mb-8" />
+            <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                <StatCard
+                    icon={CreditCard}
+                    label="Cuentas Activas"
+                    value={activeAccounts}
+                    color="bg-gradient-to-br from-[#fff1bd] via-[#d9b45e] to-[#b98219]"
+                    delay={0}
+                    path="/accounts"
+                    loading={loadingAccounts}
+                />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-                <StatCard icon={CreditCard}   label="Cuentas Activas"      value={activeAccounts}            colorIdx={0} delay={0}   path="/accounts"  loading={loadingAccounts} />
-                <StatCard icon={TrendingUp}   label="Saldo Consolidado"     value={fmt(totalBalance)}         colorIdx={1} delay={0.1} loading={loadingAccounts} />
-                <StatCard icon={Star}         label="Favoritos Guardados"   value={favorites.length}          colorIdx={2} delay={0.2} path="/favorites"  loading={loadingFavorites} />
-                <StatCard icon={ReceiptText}  label="Suscripciones Activas" value={activeSubscriptions.length} colorIdx={3} delay={0.3} path="/products"  loading={loadingProducts} />
+                <StatCard
+                    icon={TrendingUp}
+                    label="Saldo Consolidado"
+                    value={fmt(totalBalance)}
+                    color="bg-gradient-to-br from-[#f7e7b1] via-[#c89b3c] to-[#8a611b]"
+                    delay={0.1}
+                    loading={loadingAccounts}
+                />
+
+                <StatCard
+                    icon={Star}
+                    label="Favoritos Guardados"
+                    value={favorites.length}
+                    color="bg-gradient-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16]"
+                    delay={0.2}
+                    path="/favorites"
+                    loading={loadingFavorites}
+                />
+
+                <StatCard
+                    icon={ReceiptText}
+                    label="Suscripciones Activas"
+                    value={activeSubscriptions.length}
+                    color="bg-gradient-to-br from-[#f5df9b] via-[#c89b3c] to-[#7a4f0d]"
+                    delay={0.3}
+                    path="/products"
+                    loading={loadingProducts}
+                />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    style={{ ...estiloPanel, padding: '1.5rem' }}
+                    className="relative overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 p-6 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl md:p-8"
                 >
-                    <h2
-                        className="font-bold text-base mb-5 flex items-center gap-2"
-                        style={{ color: 'var(--texto-blanco)' }}
-                    >
-                        <PackageCheck size={17} style={{ color: 'var(--oro-medio)' }} />
-                        Mis Productos
-                    </h2>
+                    <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[#d9b45e]/16 blur-3xl" />
+                    <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
 
-                    <div className="space-y-5">
-                        <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--texto-tenue)' }}>
-                                Tipos de Cuenta
-                            </p>
-                            <p className="text-sm font-semibold" style={{ color: 'var(--texto-claro)' }}>
-                                {accountTypes}
-                            </p>
+                    <div className="relative mb-6 flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#d7bc73]/45 bg-[#fff8df] text-[#8a611b] shadow-[0_12px_24px_rgba(154,107,22,0.12)]">
+                            <PackageCheck size={20} />
                         </div>
 
-                        <div className="linea-oro" />
+                        <div>
+                            <p className="mb-0.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                                Resumen personal
+                            </p>
+
+                            <h2 className="text-xl font-black text-[#3f2c12]">
+                                Mis Productos
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div className="relative space-y-6">
+                        <div>
+                            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                                Tipos de Cuenta
+                            </p>
+
+                            <p className="font-bold text-[#3f2c12]">{accountTypes}</p>
+                        </div>
+
+                        <div className="h-px w-full bg-[#d7bc73]/35" />
 
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--texto-tenue)' }}>
+                            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
                                 Suscripciones Activas
                             </p>
 
                             {loadingProducts ? (
                                 <div className="space-y-3">
-                                    {[1, 2].map((i) => (
-                                        <div key={i} className="h-16 rounded-xl animate-pulse" style={{ backgroundColor: 'rgba(184,137,42,0.06)' }} />
+                                    {[1, 2].map((item) => (
+                                        <div
+                                            key={item}
+                                            className="h-24 animate-pulse rounded-2xl bg-[#ead9ad]/60"
+                                        />
                                     ))}
                                 </div>
                             ) : activeSubscriptions.length === 0 ? (
-                                <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(184,137,42,0.04)', border: '1px solid var(--borde-sutil)' }}>
-                                    <p className="text-sm" style={{ color: 'var(--texto-muted)' }}>
+                                <div className="rounded-2xl border border-dashed border-[#d7bc73]/45 bg-white/35 p-4">
+                                    <p className="text-sm font-semibold text-[#8a6a3a]">
                                         No tiene suscripciones activas.
                                     </p>
                                 </div>
@@ -323,35 +545,38 @@ const UserDashboard = () => {
                                     {activeSubscriptions.map((subscription) => (
                                         <div
                                             key={subscription._id || subscription.id}
-                                            className="rounded-xl p-3.5"
-                                            style={{
-                                                backgroundColor: 'rgba(184,137,42,0.06)',
-                                                border: '1px solid rgba(184,137,42,0.14)',
-                                            }}
+                                            className="rounded-2xl border border-[#d7bc73]/40 bg-white/42 p-4 shadow-[0_12px_28px_rgba(92,64,19,0.08)]"
                                         >
                                             <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <p className="font-bold text-sm" style={{ color: 'var(--texto-blanco)' }}>
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-black text-[#3f2c12]">
                                                         {getProductName(subscription)}
                                                     </p>
-                                                    <p className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--texto-tenue)' }}>
-                                                        <CalendarDays size={11} />
-                                                        Próximo cobro: {dateFmt(getNextChargeDate(subscription))}
+
+                                                    <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-[#8a6a3a]">
+                                                        <CalendarDays size={13} />
+                                                        Próximo cobro:{' '}
+                                                        {dateFmt(getNextChargeDate(subscription))}
                                                     </p>
-                                                    <p className="text-sm font-black mt-1.5" style={{ color: 'var(--oro-claro)' }}>
-                                                        {fmt(subscription.monto || subscription.totalEstimado || subscription.montoCobradoInicial)}
+
+                                                    <p className="mt-2 text-sm font-black text-[#8a611b]">
+                                                        {fmt(
+                                                            subscription.monto ||
+                                                                subscription.totalEstimado ||
+                                                                subscription.montoCobradoInicial
+                                                        )}
                                                     </p>
                                                 </div>
+
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleCancelSubscription(subscription)}
+                                                    onClick={() =>
+                                                        handleCancelSubscription(subscription)
+                                                    }
                                                     disabled={loadingProducts}
-                                                    className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 transition-all disabled:opacity-50"
-                                                    style={{ backgroundColor: 'rgba(200,60,60,0.08)', color: '#c87a7a' }}
-                                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(200,60,60,0.15)'}
-                                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(200,60,60,0.08)'}
+                                                    className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-red-200 bg-red-50/80 px-3 py-2 text-xs font-black text-red-700 transition-all hover:bg-red-100 disabled:opacity-60"
                                                 >
-                                                    <XCircle size={13} />
+                                                    <XCircle size={14} />
                                                     Cancelar
                                                 </button>
                                             </div>
@@ -364,20 +589,7 @@ const UserDashboard = () => {
 
                     <NavLink
                         to="/products"
-                        className="mt-6 flex items-center justify-center w-full py-3 rounded-xl text-sm font-bold transition-all"
-                        style={{
-                            backgroundColor: 'rgba(184,137,42,0.08)',
-                            border: '1px solid rgba(184,137,42,0.20)',
-                            color: 'var(--oro-claro)',
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.backgroundColor = 'rgba(184,137,42,0.14)'
-                            e.currentTarget.style.borderColor = 'rgba(184,137,42,0.35)'
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.backgroundColor = 'rgba(184,137,42,0.08)'
-                            e.currentTarget.style.borderColor = 'rgba(184,137,42,0.20)'
-                        }}
+                        className="relative mt-8 flex w-full items-center justify-center rounded-2xl border border-[#d7bc73]/50 bg-white/55 py-4 text-sm font-black text-[#6f4d13] shadow-[0_12px_26px_rgba(92,64,19,0.08)] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12]"
                     >
                         Ver Catálogo
                     </NavLink>
@@ -387,26 +599,28 @@ const UserDashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="lg:col-span-2 flex flex-col"
-                    style={estiloPanel}
+                    className="relative flex flex-col overflow-hidden rounded-4xl border border-[#d7bc73]/45 bg-[#fffaf0]/68 shadow-[0_22px_60px_rgba(92,64,19,0.1)] backdrop-blur-xl lg:col-span-2"
                 >
-                    <div
-                        className="flex items-center justify-between px-6 py-4"
-                        style={{ borderBottom: '1px solid rgba(184,137,42,0.10)' }}
-                    >
-                        <h2 className="font-bold text-base" style={{ color: 'var(--texto-blanco)' }}>
-                            Actividad Reciente
-                        </h2>
+                    <div className="premium-gold-line absolute left-8 right-8 top-0 h-px" />
+
+                    <div className="flex items-center justify-between border-b border-[#d7bc73]/35 px-6 py-5 md:px-8">
+                        <div>
+                            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.24em] text-[#8a611b]/70">
+                                Movimientos recientes
+                            </p>
+
+                            <h2 className="text-xl font-black text-[#3f2c12]">
+                                Actividad Reciente
+                            </h2>
+                        </div>
+
                         <button
                             type="button"
                             onClick={() => {
                                 if (currentAccountId) fetchTransactions(currentAccountId)
                                 fetchMyProductAcquisitions()
                             }}
-                            className="text-xs font-bold uppercase tracking-widest transition-colors"
-                            style={{ color: 'var(--texto-tenue)' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
+                            className="rounded-full border border-[#d7bc73]/40 bg-white/52 px-4 py-2 text-sm font-black text-[#8a611b] transition-all hover:border-[#b98219]/60 hover:bg-[#fff8df] hover:text-[#3f2c12]"
                         >
                             Actualizar
                         </button>
@@ -414,71 +628,86 @@ const UserDashboard = () => {
 
                     <div className="flex-1">
                         {loadingTx || loadingProducts ? (
-                            <div className="p-6 space-y-3">
+                            <div className="space-y-4 p-8">
                                 {[1, 2, 3].map((i) => (
-                                    <div key={i} className="h-12 rounded-xl animate-pulse" style={{ backgroundColor: 'rgba(184,137,42,0.06)' }} />
+                                    <div
+                                        key={i}
+                                        className="h-14 animate-pulse rounded-2xl bg-[#ead9ad]/60"
+                                    />
                                 ))}
                             </div>
                         ) : recentActivity.length === 0 ? (
                             <div className="p-12 text-center">
-                                <p className="text-sm" style={{ color: 'var(--texto-muted)' }}>
+                                <p className="text-sm font-semibold text-[#8a6a3a]">
                                     No se encontraron movimientos recientes.
                                 </p>
                             </div>
                         ) : (
-                            <div>
+                            <div className="divide-y divide-[#d7bc73]/28">
                                 {recentActivity.map((item, idx) => {
                                     const esSalida = item.esSalida
                                     const tipo = String(item.tipo || '').toLowerCase()
+
                                     return (
                                         <motion.div
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: 0.5 + idx * 0.05 }}
                                             key={item._id || item.id}
-                                            className="flex items-center justify-between px-6 py-4 transition-colors"
-                                            style={{ borderBottom: '1px solid rgba(184,137,42,0.06)' }}
-                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(184,137,42,0.04)'}
-                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
+                                            className="flex items-center justify-between gap-5 px-6 py-5 transition-colors hover:bg-white/32 md:px-8"
                                         >
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex min-w-0 items-center gap-4">
                                                 <div
-                                                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                                                    style={{
-                                                        backgroundColor: esSalida
-                                                            ? 'rgba(200,60,60,0.10)'
-                                                            : 'rgba(45,122,79,0.10)',
-                                                    }}
+                                                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${
+                                                        esSalida
+                                                            ? 'border-red-200 bg-red-50 text-red-700'
+                                                            : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                    }`}
                                                 >
                                                     {esSalida ? (
-                                                        <ArrowUpRight size={16} style={{ color: '#c87a7a' }} />
+                                                        <ArrowUpRight size={18} />
                                                     ) : (
-                                                        <ArrowDownLeft size={16} style={{ color: '#5cb87a' }} />
+                                                        <ArrowDownLeft size={18} />
                                                     )}
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-sm capitalize" style={{ color: 'var(--texto-blanco)' }}>
-                                                        {tipo === 'suscripcion' ? 'Cobro de suscripción'
-                                                            : tipo === 'compra' ? 'Cobro de producto'
-                                                            : tipo}
+
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-black capitalize text-[#3f2c12]">
+                                                        {tipo === 'suscripcion'
+                                                            ? 'Cobro de suscripción'
+                                                            : tipo === 'compra'
+                                                              ? 'Cobro de producto'
+                                                              : tipo}
                                                     </p>
-                                                    <p className="text-xs" style={{ color: 'var(--texto-tenue)' }}>
-                                                        {item.descripcion || dateFmt(item.createdAt || item.fecha)}
+
+                                                    <p className="mt-0.5 truncate text-xs font-semibold text-[#8a6a3a]">
+                                                        {item.descripcion ||
+                                                            dateFmt(item.createdAt || item.fecha)}
                                                     </p>
-                                                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--texto-muted)' }}>
+
+                                                    <p className="mt-0.5 text-[10px] font-semibold text-[#a89365]">
                                                         {dateFmt(item.createdAt || item.fecha)}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
+
+                                            <div className="shrink-0 text-right">
                                                 <p
-                                                    className="font-black text-sm"
-                                                    style={{ color: esSalida ? '#c87a7a' : '#5cb87a' }}
+                                                    className={`text-sm font-black ${
+                                                        esSalida
+                                                            ? 'text-red-700'
+                                                            : 'text-emerald-700'
+                                                    }`}
                                                 >
-                                                    {esSalida ? '-' : '+'}{fmt(item.monto)}
+                                                    {esSalida ? '-' : '+'}
+                                                    {fmt(item.monto)}
                                                 </p>
-                                                <p className="text-[10px] font-mono" style={{ color: 'var(--texto-muted)' }}>
-                                                    {item.numeroCuentaDestino || item.numeroCuentaOrigen || item.origenDashboard || 'N/A'}
+
+                                                <p className="mt-1 font-mono text-[10px] font-semibold text-[#9a8a6c]">
+                                                    {item.numeroCuentaDestino ||
+                                                        item.numeroCuentaOrigen ||
+                                                        item.origenDashboard ||
+                                                        'N/A'}
                                                 </p>
                                             </div>
                                         </motion.div>
@@ -486,31 +715,6 @@ const UserDashboard = () => {
                                 })}
                             </div>
                         )}
-                    </div>
-
-                    <div
-                        className="p-4 grid grid-cols-2 gap-3"
-                        style={{ borderTop: '1px solid rgba(184,137,42,0.10)' }}
-                    >
-                        <NavLink
-                            to="/products"
-                            className="flex items-center justify-center py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
-                            style={{
-                                backgroundColor: 'rgba(184,137,42,0.08)',
-                                border: '1px solid rgba(184,137,42,0.18)',
-                                color: 'var(--oro-claro)',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(184,137,42,0.14)'}
-                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(184,137,42,0.08)'}
-                        >
-                            Ver Catálogo
-                        </NavLink>
-                        <button
-                            onClick={() => setShowTransferModal(true)}
-                            className="btn-oro flex items-center justify-center py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider"
-                        >
-                            Nueva Transferencia
-                        </button>
                     </div>
                 </motion.div>
             </div>

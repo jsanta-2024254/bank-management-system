@@ -4,6 +4,7 @@ import LoginForm from '../components/LoginForm'
 
 const AuthPage = () => {
     return (
+<<<<<<< HEAD
         <div
             className="min-h-screen flex items-center justify-center p-4 fondo-auth"
         >
@@ -12,114 +13,69 @@ const AuthPage = () => {
                 className="fixed pointer-events-none"
                 style={{
                     top: '-120px',
-                    right: '-120px',
-                    width: '480px',
-                    height: '480px',
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(184,137,42,0.09) 0%, transparent 65%)',
-                }}
-            />
+                        <div className="premium-marble-bg relative flex min-h-screen items-center justify-center overflow-hidden p-4 text-[#3b2a14]">
+                            <div className="pointer-events-none absolute -top-28 right-8 h-80 w-80 rounded-full bg-[#d9b45e]/20 blur-3xl" />
+                            <div className="pointer-events-none absolute -bottom-24 left-10 h-96 w-96 rounded-full bg-white/50 blur-3xl" />
 
-            {/* Resplandor inferior izquierdo */}
-            <div
-                className="fixed pointer-events-none"
-                style={{
-                    bottom: '-120px',
-                    left: '-120px',
-                    width: '400px',
-                    height: '400px',
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(139,99,24,0.07) 0%, transparent 65%)',
-                }}
-            />
+                            <div className="premium-marble-surface premium-soft-shadow relative w-full max-w-md overflow-hidden rounded-[2.25rem] border border-[#c89b3c]/45 p-8 sm:p-10">
+                                <div className="premium-gold-line absolute left-10 right-10 top-0 h-px" />
+                                <div className="premium-gold-line absolute bottom-0 left-10 right-10 h-px" />
+                                <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-[#d9b45e]/18 blur-3xl" />
 
-            {/* Card principal */}
-            <div
-                className="w-full max-w-md relative overflow-hidden"
-                style={{
-                    backgroundColor: '#160f06',
-                    border: '1px solid rgba(184,137,42,0.22)',
-                    borderRadius: '20px',
-                    boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(184,137,42,0.08)',
-                    padding: '2.5rem',
-                }}
-            >
-                {/* Línea dorada superior */}
-                <div
-                    className="absolute top-0 left-0 right-0"
-                    style={{
-                        height: '1px',
-                        background: 'linear-gradient(90deg, transparent 0%, var(--oro-oscuro) 30%, var(--oro-claro) 50%, var(--oro-oscuro) 70%, transparent 100%)',
-                    }}
-                />
+                                <div className="mb-9 flex items-center justify-center gap-3">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#c89b3c]/50 bg-linear-to-br from-[#fff8df] via-[#ead190] to-[#9a6b16] shadow-[0_14px_30px_rgba(154,107,22,0.24)]">
+                                        <Landmark className="text-[#5b3a0d]" size={24} />
+                                    </div>
 
-                {/* Resplandor interno sutil */}
-                <div
-                    className="absolute top-0 left-0 right-0 pointer-events-none"
-                    style={{
-                        height: '120px',
-                        background: 'radial-gradient(ellipse at 50% 0%, rgba(184,137,42,0.06) 0%, transparent 70%)',
-                    }}
-                />
+                                    <div>
+                                        <span className="block text-2xl font-black tracking-tight text-[#3f2c12]">
+                                            BankManager
+                                        </span>
+                                        <span className="block text-[10px] font-bold uppercase tracking-[0.26em] text-[#9a6b16]/70">
+                                            Premium Access
+                                        </span>
+                                    </div>
+                                </div>
 
-                {/* Logo */}
-                <div className="flex flex-col items-center gap-3 mb-8">
-                    <div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                        style={{
-                            background: 'linear-gradient(135deg, #b8892a 0%, #6b4a10 100%)',
-                            boxShadow: '0 8px 32px rgba(184,137,42,0.35), 0 0 0 1px rgba(184,137,42,0.30)',
-                        }}
-                    >
-                        <Vault size={30} style={{ color: '#0e0a05' }} />
-                    </div>
+                                <div className="mb-7 text-center">
+                                    <h1 className="mb-1 text-3xl font-black tracking-tight text-[#3f2c12]">
+                                        Bienvenido
+                                    </h1>
 
-                    <span
-                        className="text-2xl tracking-wider"
-                        style={{
-                            fontFamily: 'var(--font-display)',
-                            color: 'var(--oro-claro)',
-                            fontWeight: 700,
-                        }}
-                    >
-                        BankManager
-                    </span>
-                </div>
+                                    <p className="text-sm font-medium text-[#7a6849]">
+                                        Ingresa tus credenciales para continuar
+                                    </p>
+                                </div>
 
-                {/* Título */}
-                <div className="text-center mb-8">
-                    <h1
-                        className="text-xl font-bold mb-1.5"
-                        style={{ color: 'var(--texto-blanco)', fontFamily: 'var(--font-body)' }}
-                    >
-                        Bienvenido
-                    </h1>
-                    <p
-                        className="text-sm"
-                        style={{ color: 'var(--texto-tenue)' }}
-                    >
-                        Ingresa tus credenciales para continuar
-                    </p>
-                </div>
+                                {/* Formulario */}
+                                <LoginForm />
 
-                {/* Formulario */}
-                <LoginForm />
+                                <div className="mt-6 text-center">
+                                    <Link
+                                        to="/forgot-password"
+                                        className="text-sm font-semibold text-[#7a6849] transition-colors hover:text-[#8a611b]"
+                                    >
+                                        ¿Olvidaste tu contraseña?
+                                    </Link>
+                                </div>
 
-                {/* Links */}
-                <div className="text-center mt-5 space-y-3">
-                    <div>
-                        <Link
-                            to="/forgot-password"
-                            className="text-sm transition-colors"
-                            style={{ color: 'var(--texto-tenue)' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'var(--oro-claro)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'var(--texto-tenue)'}
-                        >
-                            ¿Olvidaste tu contraseña?
-                        </Link>
-                    </div>
-                    <div>
-                        <Link
+                                <div className="mt-4 text-center">
+                                    <Link
+                                        to="/register"
+                                        className="text-sm font-semibold text-[#7a6849] transition-colors hover:text-[#8a611b]"
+                                    >
+                                        ¿No tienes cuenta?{' '}
+                                        <span className="font-black text-[#8a611b]">
+                                            Regístrate
+                                        </span>
+                                    </Link>
+                                </div>
+
+                                <p className="mt-8 text-center text-xs font-medium text-[#9a8a6c]">
+                                    © 2026 BankManager. Todos los derechos reservados.
+                                </p>
+                            </div>
+                        </div>
                             to="/register"
                             className="text-sm transition-colors"
                             style={{ color: 'var(--texto-tenue)' }}
@@ -143,6 +99,32 @@ const AuthPage = () => {
                         © 2025 BankManager. Todos los derechos reservados.
                     </p>
                 </div>
+=======
+                <div className="mt-6 text-center">
+                    <Link
+                        to="/forgot-password"
+                        className="text-sm font-semibold text-[#7a6849] transition-colors hover:text-[#8a611b]"
+                    >
+                        ¿Olvidaste tu contraseña?
+                    </Link>
+                </div>
+
+                <div className="mt-4 text-center">
+                    <Link
+                        to="/register"
+                        className="text-sm font-semibold text-[#7a6849] transition-colors hover:text-[#8a611b]"
+                    >
+                        ¿No tienes cuenta?{' '}
+                        <span className="font-black text-[#8a611b]">
+                            Regístrate
+                        </span>
+                    </Link>
+                </div>
+
+                <p className="mt-8 text-center text-xs font-medium text-[#9a8a6c]">
+                    © 2026 BankManager. Todos los derechos reservados.
+                </p>
+>>>>>>> 59ccc5e4a4022aba6b21481ac50937243189c611
             </div>
         </div>
     )
