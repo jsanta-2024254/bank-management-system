@@ -31,7 +31,7 @@ const AccountCard = ({ account, onPress }) => {
       <View style={styles.cardHeader}>
         <View style={styles.cardHeaderLeft}>
           <View style={styles.iconWrapper}>
-            <Ionicons name={icon} size={20} color={COLORS.white} />
+            <Ionicons name={icon} size={20} color={COLORS.accentDark} />
           </View>
           <View>
             <Text style={styles.cardType}>{label}</Text>
@@ -39,18 +39,9 @@ const AccountCard = ({ account, onPress }) => {
           </View>
         </View>
 
-        <View style={[
-          styles.statusBadge,
-          { backgroundColor: isActive ? 'rgba(15,157,107,0.25)' : 'rgba(192,57,43,0.25)' },
-        ]}>
-          <View style={[
-            styles.statusDot,
-            { backgroundColor: isActive ? COLORS.success : COLORS.error },
-          ]} />
-          <Text style={[
-            styles.statusText,
-            { color: isActive ? COLORS.success : COLORS.error },
-          ]}>
+        <View style={styles.statusBadge}>
+          <View style={[styles.statusDot, { backgroundColor: isActive ? COLORS.accent : COLORS.border }]} />
+          <Text style={[styles.statusText, { color: COLORS.textSecondary }] }>
             {isActive ? 'Activa' : 'Inactiva'}
           </Text>
         </View>
@@ -62,8 +53,7 @@ const AccountCard = ({ account, onPress }) => {
 
       {/* Pie */}
       <View style={styles.cardFooter}>
-        <Text style={styles.cardFooterText}>Ver movimientos</Text>
-        <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.7)" />
+        <Text style={styles.cardFooterText}>Ver movimientos →</Text>
       </View>
     </TouchableOpacity>
   );
@@ -105,17 +95,17 @@ const AccountsScreen = ({ navigation }) => {
   return (
     <View style={COMMON_STYLES.container}>
 
-      {/* Banner / Greeting */}
+      {/* Header: pantalla blanca con título y saludo */}
       <View style={styles.headerBanner}>
         <View style={styles.headerTopRow}>
           <View>
+            <Text style={styles.screenTitle}>Mis cuentas</Text>
             <Text style={styles.greeting}>Hola, {firstName} 👋</Text>
-            <Text style={styles.headerSub}>Aquí están tus cuentas</Text>
           </View>
           <ProfileMenu />
         </View>
 
-        {/* Resumen rápido sigue igual */}
+        {/* Resumen: card blanca con borde sutil */}
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryValue}>{accounts.length}</Text>
@@ -123,7 +113,7 @@ const AccountsScreen = ({ navigation }) => {
           </View>
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>
+            <Text style={styles.summaryValueAlt}>
               {formatCurrency(accounts.reduce((sum, a) => sum + (a.saldo || 0), 0))}
             </Text>
             <Text style={styles.summaryLabel}>Saldo total</Text>
@@ -166,20 +156,21 @@ const AccountsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   // Header
   headerBanner: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.background,
     paddingHorizontal: THEME.spacing.lg,
-    paddingTop: 48,
-    paddingBottom: 28,
+    paddingTop: THEME.spacing.lg + 8,
+    paddingBottom: THEME.spacing.md,
+  },
+  screenTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.primary,
+    marginBottom: 6,
   },
   greeting: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.white,
-  },
-  headerSub: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 4,
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
   },
     headerTopRow: {
     flexDirection: 'row',
@@ -191,34 +182,35 @@ const styles = StyleSheet.create({
   // Resumen rápido
   summaryRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: THEME.borderRadius.lg,
+    backgroundColor: COLORS.surface,
+    borderRadius: THEME.borderRadius.xl,
     paddingVertical: 14,
     paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginTop: THEME.spacing.md,
   },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryDivider: {
     width: 1,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: COLORS.border,
     marginVertical: 2,
   },
-  summaryValue: { fontSize: 18, fontWeight: '700', color: COLORS.white },
-  summaryLabel: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  summaryValue: { fontSize: 18, fontWeight: '700', color: COLORS.primary },
+  summaryValueAlt: { fontSize: 18, fontWeight: '700', color: COLORS.primary },
+  summaryLabel: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
 
   // Lista
   list: { padding: THEME.spacing.lg, paddingBottom: 40 },
 
   // Tarjeta de cuenta
   card: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.surface,
     borderRadius: THEME.borderRadius.xl,
     padding: THEME.spacing.lg,
     marginBottom: 16,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -228,24 +220,24 @@ const styles = StyleSheet.create({
   },
   cardHeaderLeft: { flexDirection: 'row', alignItems: 'center' },
   iconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    width: 44,
+    height: 44,
+    borderRadius: THEME.borderRadius.round,
+    backgroundColor: COLORS.primarySurface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   cardType: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '500',
+    color: COLORS.textSecondary,
+    fontWeight: '600',
   },
   cardNumber: {
     fontSize: 15,
-    color: COLORS.white,
-    fontWeight: '600',
-    letterSpacing: 1,
+    color: COLORS.text,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     marginTop: 2,
   },
 
@@ -253,28 +245,27 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: THEME.borderRadius.round,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
   },
-  statusText: { fontSize: 12, fontWeight: '700' },
+  statusText: { fontSize: 12, fontWeight: '600' },
 
   // Saldo
   balanceLabel: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.65)',
+    color: COLORS.textSecondary,
     marginBottom: 4,
   },
   balance: {
     fontSize: 32,
     fontWeight: '800',
-    color: COLORS.white,
+    color: COLORS.primary,
     letterSpacing: -0.5,
   },
 
@@ -284,13 +275,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.15)',
-    paddingTop: 12,
+    paddingTop: 6,
   },
   cardFooterText: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.75)',
+    color: COLORS.textSecondary,
     marginRight: 4,
   },
 
