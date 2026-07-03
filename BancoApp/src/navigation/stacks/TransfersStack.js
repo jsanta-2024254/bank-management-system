@@ -13,7 +13,16 @@ const TransfersStack = () => (
     headerTintColor: COLORS.white,
     headerTitleStyle: { fontWeight: '700' },
   }}>
-    <Stack.Screen name="Transfer"        component={TransferScreen}        options={{ title: 'Nueva transferencia' }} />
+    <Stack.Screen 
+      name="Transfer"        
+      component={TransferScreen}        
+      options={{ 
+        title: 'Nueva transferencia',
+        headerStyle: { backgroundColor: COLORS.background },
+        headerTintColor: COLORS.primary,
+        headerTitleStyle: { fontWeight: '700', color: COLORS.primary },
+      }} 
+    />
     <Stack.Screen name="TransferConfirm" component={TransferConfirmScreen} options={{ title: 'Confirmar transferencia' }} />
     <Stack.Screen name="TransferSuccess" component={TransferSuccessScreen} options={{ headerShown: false }} />
   </Stack.Navigator>

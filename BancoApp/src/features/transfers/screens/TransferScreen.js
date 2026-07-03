@@ -98,7 +98,7 @@ const TransferScreen = ({ navigation, route }) => {
             </View>
             <Text style={styles.accountBalance}>{formatCurrency(acc.saldo)}</Text>
             {selectedAccount?._id === acc._id && (
-              <Ionicons name="checkmark-circle" size={22} color={COLORS.primary} style={{ marginLeft: 8 }} />
+              <Ionicons name="checkmark-circle" size={22} color={COLORS.accentDark} style={{ marginLeft: 8 }} />
             )}
           </TouchableOpacity>
         ))}
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     padding: 14, marginBottom: 10,
     borderWidth: 1.5, borderColor: COLORS.border,
   },
-  accountOptionSelected: { borderColor: COLORS.primary, backgroundColor: COLORS.primarySurface },
+  accountOptionSelected: { borderColor: COLORS.accent, backgroundColor: COLORS.accentSurface },
   accountType: { fontSize: 12, color: COLORS.textSecondary },
   accountNumber: { fontSize: 15, fontWeight: '600', color: COLORS.text, marginTop: 2 },
   accountBalance: { fontSize: 15, fontWeight: '700', color: COLORS.primary },
@@ -196,9 +196,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: COLORS.border,
     alignItems: 'center', backgroundColor: COLORS.surface,
   },
-  typeBtnActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primarySurface },
+  typeBtnActive: { borderColor: COLORS.accent, backgroundColor: COLORS.accentSurface },
   typeBtnText: { fontSize: 14, fontWeight: '500', color: COLORS.textSecondary },
-  typeBtnTextActive: { color: COLORS.primary, fontWeight: '700' },
+  typeBtnTextActive: { color: COLORS.accentDark, fontWeight: '700' },
 });
 
 export default TransferScreen;
