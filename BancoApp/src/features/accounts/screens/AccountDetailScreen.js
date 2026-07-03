@@ -383,8 +383,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   chipActive: {
-    backgroundColor: COLORS.primarySurface,
-    borderColor: COLORS.primaryLight,
+    backgroundColor: COLORS.accentSurface,
+    borderColor: COLORS.accent,
   },
   chipText: {
     fontSize: 13,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   chipTextActive: {
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     fontWeight: '700',
   },
 
