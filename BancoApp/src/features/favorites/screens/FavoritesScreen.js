@@ -153,10 +153,13 @@ const FavoritesScreen = ({ navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} colors={[COLORS.primary]} />}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('AddFavorite')} activeOpacity={0.85}>
-            <Ionicons name="add-circle" size={22} color={COLORS.white} />
-            <Text style={styles.addBtnText}>Agregar cuenta favorita</Text>
-          </TouchableOpacity>
+          <>
+            <Text style={styles.screenTitle}>Cuentas favoritas</Text>
+            <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('AddFavorite')} activeOpacity={0.85}>
+              <Ionicons name="add-circle" size={22} color={COLORS.white} />
+              <Text style={styles.addBtnText}>Agregar cuenta favorita</Text>
+            </TouchableOpacity>
+          </>
         }
         ListEmptyComponent={
           <View style={[COMMON_STYLES.center, { marginTop: 60 }]}>
@@ -294,9 +297,10 @@ const FavoritesScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   list: { padding: THEME.spacing.lg, paddingBottom: 40 },
+  screenTitle: { fontSize: 20, fontWeight: '800', color: COLORS.primary, marginBottom: 16 },
   addBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.primaryLight, borderRadius: 12,
+    backgroundColor: COLORS.accent, borderRadius: 50,
     padding: 14, marginBottom: 20, gap: 8,
   },
   addBtnText: { color: COLORS.white, fontSize: 15, fontWeight: '600' },
@@ -312,7 +316,7 @@ const styles = StyleSheet.create({
     width: 46, height: 46, borderRadius: 23,
     backgroundColor: COLORS.primarySurface, justifyContent: 'center', alignItems: 'center',
   },
-  avatarText: { fontSize: 20, fontWeight: '700', color: COLORS.primary },
+  avatarText: { fontSize: 20, fontWeight: '700', color: COLORS.accentDark },
   alias: { fontSize: 15, fontWeight: '600', color: COLORS.text },
   accountInfo: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
   saldo: { fontSize: 13, fontWeight: '600', color: COLORS.primary, marginTop: 2 },
@@ -339,9 +343,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: COLORS.border,
     alignItems: 'center', backgroundColor: COLORS.surface,
   },
-  typeBtnActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primarySurface },
+  typeBtnActive: { borderColor: COLORS.accent, backgroundColor: COLORS.accentSurface },
   typeBtnText: { fontSize: 13, fontWeight: '500', color: COLORS.textSecondary },
-  typeBtnTextActive: { color: COLORS.primary, fontWeight: '700' },
+  typeBtnTextActive: { color: COLORS.accentDark, fontWeight: '700' },
   typeBtnSaldo: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
 });
 
