@@ -7,6 +7,7 @@ import TransfersStack from './stacks/TransfersStack';
 import FavoritesStack from './stacks/FavoritesStack';
 import DepositsStack from './stacks/DepositsStack';
 import CurrencyStack from './stacks/CurrencyStack';
+import ProductsStack from './stacks/ProductsStack';
 
 const Tab = createBottomTabNavigator();
 
@@ -16,6 +17,7 @@ const TABS = [
   { name: 'Favoritos',   icon: 'heart',            stack: FavoritesStack },
   { name: 'Depósitos',   icon: 'arrow-down-circle', stack: DepositsStack },
   { name: 'Divisas',     icon: 'cash',             stack: CurrencyStack  },
+  { name: 'Productos',   icon: 'layers',           stack: ProductsStack  },
 ];
 
 const MainTab = () => (
@@ -24,7 +26,7 @@ const MainTab = () => (
       const tab = TABS.find((t) => t.name === route.name);
       return {
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
+        tabBarActiveTintColor: COLORS.accentDark,
         tabBarInactiveTintColor: COLORS.textSecondary,
         tabBarStyle: {
           backgroundColor: COLORS.surface,

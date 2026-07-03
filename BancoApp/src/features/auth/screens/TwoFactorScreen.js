@@ -107,15 +107,15 @@ const styles = StyleSheet.create({
   icon: { fontSize: 36 },
   title: { fontSize: 22, fontWeight: '700', color: COLORS.text, marginBottom: 10, textAlign: 'center' },
   subtitle: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 6 },
-  highlight: { color: COLORS.primary, fontWeight: '600' },
+  highlight: { color: COLORS.accentDark, fontWeight: '600' },
   expiry: { fontSize: 12, color: COLORS.warning, marginBottom: 28, fontWeight: '500' },
   codeInput: {
     width: '60%', fontSize: 32, fontWeight: '700', letterSpacing: 10,
-    textAlign: 'center', borderBottomWidth: 2, borderBottomColor: COLORS.primary,
+    textAlign: 'center', borderBottomWidth: 2, borderBottomColor: COLORS.accent,
     color: COLORS.text, marginBottom: 32, paddingBottom: 8,
   },
   resendBtn: { marginTop: 20, padding: 10 },
-  resendText: { color: COLORS.primaryLight, fontSize: 14, fontWeight: '500' },
+  resendText: { color: COLORS.accentDark, fontSize: 14, fontWeight: '500' },
   resendDisabled: { color: COLORS.textSecondary },
 });
 
