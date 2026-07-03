@@ -125,7 +125,7 @@ const CurrencyScreen = () => {
             style={styles.swapBtn}
             onPress={() => { setFromCurrency(toCurrency); setToCurrency(fromCurrency); }}
           >
-            <Ionicons name="swap-vertical" size={20} color={COLORS.primary} />
+            <Ionicons name="swap-vertical" size={20} color={COLORS.accentDark} />
           </TouchableOpacity>
           <View style={styles.swapLine} />
         </View>
@@ -209,10 +209,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10,
     borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: COLORS.surface,
   },
-  currencyChipActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primarySurface },
+  currencyChipActive: { borderColor: COLORS.accent, backgroundColor: COLORS.accentSurface },
   currencyFlag: { fontSize: 16 },
   currencyCode: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary },
-  currencyCodeActive: { color: COLORS.primary },
+  currencyCodeActive: { color: COLORS.accentDark },
   swapIconRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
   swapLine: { flex: 1, height: 1, backgroundColor: COLORS.borderLight },
   swapBtn: {
