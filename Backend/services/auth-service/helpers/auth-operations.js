@@ -22,7 +22,6 @@ import { generateJWT } from './generate-jwt.js';
 import path from 'path';
 import { uploadImage } from './cloudinary-service.js';
 import { config } from '../configs/config.js';
-import nodemailer from 'nodemailer';
 import { UserTwoFactor } from '../src/users/user-model.js';
 
 const getExpirationTime = (timeString) => {
@@ -467,22 +466,22 @@ export const sendTwoFactorHelper = async (emailOrUsername) => {
       IsUsed: false,
     });
 
-    // Transporter usando las variables de tu .env
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT),
-      secure: process.env.SMTP_ENABLE_SSL === 'true',
-      auth: {
-        user: process.env.SMTP_USERNAME,
-        pass: process.env.SMTP_PASSWORD,
+    // Envío vía API HTTPS de Brevo (evita bloqueo de puertos SMTP en hosts como Render)
+    const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
       },
-    });
-
-    await transporter.sendMail({
-      from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
-      to: user.Email,
-      subject: 'Tu código de verificación 2FA',
-      html: `
+      body: JSON.stringify({
+        sender: {
+          email: process.env.EMAIL_FROM,
+          name: process.env.EMAIL_FROM_NAME,
+        },
+        to: [{ email: user.Email, name: user.Name }],
+        subject: 'Tu código de verificación 2FA',
+        htmlContent: `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
           <h2 style="color: #333;">Verificación en dos pasos</h2>
           <p>Hola <strong>${user.Name}</strong>,</p>
@@ -506,7 +505,13 @@ export const sendTwoFactorHelper = async (emailOrUsername) => {
           </p>
         </div>
       `,
+      }),
     });
+
+    if (!brevoResponse.ok) {
+      const errorBody = await brevoResponse.text().catch(() => '');
+      throw new Error(`Brevo API error (${brevoResponse.status}): ${errorBody}`);
+    }
 
     return {
       success: true,

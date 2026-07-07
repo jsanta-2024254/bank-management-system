@@ -12,13 +12,21 @@ export const config = {
     audience: process.env.JWT_AUDIENCE,
   },
 
-  // SMTP Configuration (aligned with .NET SmtpSettings)
+  // SMTP Configuration (aligned with .NET SmtpSettings) - usado solo como fallback local
   smtp: {
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT, 10) || 587,
     enableSsl: process.env.SMTP_ENABLE_SSL === 'true',
     username: process.env.SMTP_USERNAME,
     password: process.env.SMTP_PASSWORD,
+    fromEmail: process.env.EMAIL_FROM,
+    fromName: process.env.EMAIL_FROM_NAME,
+  },
+
+  // Brevo (ex-Sendinblue) - API HTTPS para envío de correos en producción.
+  // Se usa en vez de SMTP porque Render (free tier) bloquea los puertos SMTP salientes.
+  brevo: {
+    apiKey: process.env.BREVO_API_KEY,
     fromEmail: process.env.EMAIL_FROM,
     fromName: process.env.EMAIL_FROM_NAME,
   },
