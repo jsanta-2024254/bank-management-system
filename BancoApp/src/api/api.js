@@ -6,7 +6,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  timeout: 45000, // 45s: Render free tier puede tardar ~30-60s en "despertar" un servicio dormido
 });
 
 // Adjunta el JWT a cada request
