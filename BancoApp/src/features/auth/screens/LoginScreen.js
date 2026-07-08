@@ -118,11 +118,14 @@ const LoginScreen = ({ navigation }) => {
           <TouchableOpacity style={styles.forgotBtn} onPress={() => navigation.navigate('ForgotPassword')}>
             <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.forgotBtn} onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.forgotText}>¿No tienes cuenta? Regístrate</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.footer}>
-          Solo los clientes registrados pueden acceder.{'\n'}
-          Contacta a tu asesor si aún no tienes cuenta.
+          Banca móvil segura para todos nuestros clientes.
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
