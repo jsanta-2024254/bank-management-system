@@ -4,6 +4,7 @@ import {
     getAccounts,
     getMyAccounts,
     createAccount as createAccountRequest,
+    createMyAccount as createMyAccountRequest,
     updateAccount as updateAccountRequest,
     deleteAccount as deleteAccountRequest,
 } from '../../../shared/api/accounts'
@@ -134,11 +135,7 @@ const useAccountStore = create((set) => ({
         }
     },
 
-    deleteAccount: async (id) => {
-        set({ loading: true, error: null })
-
-        try {
-             fetchMyAccounts: async (userId) => {
+    fetchMyAccounts: async (userId) => {
         set({ loading: true, error: null })
         try {
             const response = await getMyAccounts(userId)
@@ -149,6 +146,11 @@ const useAccountStore = create((set) => ({
             toast.error(message)
         }
     },
+
+    deleteAccount: async (id) => {
+        set({ loading: true, error: null })
+
+        try {
             await deleteAccountRequest(id)
 
             set((state) => ({
