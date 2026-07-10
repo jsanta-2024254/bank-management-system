@@ -1,0 +1,29 @@
+{
+  "name": "bank-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo para el sistema de gestión bancaria",
+  "scripts": {
+    "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\" \"pnpm dev:mobile\" --names \"BACKEND,FRONTEND,MOBILE\" --prefix-colors \"blue,green,yellow\"",
+    "dev:backend": "cd Backend && docker-compose up",
+    "dev:backend:detached": "cd Backend && docker-compose up -d",
+    "dev:frontend": "pnpm --filter \"./Frontend\" dev",
+    "dev:mobile": "pnpm --filter \"./BancoApp\" start",
+    "dev:web": "concurrently \"pnpm dev:backend:detached\" \"pnpm dev:frontend\" --names \"BACKEND,FRONTEND\" --prefix-colors \"blue,green\"",
+    "down:backend": "cd Backend && docker-compose down",
+    "logs:backend": "cd Backend && docker-compose logs -f",
+    "build": "pnpm --filter \"./Frontend\" build && pnpm --filter \"./BancoApp\" build",
+    "build:frontend": "pnpm --filter \"./Frontend\" build",
+    "build:mobile": "pnpm --filter \"./BancoApp\" build",
+    "lint": "pnpm --filter \"./Frontend\" lint",
+    "clean": "pnpm down:backend && pnpm --filter \"./Frontend\" clean && pnpm --filter \"./BancoApp\" clean",
+    "install:all": "pnpm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
